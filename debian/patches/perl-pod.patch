@@ -1,0 +1,30 @@
+Description: POD fixes
+ - fix a typo
+ - add a NAME section, used as the whatis part in the man page
+Origin: vendor
+Forwarded: not-yet
+Author: gregor herrmann <gregoa@debian.org>
+Last-Update: 2020-06-20
+
+--- a/px2_configure.pl
++++ b/px2_configure.pl
+@@ -779,6 +779,10 @@
+ 
+ __END__
+ 
++=head1 NAME
++
++px2_configure.pl - deploy and configure PX2
++
+ =head1 SYNOPSIS
+ 
+ px2_configure.pl COMMAND [ARGUMENTS]
+@@ -902,7 +906,7 @@
+ 
+ The device list file contains a list of PX2 devices in CSV format. It could
+ e.g. be exported from an inventory spreadsheet. Each device line contains five
+-or six fields, seperated by commas:
++or six fields, separated by commas:
+ 
+ =over
+ 

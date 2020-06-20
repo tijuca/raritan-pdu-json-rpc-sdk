@@ -56,3 +56,20 @@ Description: Documentation for Raritan JSON-RPC SDK
  .
  The SDK documentation can be accessed by open the file
  /usr/share/doc/raritan-json-rpc-doc/html/index.html.
+
+Package: libraritan-rpc-perl
+Section: perl
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${perl:Depends},
+ liberror-perl,
+ libhttp-message-perl,
+ libjson-perl,
+ libjson-rpc-common-perl,
+ liblwp-protocol-https-perl,
+ libwww-perl,
+Description: Perl module for the Raritan JSON-RPC interface
+ Raritan::RPC and the other modules in this package provide the Perl bindings
+ for interacting with the JSON-RPC interface of Raritan PDU product series
+ PX2, PX3, BCM and EMX.

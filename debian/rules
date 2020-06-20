@@ -25,6 +25,9 @@ override_dh_install:
 	## Rename perl script
 	mv --verbose $(CURDIR)/debian/libraritan-rpc-perl/usr/bin/px2_configure.pl \
 		$(CURDIR)/debian/libraritan-rpc-perl/usr/bin/px2_configure \
+	## ... and change its name in the documentation as well
+	sed -i -e 's/px2_configure\.pl/px2_configure/g' $(CURDIR)/debian/libraritan-rpc-perl/usr/bin/px2_configure \
+		$(CURDIR)/debian/px2_configure.1p
 
 override_dh_fixperms:
 	dh_fixperms

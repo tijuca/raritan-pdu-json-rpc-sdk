@@ -1,0 +1,3 @@
+# we are a library, and have a handy command line tool
+libraritan-rpc-perl: application-in-library-section perl usr/bin/px2_configure
+libraritan-rpc-perl: library-package-name-for-application usr/bin/px2_configure

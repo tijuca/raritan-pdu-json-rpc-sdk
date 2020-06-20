@@ -3,3 +3,7 @@
 # and can be mostly read rather easily.
 raritan-json-rpc-sdk source: source-is-missing html/menu.js *
 raritan-json-rpc-sdk source: source-is-missing html/search/*.js *
+
+# While "needs-recommends" is indeed kind of obsolete,
+# we keep it until a successor mechanism is available.
+raritan-json-rpc-sdk source: obsolete-runtime-tests-restriction needs-recommends in line *

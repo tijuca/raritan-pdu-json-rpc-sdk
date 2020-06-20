@@ -20,6 +20,12 @@ override_dh_auto_build:
 	## Create manpage for perl script
 	pod2man --utf8  --section 1p --name px2_configure $(CURDIR)/px2_configure.pl > $(CURDIR)/debian/px2_configure.1p
 
+override_dh_install:
+	dh_install
+	## Rename perl script
+	mv --verbose $(CURDIR)/debian/libraritan-rpc-perl/usr/bin/px2_configure.pl \
+		$(CURDIR)/debian/libraritan-rpc-perl/usr/bin/px2_configure \
+
 override_dh_fixperms:
 	dh_fixperms
 	find debian/raritan-json-rpc-doc/usr/share/doc/raritan-json-rpc-doc/examples -type f -exec chmod 644 {} \;

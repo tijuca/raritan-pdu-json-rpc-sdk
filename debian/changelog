@@ -1,0 +1,7 @@
+raritan-json-rpc-sdk (3.6.0+ds1-1~exp1) unstable; urgency=medium
+
+  * [38fcd73] New upstream version 3.6.0+ds1
+  * [87ff8e6] Basic Debianisation
+    Closes: #963237
+
+ -- Carsten Schoenert <c.schoenert@t-online.de>  Sat, 27 Jun 2020 19:52:45 +0200

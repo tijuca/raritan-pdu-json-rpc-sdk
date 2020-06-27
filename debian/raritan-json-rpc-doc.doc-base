@@ -1,0 +1,12 @@
+Document: raritan-json-rpc-doc
+Title: Documentation of Raritan JSON RPC SDK
+Author: Raritan Inc.
+Abstract: SDK Documentation about the JSON RPC implementation for the product
+ series PX2, PX3, BCM and EMX.
+Section: Help/HOWTO
+
+Format: HTML
+Index: /usr/share/doc/raritan-json-rpc-doc/html/index.html
+Files: /usr/share/doc/raritan-json-rpc-doc/html/*.html
+       /usr/share/doc/raritan-json-rpc-doc/html/*.png
+       /usr/share/doc/raritan-json-rpc-doc/html/search/*.png

@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+include /usr/share/dpkg/pkg-info.mk
+
+export PYBUILD_DESTDIR_python3=debian/python3-raritan-json-rpc
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_clean:
+	dh_clean
+	rm -rf pdu-python-api/raritan_json_rpc.egg-info
+
+override_dh_fixperms:
+	dh_fixperms
+	find debian/raritan-json-rpc-doc/usr/share/doc/raritan-json-rpc-doc/examples -type f -exec chmod 644 {} \;
+
+override_dh_compress:
+	## Don't compress some text files, they are referenced within the HTML files.
+	dh_compress -X Well-Known-URIs.txt -X Changelog.txt

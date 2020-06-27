@@ -1,0 +1,4 @@
+html                 usr/share/doc/raritan-json-rpc-doc
+Well-Known-URIs.txt  usr/share/doc/raritan-json-rpc-doc/html
+Changelog.txt        usr/share/doc/raritan-json-rpc-doc/html
+LuaPLC_Examples/*    usr/share/doc/raritan-json-rpc-doc/examples/lua

@@ -1,0 +1,7 @@
+luaservice_client.py
+px2_bulk_password_change.py
+px2_bulk_update.py
+px2_shell.py
+python-idl-example.py
+python-json-rpc-demo.py
+sensor_log_receiving_service.py

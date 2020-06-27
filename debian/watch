@@ -1,0 +1,7 @@
+# See uscan(1) for format
+
+# Compulsory line, this is a version 4 file
+version=4
+
+opts="dversionmangle=s/\+ds(\.?\d+)?$//" \
+  https://www.raritan.com/support/product/px3/ .*version-(\d\.\d)\.(\d|\d\d)/pdu-json-rpc-sdk-.*.zip

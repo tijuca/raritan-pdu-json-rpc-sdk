@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+
+'''
+Really simple test to see if the raritan package can be imported.
+Right now there are no additional functional tests. If you can provide some
+usefull tests here please provide your suggestions via the BTS.
+
+'''
+
+import raritan
+
+print()
+print('Package Description  (raritan.version.__description__): {}'.format(raritan.version.__description__))
+print('SDK Author                (raritan.version.__author__): {}'.format(raritan.version.__author__))
+print('SDK Contact information    (raritan.version.__email__): {}'.format(raritan.version.__email__))
+print('SDK License              (raritan.version.__license__): {}'.format(raritan.version.__license__))
+print('SDK Upstream information     (raritan.version.__url__): {}'.format(raritan.version.__url__))
+print('SDK Status                (raritan.version.__status__): {}'.format(raritan.version.__status__))
+print()
+
+print('SDK Version          (raritan.version.__sdk_version__): {}'.format(raritan.version.__sdk_version__))
+print('SDK Subversion    (raritan.version.__sdk_subversion__): {}'.format(raritan.version.__sdk_subversion__))
+print('Build version              (raritan.version.__build__): {}'.format(raritan.version.__build__))
+print()

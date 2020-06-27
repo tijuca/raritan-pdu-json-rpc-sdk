@@ -1,0 +1,70 @@
+From: Carsten Schoenert <c.schoenert@t-online.de>
+Date: Sun, 2 Jun 2019 21:07:08 +0200
+Subject: Adding a setup.py file
+
+---
+ setup.py | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+ create mode 100644 setup.py
+
+diff --git a/setup.py b/setup.py
+new file mode 100644
+index 0000000..5ee3fa4
+--- /dev/null
++++ b/setup.py
+@@ -0,0 +1,55 @@
++import codecs
++import os
++
++from setuptools import setup, find_packages
++
++long_desc = '''
++Raritan Python client library for JSON-RPC interface
++
++This Python library includes the JSON-RPC inferface for interacting with
++the PDU models PX2, PX3 BCM and EMX from Raritan and is usable with
++Python3.
++
++The interface gives you the possibility to request current live data from an
++pdu and their sensors but also to set up various data like SMTP, NTP, system
++and asset data.
++'''
++
++# https://packaging.python.org/single_source_version/
++base_dir = os.path.abspath(os.path.dirname(__file__))
++about = {}
++with open(os.path.join(base_dir, "pdu-python-api/raritan", "version.py"), "rb") as f:
++    exec(f.read(), about)
++
++# currently not used
++def read(fname):
++    return codecs.open(os.path.join(base_dir, fname), encoding="utf-8").read()
++
++setup(
++      name             = 'raritan-json-rpc',
++      version          = '{}.{}'.format(about['__sdk_version__'], about['__sdk_subversion__']),
++      description      = about['__description__'],
++      long_description = long_desc,
++      license          = about['__license__'],
++      author           = about['__author__'],
++      author_email     = about['__email__'],
++      classifiers = [
++          about['__status__'],
++          'License :: OSI Approved :: {}'.format(about['__license__'],),
++          'Natural Language :: English',
++          'Operating System :: OS Independent',
++          'Programming Language :: Python :: 3.4',
++          'Programming Language :: Python :: 3.5',
++          'Programming Language :: Python :: 3.6',
++          'Programming Language :: Python :: 3.7',
++          'Programming Language :: Python :: 3.8',
++          'Topic :: Utilities',
++      ],
++      keywords    = 'Raritan BCM EMX PX2 PX3 JSON-RPC',
++      url         = about['__url__'],
++      packages    = find_packages('pdu-python-api'),
++      platforms   = 'any',
++      package_dir = {'': 'pdu-python-api'},
++      install_requires = [
++          'uritools'
++      ])

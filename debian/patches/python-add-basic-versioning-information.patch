@@ -1,0 +1,58 @@
+From: Carsten Schoenert <c.schoenert@t-online.de>
+Date: Sat, 1 Jun 2019 18:39:21 +0200
+Subject: python: add basic versioning information
+
+---
+ pdu-python-api/raritan/__init__.py | 25 +++++++++++++++++++++++++
+ pdu-python-api/raritan/version.py  | 12 ++++++++++++
+ 2 files changed, 37 insertions(+)
+ create mode 100644 pdu-python-api/raritan/version.py
+
+diff --git a/pdu-python-api/raritan/__init__.py b/pdu-python-api/raritan/__init__.py
+index e69de29..7055b7a 100644
+--- a/pdu-python-api/raritan/__init__.py
++++ b/pdu-python-api/raritan/__init__.py
+@@ -0,0 +1,25 @@
++# -*- coding: utf-8 -*-
++
++# SPDX-License-Identifier: BSD-3-Clause
++#
++# Copyright 2015-2020 Raritan Inc. All rights reserved.
++
++'''
++Raritan JSON-RPC library
++'''
++
++# Importing various data from version.py
++from .version import __author__
++from .version import __build__
++from .version import __description__
++from .version import __email__
++from .version import __license__
++from .version import __url__
++from .version import __status__
++from .version import __sdk_version__
++from .version import __sdk_subversion__
++
++__sdk_version_string__ = u'{}.{} ({})'.format(__sdk_version__, __sdk_subversion__, __build__)
++__sdk_release__        = u'{}.{})'.format(__sdk_version__, __sdk_subversion__)
++__sdk_fullversion__    = u'{}.{}-{}'.format(__sdk_version__, __sdk_subversion__, __build__)
++__copyright__          = u'Copyright (c) 2009-2020 {} <{}>'.format(__author__, __email__)
+diff --git a/pdu-python-api/raritan/version.py b/pdu-python-api/raritan/version.py
+new file mode 100644
+index 0000000..db2968e
+--- /dev/null
++++ b/pdu-python-api/raritan/version.py
+@@ -0,0 +1,12 @@
++# volatile variables depending on release
++__sdk_version__    = '3.6'
++__sdk_subversion__ = '0'
++__build__          = '46486'
++
++# static variables
++__author__      = 'Raritan Inc.'
++__description__ = 'Raritan JSON-RPC library for product series PX2, PX3, BCM and EMX'
++__email__       = 'tech@raritan.com'
++__license__     = 'BSD-3-clause'
++__url__         = 'https://www.raritan.com/support/product/px3'
++__status__      = '5 - Production/Stable'

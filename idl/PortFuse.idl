@@ -1,0 +1,51 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PORTSMODEL_PORT_FUSE_IDL__
+#define __PORTSMODEL_PORT_FUSE_IDL__
+
+#include <Event.idl>
+
+/**
+ * Ports
+ */
+module portsmodel {
+    /**
+     * Interface describing a controllable fuse for a device port */
+    interface PortFuse {
+	/** Status type for port fuse */
+	enumeration Status {
+	    UNKNOWN,		///< Status can't be determined
+	    TRIPPED,		///< Fuse is open (tripped)
+	    GOOD		///< Fuse is closed (good)
+	};
+
+	/** Event: The state of the fuse has changed */
+	valueobject StatusChangedEvent extends idl.Event {
+	    Status oldStatus;	///< Previous fuse status
+	    Status newStatus;	///< Current (new) fuse status
+	};
+
+	/**
+	 * Get the current status of the fuse
+	 *
+	 * @return Current fuse status
+	 */
+	Status getStatus();
+
+	/**
+	 * Attempt a fuse reset
+	 *
+	 * Tries to recover the fuse from tripped state. When calling
+	 * this after correcting the previous short circuit condition,
+	 * the fuse should transition into 'good' state again. If the
+	 * short circuit condition is still present, this operation
+	 * is a no-op.
+	 */
+	void reset();
+    };
+}
+
+#endif /* __PORTSMODEL_PORT_FUSE_IDL__ */

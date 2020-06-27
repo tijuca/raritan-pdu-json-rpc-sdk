@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/** Local and Remote Authentication Management */
+module auth {
+
+    /** Authentication type */
+    enumeration Type {
+	LOCAL,         ///< local authentication
+	RADIUS,        ///< authentication via radius server
+	KERBEROS,      ///< authentication with kerberos tickets (not implemented)
+	TACACS_PLUS,   ///< authentication via TACACS+ (not implemented)
+	LDAP           ///< authentication via LDAP server
+    };
+
+    /** Authentication policy */
+    structure Policy {
+	auth.Type type;			///< Authentication type
+	boolean useLocalIfRemoteFailed;	///< Fall back to local authentication if remote authentication fails
+    };
+
+    /** Authentication manager interface */
+    interface AuthManager {
+
+	constant int ERR_UNSUPPORTED_TYPE = 1; ///< Unsupported authentication type
+	
+	/**
+	 * Gets a policy.
+	 *
+	 * @return a Policy object
+	 */
+	Policy getPolicy();
+
+	/**
+	 * Sets a policy.
+	 *
+	 * @return 0 on success
+	 * @return 1 in case authentication type is not supported
+	 */
+	int setPolicy(in Policy p);
+	
+    };
+
+}

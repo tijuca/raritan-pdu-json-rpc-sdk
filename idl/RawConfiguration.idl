@@ -1,0 +1,32 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+/** Raw Configuration */
+module rawcfg {
+
+    /** Raw Configuration Interface */
+    interface RawConfiguration {
+
+	/** Status of the last raw configuration update operation */
+	enumeration Status {
+	    UNKNOWN,		///< No raw configuration was done yet
+	    UPLOAD_FAILED,	///< Uploading a raw configuration failed
+	    UPDATE_PENDING,	///< Update is pending
+	    UPDATE_OK,		///< Updating raw configuration successful
+	    UPDATE_FAILED	///< Updating raw configuration failed
+	};
+
+	/**
+	 * Retrieve the status of the last raw configuration update
+	 * operation.
+	 *
+	 * @param status     Result: Raw configuration update status
+	 * @param timeStamp  Result: Time of last update operation
+	 */
+	void getStatus(out Status status, out time timeStamp);
+
+    };
+
+}

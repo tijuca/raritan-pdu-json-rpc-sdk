@@ -1,0 +1,77 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_ADE_IDL__
+#define __PDUMODEL_ADE_IDL__
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Interface for ADE chips directly connected to main controller */
+    interface Ade {
+
+	/** ADE metadata */
+	structure MetaData {
+	    string adeType;		///< ADE chip model
+	    int channels;		///< Number of channels
+	    double currentDivider;	///< Divider for converting raw readings to Amperes
+	    double voltageDivider;	///< Divider for converting raw readings to Volts
+	    double energyDivider;	///< Divider for converting raw readings to Wh/VAh
+	};
+
+	/** Raw sample data for a single channel */
+	structure Sample {
+	    long vrms;			///< RMS voltage
+	    long irms;			///< RMS current
+	    long watt;			///< Active power
+	    long va;			///< Apparent power
+	    long wh;			///< Active energy (for this sample)
+	    long vah;			///< Apparent energy (for this sample)
+	};
+
+	/** Map of ADE register values */
+	typedef map<string, long> RegisterMap;
+
+	/**
+	 * Retrieve the ADE metadata.
+	 *
+	 * @return ADE metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the latest raw samples.
+	 *
+	 * @return Vector of samples, one for each channel
+	 */
+	vector<Sample> getLatestSample();
+
+	/**
+	 * Retrieve the values of all supported calibration registers.
+	 *
+	 * @return Map of calibration register values
+	 */
+	RegisterMap getCalibrationData();
+
+	/**
+	 * Set new values for some or all calibration registers.
+	 *
+	 * @note This command is only available during manufacturing!
+	 *
+	 * @param regs  Map of new calibration register values
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 * @return 2 if the device is not in factory configuration mode
+	 */
+	int setCalibrationData(in RegisterMap regs);
+
+    };
+
+}
+
+#endif

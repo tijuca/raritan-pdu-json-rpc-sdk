@@ -1,0 +1,68 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SENSORMODEL_STATESENSOR_IDL__
+#define __SENSORMODEL_STATESENSOR_IDL__
+
+#include <Event.idl>
+#include <Sensor.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /**
+     * Sensor with discrete readings
+     *
+     * Sensor states are represented as a numerical field in the State
+     * structure. The interpretation of this value depends on the sensor
+     * type which can be queried with the getTypeSpec() method.
+     *
+     * Mappings for typical sensor types are:
+     *
+     * | Sensor Type         | States                |
+     * |---------------------|-----------------------|
+     * | CONTACT_CLOSURE     | normal(0), alarmed(1) |
+     * | ON_OFF_SENSOR       | off(0), on(1)         |
+     * | TRIP_SENSOR         | open(0), close(1)     |
+     * | VIBRATION           | normal(0), alarmed(1) |
+     * | WATER_LEAK          | normal(0), alarmed(1) |
+     * | SMOKE_DETECTOR      | normal(0), alarmed(1) |
+     * | FAULT_STATE         | OK(0), fault(1)       |
+     * | OCCUPANCY           | normal(0), alarmed(1) |
+     * | TAMPER              | normal(0), alarmed(1) |
+     * | DOOR_LOCKSTATE      | open(0), close(1)     |
+     * | DOORHANDLE_LOCK     | open(0), close(1)     |
+     * | DOORHANDLE_SWITCH   | open(0), close(1)     |
+     *
+     * For some special sensors there are constants defining the possible
+     * state values, for instance in PowerQualitySensor.idl or
+     * ResidualCurrentStateSensor.idl.
+     */
+    interface StateSensor_4_0_3 extends Sensor_4_0_3 {
+
+	/** Sensor state */
+	structure State {
+	    time timestamp;	///< Timestamp of last sample
+	    boolean available;	///< \c true if the sensor is available
+	    int value;		///< Discrete sensor value; intrepretation depends on the type of sensor
+	};
+
+        valueobject StateChangedEvent extends idl.Event {
+            State oldState;
+            State newState;
+        };
+
+	/**
+	 * Get the sensor state.
+	 *
+	 * @return Sensor state
+	 */
+	State getState();
+
+    };
+
+}
+
+#endif

@@ -1,0 +1,209 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __EVENT_SERVICE_IDL__
+#define __EVENT_SERVICE_IDL__
+
+#include<Event.idl>
+
+/** Event interface */
+module event {
+
+    /// @cond
+    /**
+     * Consumer interface is for event consumers that want to be
+     * called back in case new events have occured. Subscription
+     * with this interface happens in Channel interface.
+     * Note that this interface cannot be used over transports that 
+     * do not support callbacks.
+     *
+     * Not available via JSON-RPC.
+     */
+    interface Consumer {
+
+	/**
+	 * This method is called by EventService to notify Consumer
+	 * about new events. Consumer is not supposed to block this
+	 * function but return immidiately. Policy of how often and
+	 * with how many events this method is called is up to the
+	 * EventService Implementation.
+	 */
+	void pushEvents(in vector<idl.Event> events);
+	
+    };
+    /// @endcond
+
+    /** Event Channel */
+    interface Channel_1_0_1 {
+
+	/* --- filter interface --- */
+
+        /**
+         * Subscribe for events of a given type.
+         *
+         * @param evttype typecode of valueobject of demanded event
+         */
+        void demandEventType(in typecode type);
+
+	/**
+         * Cancel the subscription for events of a given type.
+         *
+         * @param evttype typecode of valueobject of demanded event
+         */
+        void cancelEventType(in typecode type);
+
+        /**
+         * Subscribe for multiple event types at once.
+         *
+         * @param evttypes  List of event typecodes
+         */
+        void demandEventTypes(in vector<typecode> types);
+
+        /**
+         * Cancel subscription for events that are of any of given types.
+         *
+         * @param evttypes  List of event typecodes
+         */
+        void cancelEventTypes(in vector<typecode> types);
+
+        /**
+         * Subscribe for events that are of given type and emitted by a
+         * specific object instance.
+         *
+         * @param evttype  %Event typecode
+         * @param src      %Event source instance
+         */
+        void demandEvent(in typecode type, in Object src);
+
+        /**
+         * Cancel the subscription for events that are of given type and
+         * emitted by a specific object instance.
+         *
+         * @param evttype  %Event typecode
+         * @param src      %Event source instance
+         */
+        void cancelEvent(in typecode type, in Object src);
+
+	/**
+	 * Structure to select an Event *
+	 */
+	structure EventSelect {
+	    typecode type;
+	    Object src;
+	};
+	
+        /**
+         * Subscribe for multiple specific events at once.
+         *
+         * @param events  List of typecodes to subscribe for
+         */
+        void demandEvents(in vector<EventSelect> events);
+
+        /**
+         * Cancel the subscription for multiple specific events.
+         *
+         * @param events  List of typecodes to unsubscribe from 
+         */
+        void cancelEvents(in vector<EventSelect> events);
+	
+
+	/// @cond
+	/* --- push interface --- */
+
+	/**
+	 * Subsribe for push notifications from EventService.
+	 *
+	 * Not available via JSON-RPC.
+	 *
+	 * @param consumer interface on which subscriber is called back.
+	 */
+	void subscribe(in Consumer consumer);
+
+	/**
+	 * Unsubscribe from  push notifications from EventService.
+	 *
+	 * Not available via JSON-RPC.
+	 *
+	 * @param consumer interface which was used for the subscription.
+	 * @return 0 if OK
+	 *         1 if consumer is unknown to channel
+	 */
+	int unsubscribe(in Consumer consumer);
+	/// @endcond
+
+	
+	/* --- poll interface --- */
+
+	/**
+	 * Poll for new events blockingly.
+	 *
+	 * This method will block in case the queue is empty. It will return
+	 * as soon as at least one event is available, or after a maximum
+	 * wait time of 30 seconds.
+	 *
+	 * The method will not return more than an implementation-defined
+	 * maximum number of events. The boolean return value indicates
+	 * whether there are more events in the queue.
+	 *
+	 * @param events List of new events
+	 * @return \c true if there are more events in the queue
+	 *         \c false if the queue is empty
+	 */
+	boolean pollEvents(out vector<idl.Event> events);
+
+	/**
+	 * Poll for new events non-blockingly.
+	 *
+	 * The method will not return more than an implementation-defined
+	 * maximum number of events. The boolean return value indicates
+	 * whether there are more events in the queue.
+	 *
+	 * @param events List of new events
+	 * @return \c true if there are more events in the queue
+	 *         \c false if the queue is empty
+	 */
+	boolean pollEventsNb(out vector<idl.Event> events);
+
+    };
+
+    /** Event Service */
+    interface Service_1_0_1 {
+
+	constant int INVALID_CHANNEL = 1;
+	
+	/**
+	 * Create a new event channel.
+	 *
+	 * @return New event channel reference
+	 *         or nil if all channels have been used
+	 */
+	Channel_1_0_1 createChannel();
+
+	/**
+	 * Destroy an event channel.
+	 *
+	 * @param channel  %Event channel reference
+	 * @return 0 if OK
+	 * @return INVALID_CHANNEL if channel is not implemented by this Service
+	 */
+	int destroyChannel(in Channel_1_0_1 channel);
+
+	/**
+	 * Push an Event into the service and to all existing
+	 * receiver channels
+	 */
+	void pushEvent(in idl.Event event);
+
+	/**
+	 * Push a vector of Events into the service and to all existing
+	 * receiver channels
+	 */
+	void pushEvents(in vector<idl.Event> events);
+
+    };
+
+}
+
+#endif

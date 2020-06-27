@@ -1,0 +1,136 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __EVENT_TIMEREVENTMANAGER_IDL__
+#define __EVENT_TIMEREVENTMANAGER_IDL__
+
+/** Event interface */
+module event {
+
+    /** TimerEventManager interface */
+    interface TimerEventManager_2_0_0 {
+
+	/** Error codes */
+	constant int NO_ERROR			= 0;	///< operation successful, no error
+	constant int ERR_INVALID_SCHEDULE	= 1;	///< failure in schedule
+	constant int ERR_UNKNOWN_EVENT_ID	= 2;	///< unknown eventId
+	constant int ERR_CREATE_EVENT_ID_FAILED	= 3;	///< creating eventId failed
+	constant int ERR_MAX_TIMERS_CREATED	= 4;	///< max number of timers have been created
+
+	/**
+	 * Schedule defines and structures
+	 *
+	 * The goal of the  following declarations is 
+	 * to express crontab entries in a structured way. 
+	 */
+	/** Months */
+	constant int JAN	= 1;	///< January
+	constant int FEB	= 2;	///< February
+	constant int MAR	= 3;	///< March
+	constant int APR	= 4;	///< April
+	constant int MAY	= 5;	///< May
+	constant int JUN	= 6;	///< June
+	constant int JUL	= 7;	///< July
+	constant int AUG	= 8;	///< August
+	constant int SEP	= 9;	///< September
+	constant int OCT	= 10;	///< October
+	constant int NOV	= 11;	///< November
+	constant int DEC	= 12;	///< December
+	/** Days of week */
+	constant int SUN	= 0;	///< Sunday
+	constant int MON	= 1;	///< Monday
+	constant int TUE	= 2;	///< Tuesday
+	constant int WED	= 3;	///< Wednesday
+	constant int THU	= 4;	///< Thursday
+	constant int FRI	= 5;	///< Friday
+	constant int SAT	= 6;	///< Saturday
+	/**
+	 * Range structure
+	 *
+	 * A range defines a time between start and end point in time.
+	 * If start and end point are the same it is a specific point in time 
+	 * and no range. Step defines the repeating interval in time.
+	 * Step of 1 is default and matches all values in range.
+	 */
+	structure Range {
+	    int start;			///< Start time
+	    int end;			///< End time
+	    int step;			///< Step
+	};
+	/**
+	 * Schedule structure
+	 *
+	 * An empty vector means a match for all values.
+	 * The values range of every field depends on the meaning of the field.
+	 * For minutes 0-59 is possible, for hour 0-24 and for day of month 0-31.
+	 * For month and day of weeks the definitions above should be used.
+	 */
+	structure Schedule {
+	    boolean enabled;		///< Whether the timer event is enabled
+	    vector<Range> minute;	///< Ranges for minute
+	    vector<Range> hour;		///< Ranges for hour
+	    vector<Range> dayOfMonth;	///< Ranges for day of month
+	    vector<Range> month;	///< Ranges for month
+	    vector<Range> dayOfWeek;	///< Ranges for day of week
+	};
+
+	/**
+	 * TimerEvent structure
+	 *
+	 * A TimerEvent can be used in the event engine to run actions
+	 * at a specified time.
+	 * The 'eventId' is an unique identification of every timer event.
+	 * The 'executionTime' contains the schedule for the execution time. 
+	 */
+	structure TimerEvent {
+	    vector<string> eventId;	///< Event ID
+	    Schedule executionTime;	///< Schedule for execution time
+	};
+
+	/**
+	 * Add a new timer event.
+	 *
+	 * The timer event id field is allocated automatically 
+	 * and returned in the timerEventId parameter.
+	 *
+	 * @param  schedule			schedule for timer
+	 * @param  eventId			created event id
+	 * @return NO_ERROR			if OK
+	 * @return ERR_INVALID_SCHEDULE		if schedule is invalid
+	 * @return ERR_CREATE_EVENT_ID_FAILED	if generating the eventId failed
+	 * @return ERR_MAX_TIMERS_CREATED	if max timer count already created
+	 */
+	int addTimerEvent(in Schedule schedule, out vector<string> eventId);
+
+	/**
+	 * Modify a timer event.
+	 *
+	 * @param  eventId			event id
+	 * @param  schedule			new schedule for timer
+	 * @return NO_ERROR			if OK
+	 * @return ERR_INVALID_SCHEDULE		if schedule is invalid
+	 * @return ERR_UNKNOWN_EVENT_ID		if eventId is unknown
+	 */
+	int modifyTimerEvent(in vector<string> eventId, in Schedule schedule);
+
+	/**
+	 * Delete a timer event.
+	 *
+	 * @param  eventId			event id
+	 * @return NO_ERROR			if OK
+	 * @return ERR_UNKNOWN_EVENT_ID		if eventId is unknown
+	 */
+	int deleteTimerEvent(in vector<string> eventId);
+
+	/**
+	 * List all timer events.
+	 */
+	vector<TimerEvent> listTimerEvents();
+
+    };
+
+}
+
+#endif /* __EVENT_TIMEREVENTMANAGER_IDL__ */

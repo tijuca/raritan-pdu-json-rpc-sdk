@@ -1,0 +1,67 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Device Settings
+ */
+module devsettings {
+
+    /** SMTP settings interface */
+    interface Smtp_2_0_0 {
+
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+
+	/** SMTP server configuration */
+	structure Configuration {
+	    string      host;           ///< SMTP server host name or IP address
+	    int         port;           ///< SMTP server port
+	    boolean	useTls;		///< Enforce TLS usage
+	    boolean 	allowOffTimeRangeCerts;  ///< allow expired and not yet valid TLS certificates
+	    string  	caCertChain;	///< TLS CA certificate chain
+	    string      sender;         ///< Sender email address
+	    boolean     useAuth;        ///< SMTP server requires authentication
+	    string      username;       ///< Authentication user name
+	    string      password;       ///< Password; write-only, empty to leave unchanged
+	    int         retryCount;     ///< Number of attempts at sending the email
+	    int         retryInterval;  ///< Sending retry interval in minutes
+	};
+
+	/**
+	 * Retrieve the SMTP server configuration.
+	 *
+	 * @return SMTP server configuration
+	 */
+	Configuration getConfiguration();
+
+	/**
+	 * Set the SMTP server configuration.
+	 *
+	 * @param cfg  New SMTP server settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setConfiguration(in Configuration cfg);
+
+	/** Result of SMTP configuration test */
+	structure TestResult {
+	    int         status;		///< Status code; 0 if OK
+	    string      message;	///< Status message
+	};
+
+	/**
+	 * Test an SMTP server configuration. The active server configuration
+	 * is not changed.
+	 *
+	 * @param cfg         SMTP server settings to test
+	 * @param recipients  Recipient email addresses
+	 *
+	 * @result Result of configuration test
+	 */
+	TestResult testConfiguration(in Configuration cfg, in vector<string> recipients);
+
+    };
+
+}

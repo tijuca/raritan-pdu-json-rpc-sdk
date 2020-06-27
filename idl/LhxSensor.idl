@@ -1,0 +1,149 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LHXMODEL_SENSOR_IDL__
+#define __LHXMODEL_SENSOR_IDL__
+
+#include <Event.idl>
+#include <Sensor.idl>
+#include <UserEvent.idl>
+
+/** LHX Model */
+module lhxmodel {
+
+    /** LHX Sensor Interface */
+    interface Sensor_4_0_3 extends sensors.Sensor_4_0_3 {
+	
+	/** Sensor's self describing data */
+	structure MetaData {
+	    /**
+	     * Sensor type, reading type and unit
+	     */
+	    sensors.Sensor_4_0_3.TypeSpec type;
+
+	    /**
+	     * Number of significant decimal digits.
+	     *
+	     * Indicates how many digits should be displayed
+	     * to the right of the decimal point. I.e. double
+	     * values must be rounded with this precision.
+	     */
+	    int numDecDigits;
+
+	    /**
+	     * Smallest possible Numeric Reading Value
+	     */
+	    double numRangeMin;
+
+	    /**
+	     * Largest possible Numeric Reading Value
+	     */
+	    double numRangeMax;
+
+	    /**
+	     * Smallest possible Numeric Reading Threshold Value
+	     */
+	    double numThresholdMin;
+
+	    /**
+	     * Largest possible Numeric Reading Threshold Value
+	     */
+	    double numThresholdMax;
+	    
+	    /**
+	     * The sensor label.
+	     */
+	    string label;
+	    
+	    /**
+	     * Descriptive ID of sensor containing label.
+	     */
+	    string id;
+	};
+
+	/** Numerical sensor thresholds */
+	structure NumThresholds {
+	    boolean  lowerCriticalIsEnabled;	///< Lower critical threshold enabled
+	    double   lowerCritical;		///< Lower critical threshold value
+	    boolean  lowerWarningIsEnabled;	///< Lower warning threshold enabled
+	    double   lowerWarning;		///< Lower warning threshold value
+	    boolean  upperWarningIsEnabled;	///< Upper warning threshold enabled
+	    double   upperWarning;		///< Upper warning threshold value
+	    boolean  upperCriticalIsEnabled;	///< Upper critical threshold enabled
+	    double   upperCritical;		///< Upper critical threshold value
+	    double   hysteresis;		///< Deassertion hysteresis
+	};
+
+	constant int STATE_NOT_AVAILABLE    	    = -1; ///< Communication to sensor lost
+	constant int STATE_CLOSED              	    = 0;  ///< Closed
+	constant int STATE_OPEN               	    = 1;  ///< Open
+	constant int STATE_NUM_NORMAL       	    = 0;  ///< Numerical sensor in normal range
+	constant int STATE_NUM_ABOVE_UPPER_CRITICAL = 1;  ///< Above upper critical threshold
+	constant int STATE_NUM_ABOVE_UPPER_WARNING  = 2;  ///< Above upper warning threshold
+	constant int STATE_NUM_BELOW_LOWER_WARNING  = 3;  ///< Below lower warning threshold
+	constant int STATE_NUM_BELOW_LOWER_CRITICAL = 4;  ///< Below lower critical threshold
+
+	/** Sensor reading */
+	structure Reading {
+	    time timestamp;      ///< Time of sample
+	    int state;           ///< discrete reading or state
+	    double value;        ///< numeric reading value
+            boolean isValid;     ///< numeric value is valid or NAN
+	};
+
+	/** Event: Sensor thresholds have been changed */
+	valueobject ThresholdsChangedEvent extends event.UserEvent {
+	    NumThresholds oldThresholds;	///< Thresholds before change
+	    NumThresholds newThresholds;	///< Thresholds after change
+	};
+
+	/** Event: Sensor state has changed */
+	valueobject StateChangedEvent extends idl.Event {
+	    Reading oldReading;			///< Reading before change
+	    Reading newReading;			///< Reading after change
+	};
+
+	/** Event: Sensor numeric reading has changed */
+	valueobject ReadingChangedEvent extends idl.Event {
+	    Reading newReading;			///< New reading
+	};
+
+	constant int ERR_INVALID_PARAM = 1; ///< Invalid parameters
+	constant int ERR_NOT_SUPPORTED = 2; ///< Not supported
+	
+	/**
+	 * Retrieve the LHX metadata.
+	 *
+	 * @return metadata
+	 */
+	MetaData getMetaData();
+	
+	/**
+	 * Retrieve Numeric Thresholds. 
+	 *
+	 * @return sensor thresholds
+	 */
+	NumThresholds getThresholds();
+	
+	/**
+	 * Set Numeric Thresholds.
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAM  if any parameters are invalid
+	 */
+	int setThresholds(in NumThresholds thresholds);
+	
+	/**
+	 * Retrieve sensors reading
+	 *
+	 * @return reading
+	 */
+	Reading getReading();
+	
+    };
+
+}
+
+#endif /* !__LHXMODEL_SENSOR_IDL__ */

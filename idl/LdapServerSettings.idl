@@ -1,0 +1,49 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/** Local and Remote Authentication Management */
+module auth {
+    
+    /** LDAP server interface */
+    module ldapsrv {
+
+	/** LDAP server type */
+	enumeration ServerType {
+	    ACTIVE_DIRECTORY,  ///< Active directory
+	    OPEN_LDAP          ///< OpenLDAP
+	};
+
+	/** LDAP server type */
+	enumeration SecurityProtocol {
+	    SEC_PROTO_NONE,	///< no security protocol
+	    SEC_PROTO_SSL,	///< use SSL
+	    SEC_PROTO_STARTTLS	///< use STARTTLS
+	};
+
+	/** Server settings */
+	structure ServerSettings_2_0_0 {
+	    string  	id;                ///< Entry ID
+	    string  	server;            ///< IP or name of ldap server
+	    string  	adoptSettingsId;   ///< Use settings from LDAP server with <ID>
+	    ServerType	type;              ///< Type of LDAP server
+	    SecurityProtocol secProto;     ///< Security protocol
+	    int     	port;              ///< Server port (only for SEC_PROT_NONE and SEC_PROT_STARTTLS)
+	    int     	sslPort;           ///< SSL port (only for SEC_PROT_SSL)
+	    boolean 	forceTrustedCert;  ///< Enforce trusted certificates
+	    boolean 	allowOffTimeRangeCerts;  ///< allow expired and not yet valid certificates
+	    string  	certificate;       ///< Certificates
+	    string  	adsDomain;         ///< ADS domain
+	    boolean 	useAnonymousBind;  ///< use anonymous bind
+	    string  	bindDN;            ///< Bind DN
+	    string  	bindPwd;           ///< Bind password
+	    string  	searchBaseDN;      ///< Base DN for search
+	    string  	loginNameAttr;     ///< Login name attribute
+	    string  	userEntryObjClass; ///< User entry object class
+	    string  	userSearchFilter;  ///< User search subfilter
+	};
+	
+    }
+
+}

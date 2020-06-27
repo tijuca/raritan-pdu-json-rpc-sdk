@@ -1,0 +1,320 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ASSETMGRMODEL_ASSETSTRIP_IDL__
+#define __ASSETMGRMODEL_ASSETSTRIP_IDL__
+
+#include <AssetStripConfig.idl>
+#include <UserEvent.idl>
+
+/**
+ * Asset Management Model
+ */
+module assetmgrmodel {
+    /** Asset Management Strip interface */
+    interface AssetStrip_2_0_5 {
+
+	/** 
+	 * Error codes 
+	 */
+	constant int NO_ERROR			= 0; ///< Operation successful, no error
+	constant int ERR_INVALID_PARAM          = 1; ///< Invalid parameter for an operation
+	constant int ERR_NO_SUCH_OBJECT         = 2; ///< Requested object does not exist
+	constant int ERR_NOT_SUPPORTED          = 3; ///< Requested operation is not supported
+	constant int ERR_OPERATION_FAILED       = 4; ///< Operation did not succeed
+
+	/**
+	 * Constants
+	 */
+	constant int MAIN_STRIP_COLUMN		= 0;
+
+	/** %AssetStrip state */
+	enumeration State {
+	    DISCONNECTED,	///< No strip connected
+	    FIRMWARE_UPDATE,    ///< Firmware update in progress
+	    UNSUPPORTED,        ///< Connected asset strip is unsupported
+	    AVAILABLE		///< Asset strip is up and running normally
+	};
+
+	/**
+	 * Type of the connected asset strip
+	 */
+	enumeration StripType {
+	    SIMPLE,		///< single, monolitic strip
+	    COMPOSITE		///< strip consisting of multiple cascaded strips
+	};
+
+	/**
+	 * Type of an asset tag connected to a rack unit
+	 */
+	enumeration TagType {
+	    SINGLE,		///< single asset tag connected to main strip or an extension
+	    EXTENSION,		///< blade server extension, only possible on the main strip
+	    NONE		///< no asset tag connected to main strip or an extension
+	};
+
+	/**
+	 * For composite asset strips CascadeState shows additional information
+	 * about the state of the complete cascade
+	 */
+	enumeration CascadeState {
+	    CASCADE_ACTIVE,         ///< cascade is up and running
+	    CASCADE_FIRMWARE_UPDATE ///< a device in the cascade receives a firmware update
+	};
+
+	/**
+	 * Static (type, version) information for an %AssetStrip.
+	 */
+	structure DeviceInfo {
+	    int deviceId;			///< Device type (indicated a certain hardware)
+	    int hardwareId;			///< Hardware ID, revision
+	    int protocolVersion;		///< Protocol version the strip is supporting
+	    int bootVersion;			///< Bootcode software version
+	    int appVersion;			///< Application code software version
+	    boolean orientationSensAvailable;	///< Indicates whether the strip has an orientation sensor
+	    boolean isCascadable;	    	///< The asset strip type
+	    boolean rackUnitCountConfigurable;	///< Rack unit count has to be configured, i.e. is not auto detected
+	};
+
+	/**
+	 * Dynamic (may change with a connected strip) information for an %AssetStrip.
+	 */
+	structure StripInfo {
+	    int maxMainTagCount;	///< Maximum number of tags supported on the main strip
+	    int maxBladeTagCount;	///< Maximum number of tags supported on blade extensions
+	    int mainTagCount;		///< Current number of tags on the main asset strip
+	    int bladeTagCount;		///< Current number of tags on all blade extensions
+	    boolean bladeOverflow;	///< Out of space for new blade extension tags, read-only
+	    int rackUnitCount;		///< Rack unit count, i.e. number of tags connectable
+	    int componentCount;		///< Number of components
+	    CascadeState cascadeState;	///< State of the cascade (only for composite strips)
+	};
+	
+	/**
+	 * Information for a single tag
+	 */
+	structure TagInfo {
+	    int rackUnitNumber;	   ///< The rack unit this tag is connected to, range 0..rackUnitCount-1
+	    int slotNumber;        ///< Blade slot this tag is connected to, 0 is the main strip, >0 for blades
+	    string familyDesc;     ///< Tag family description, indicating different tag hardware
+	    string rawId;          ///< The asset tag ID (6 byte hexadecimal string 'AABBCCDDEEFF')
+	    boolean programmable;  ///< Is the asset tag ID programmable?
+        };
+	
+	/**
+	 * Infos for a single rack unit
+	 *
+	 * In case no asset strip is connected, type defaults to single and size defaults to 1
+	 */
+	structure RackUnitInfo {
+	    int rackUnitNumber;		///< rack unit for the settings, range 0..rackUnitCount-1
+	    int rackUnitPosition;       ///< resulting rack unit position (display number)
+	    TagType type;		///< type of the asset tag (single, extension, none or unknown)
+	    int size;			///< blade extension size (4,8,16), 1 for single tags or 0 if nothing connected
+	    AssetStripConfig_1_0_1.RackUnitSettings settings;	///< settings for a single rack unit	    
+	    int assetStripCascadePosition;        ///< number of strip in cascade
+	    int rackUnitRelativePosition;         ///< relative position to strip
+	    int assetStripNumberOfRackUnits;      ///< number of rack units in strip that this rack unit belongs to
+	};
+
+	/** Event: Asset strip dynamic information has changed */
+	valueobject StripInfoChangedEvent extends idl.Event {
+	    StripInfo oldInfo;					///< Information before change
+	    StripInfo newInfo;					///< Information after change
+	};
+
+	/** Event: Asset strip state has changed */
+	valueobject StateChangedEvent extends idl.Event {
+	    State oldState;					///< State before change
+	    State newState;					///< State after change
+	    DeviceInfo deviceInfo;				///< Information about connected strip, only valid
+								///< if newState is AVAILABLE
+	};
+
+	/** Event: A rack unit has changed */
+	valueobject RackUnitChangedEvent extends event.UserEvent {
+	    int rackUnitNumber;					///< Affected rack unit position
+	    RackUnitInfo rackUnit;				///< New rack unit information
+	};
+
+	/**
+	 * Information describing a tag change
+	 */
+	structure TagChangeInfo {
+	    TagInfo tag;					///< Tag which was attached or detached
+	    RackUnitInfo info;					///< Rack unit the tag was/is connected to
+	    string parentBladeTagId;				///< Asset tag ID of the parent blade tag,
+								///< empty if the tag is not an extension tag
+	    int slotPosition;					///< Blade slot position of the tag,
+								///< 0 if the tag is not an extension tag
+	};
+
+	/** Event: A tag was added or removed */
+	valueobject TagEvent extends idl.Event {
+	    vector<TagChangeInfo> tags;				///< Affected tags
+	    vector<TagInfo> allTags;				///< New list of detected tags after change
+	};
+
+	/** Event: A tag was added */
+	valueobject TagAddedEvent extends TagEvent { };
+	/** Event: A tag was removed */
+	valueobject TagRemovedEvent extends TagEvent { };
+
+	/** Enumeration: State of firmware update */
+	enumeration FirmwareUpdateState {
+	    UPDATE_STARTED,					///< Update is running
+	    UPDATE_SUCCESSFUL,					///< Update was completed successfully
+	    UPDATE_FAILED					///< Update has failed
+	};
+
+	/** Event: Firmware update was started or has finished */
+	valueobject FirmwareUpdateStateChangedEvent extends idl.Event {
+	    FirmwareUpdateState state;				///< Update state
+	};
+
+	/** Event: Tag overflow */
+	valueobject BladeOverflowChangedEvent extends idl.Event {
+	    boolean overflow;					///< Whether the strip is out of space
+								///< for new blade extension tags
+	};
+
+	/** Event: Detected strip orientation has changed */
+	valueobject OrientationChangedEvent extends idl.Event {
+	    AssetStripConfig_1_0_1.Orientation oldOrientation;	///< Strip orientation before change
+	    AssetStripConfig_1_0_1.Orientation newOrientation;  ///< Strip orientation after change
+	};
+
+	/** Event: Strip composition has changed */
+	valueobject CompositionChangedEvent extends idl.Event {
+	    int oldComponentCount;				///< Component count before change
+	    int newComponentCount;				///< Component count after change
+	};
+
+	/**
+	 * Get the current state of the %AssetStrip	 
+	 * 
+	 * @return State of the Asset Strip
+	 */
+	State getState();
+
+	/**
+	 * Get static (hardware and firmware) information
+	 * 
+	 * @return                      Result: hardware and firmware information
+	 */
+	DeviceInfo getDeviceInfo();
+
+	/**
+	 * Get dynamic (number of tags) information
+	 * 
+	 * @return                      Result: tag related information
+	 */
+	StripInfo getStripInfo();
+
+	/**
+	 * Get info with all settings of a rack unit at once
+	 *
+	 * @param  rackUnitNumber	rack unit to get the info for, range 0..rackUnitCount-1
+	 * @param  info                 Result: info for this rack unit
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    rack unit count exceeded
+	 */
+	int getRackUnitInfo(in int rackUnitNumber, out RackUnitInfo info);
+
+	/**
+	 * Get infos with settings for all rack units
+	 *
+	 * @return			Result: the rack unit infos with settings
+	 */
+	vector<RackUnitInfo> getAllRackUnitInfos();
+
+	/**
+	 * Get the asset tag for a rack unit
+	 *
+	 * @param  rackUnitNumber	rack unit to read the asset tag for, range 0..rackUnitCount-1
+	 * @param  slotNumber		slot to read the asset tag for, 0 for the main strip, >0 for blades
+	 * @param  tagInfo		Result: asset tag information
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    rack unit count exceeded or colum not existing
+	 * @return ERR_NO_SUCH_OBJECT   no tag connected to this rack unit
+	 */
+	int getTag(in int rackUnitNumber, in int slotNumber, out TagInfo tagInfo);
+
+	/**
+	 * Get all asset tags of the strip
+	 *
+	 * Please note that in case there is not a single tag connected to the
+	 * strip the resulting list will be empty, only connected tag info
+	 * structures are returned
+	 * It is guaranteed that extensions on the main strip are returned
+	 * before any tag on an extension itself.
+	 * 
+	 * @return                      Result: list asset tag infos
+	 */
+	vector<TagInfo> getAllTags();
+
+	/**
+	 * Get all asset tags on the main strip
+	 *
+	 * Same as getAllTags, but only consider tags connected to the main
+	 * asset strip and not on any connected extension.
+	 * Extensions on the main strip themselves are returned.
+	 * 
+	 * @return                      Result: list asset tag infos
+	 */
+	vector<TagInfo> getMainTags();
+
+	/**
+	 * Get all asset tags on an extension
+	 *
+	 * Gets all tags on a single extension for a certain rack unit.
+	 * List will be empty if there are no tags connected
+	 * 
+	 * @param  rackUnitNumber	rack unit to get the extension tags for, range 0..rackUnitCount-1
+	 * @param  tags			Result: list asset tag infos
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    rack unit count exceeded or rack unit
+	 *                              does not contain an extension
+	 */
+	int getExtensionTags(in int rackUnitNumber, out vector<TagInfo> tags);
+
+	/**
+	 * Trigger a powercycle of either the whole asset strip port or the 
+	 * LED part power supply on the asset strip
+	 * 
+	 * @param  hard			true=whole port, false=LEDs only
+	 */
+	void triggerPowercycle(in boolean hard);
+
+	/**
+	 * Program custom tag IDs
+	 *
+	 * Asset tags of type AMT-P may be programmed by user (custom ID). This method
+	 * takes a list of (rack unit, slot number, id) tuples that determine
+	 * which connected tag should be programmed with which ID.
+	 * TagInfo::rawId specifies the ID. An empty string erases the current
+	 * custom ID which brings back the original 1-wire ID.
+	 * Set TagInfo::slotNumber to 0 for tags on main strip and > 0 for blades.
+	 * TagInfo::familyDesc and TagInfo::programmable are ignored.
+	 *
+	 * @param tagInfos               vector of tag information that will be programmed
+	 * @return NO_ERROR              on success
+	 * @return ERR_INVALID_PARAM     rack unit out of bounds or custom ID too long
+	 * @return ERR_NO_SUCH_OBJECT    rack unit does not exist or has no tag
+	 * @return ERR_NOT_SUPPORTED     tag is not programmable
+	 * @return ERR_OPERATION_FAILED  programming failed
+	 */
+	int programTagIDs(in vector<TagInfo> tagInfos);
+
+	/**
+	 * Retrieve state of firmware update
+	 *
+	 * @return asset strip firmware update state
+	 */
+	FirmwareUpdateState getFirmwareUpdateState();
+    };
+}
+
+#endif /* __ASSETMGRMODEL_ASSETSTRIP_IDL__ */

@@ -1,0 +1,355 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Event interface
+ *
+ */
+
+module event {
+
+    /**
+     * Helper that is used wherever key/value pairs are required.
+     *
+     * @note This interface was designed before IDL maps were supported.
+     */
+    structure KeyValue {
+	string key;	///< Key
+	string value;	///< Value
+    };
+    
+    /**
+     * Event has a type:
+     *   a STATE event indicates that a boolean state has been
+     *     changed, i.e. asserted or deasserted
+     *   a TRIGGER event is one that has no state assigned.
+     *     conceptually it is asserted and deasserted at once.
+     * The id has multiple components that form a path into a hierarchy.
+     * The value ("asserted") indicates whether the state has become
+     * true (assertion) or false (deassertion). For events of type TRIGGER
+     * this will be true always.
+     */
+    structure Event {
+
+	/** Event type */
+	enumeration Type {
+	    STATE,			///< State event
+	    TRIGGER			///< Trigger event
+	};
+	
+	Type            type;		///< Event type
+	vector<string>  id;		///< Event id vector
+	boolean         asserted;	///< Assertion value
+	time            timeStamp;	///< Timestamp
+	vector<KeyValue> context;	///< Context map
+    };
+
+    /**
+     * There is a single event engine instance reachable by a well known
+     * reference.
+     */
+    interface Engine_1_0_1 {
+
+	/* Event registration and query */
+	/* ---------------------------- */
+	
+	/**
+	 * An event descriptor.
+	 *
+	 * In case eventDescType is LEAF then the descriptor refers to a
+	 * 'real' event. In this case eventType is set and the entries vector
+	 * is empty. Otherwise eventType is a don't care and the entries vector
+	 * contains sub-entries. In case eventDescType is DYN_NODE then the
+	 * dynNodeContext contains a key which is used to generate a dynamic
+	 * node.
+	 */
+	structure EventDesc {
+
+	    /** Event descriptor type */
+	    enumeration Type {
+		NODE,			///< Intermediate node
+		DYN_NODE,		///< Dynamic node
+		LEAF			///< Leaf node
+	    };
+
+	    Type eventDescType;		///< Event descriptor type
+	    Event.Type eventType;	///< Event type
+	    string dynNodeContext;	///< Dynamic node context
+	    string idComp;		///< Event ID component
+	    string name;		///< User-defined name
+	    vector<EventDesc> entries;	///< Child nodes
+	};
+	
+	/**
+	 * Query existing event descriptors.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if id was not found
+	 */
+	int listEventDescs(in vector<string> eventIdPrefix,
+			   out vector<EventDesc> eventDescs);
+
+	
+	/* Action definition and query */
+	/* --------------------------- */
+
+	/**
+	 * List all available action types. The action type is intentionally
+	 * defined generically so that implementation can be extensible without
+	 * changing interface.
+	 */
+	vector<string> listActionTypes();
+
+	/**
+	 * An action is a tuple of 'id' (unique within the scope of this event
+	 * engine), 'name' which is unique as well and used by the GUI as user
+	 * readable identificator, 'isSystem' which denotes the action as
+	 * system action, 'type' which defines what it is, and an argument
+	 * vector that vary depending on type and which is passed to the action.
+	 * The 'isSystem' flag is readonly and if set marks the action as not
+	 * deletable.
+	 */
+	structure Action {
+	    string id;			///< Action ID
+	    string name;		///< User-defined name
+	    boolean isSystem;		///< \c true for system-defined actions
+	    string type;		///< Action type
+	    vector<KeyValue> arguments;	///< Action argument map
+	};
+
+	/**
+	 * Add a new action.
+	 *
+	 * The id and isSystem fields are ignored. The actions's id field is
+	 * allocated automatically and returned in the actionId parameter.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the name of the new action already exists
+	 * @return 2 if generating the action id failed
+	 * @return 3 if the maximum number of actions have been created
+	 */
+	int addAction(in Action action, out string actionId);
+
+	/**
+	 * Modify an action.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the name of the new action already exists
+	 * @return 2 if the action id does not exist
+	 */
+	int modifyAction(in Action action);
+
+	/**
+	 * Remove an action.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if id is unknown
+	 * @return 2 if the action is not deletable
+	 */
+	int deleteAction(in string actionId);
+
+	/**
+	 * List all actions currently know to this event engine.
+	 */
+	vector<Action> listActions();
+
+	/**
+	 * Trigger an action.
+	 *
+	 * This is mainly used for test and debugging. The operation will
+	 * block until the action has been performed or an error occurred.
+	 * In the latter case errMsg will contain an error message. The
+	 * context is passed to the actions.
+	 *
+	 * NOTE: Currently this function doesn't block!
+	 *
+	 * @return 0 if OK
+	 * @return 1 if id is unknown
+	 * @return 2 if no actor was found for the action
+	 * @return 3 if performing the action failed, errmsg will be set
+	 */
+	int triggerAction(in string actionId, out string errMsg,
+			  in vector<KeyValue> context);
+
+	/**
+	 * Test an action.
+	 *
+	 * This is similar to {@link triggerAction}, except that an action
+	 * that is not yet saved can be passed in. Therefore this method
+	 * can be used for testing actions to be newly created. The
+	 * operation will block until the action has been performed or an
+	 * error occurred. In the latter case errMsg will contain an error
+	 * message. The context is passed to the actions.
+	 *
+	 * NOTE: Currently this function doesn't block!
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the action name is invalid
+	 * @return 2 if no actor was found for the action
+	 * @return 3 if performing the action failed, errmsg will be set
+	 */
+	int testAction(in Action action, out string errMsg,
+		       in vector<KeyValue> context);
+
+	
+	/* Rule Definition and query */
+	/* ------------------------- */
+
+	/**
+	 * Condition is a logical combination of multiple events. Normally you
+	 * should use STATE events in logical conditions. In case a TRIGGER
+	 * event is part of a condition or logical operation it will per
+	 * default be interpreted as deasserted. The TRIGGER will evaluate as
+	 * asserted if that exact event was raised and is matched against the
+	 * event rules. In some sense the 'assertion state' of the TRIGGER is
+	 * true only at the moment the Event exists and set to false again once
+	 * it passed. 
+	 */
+	structure Condition {
+
+	    /** logical operation to be applied over all conditions and event */
+	    enumeration Op {
+		AND,			///< Logical And
+		OR,			///< Logical Or
+		XOR			///< Exclusive Or
+	    };
+	    
+	    /** the match type how to match the event assertion state */
+	    enumeration MatchType {
+		ASSERTED,		///< Match if the event is asserted
+		DEASSERTED,		///< Match if the event is deasserted
+		BOTH			///< Match both (for trigger events)
+	    };
+	    
+	    boolean negate;		///< Negate the result
+	    Op operation;		///< Logical operation to be applied
+	    MatchType matchType;	///< Match type
+	    vector<string> eventId;	///< Event ID
+	    vector<Condition> conditions; ///< List of subordinate conditions
+	};
+
+	/**
+	 * A Rule binds an action to a condition.
+	 *
+	 * The 'id' is an unique identification within the scope of this event
+	 * engine. The 'name' is unique as well and used by the GUI as user
+	 * readable identificator. The flag 'isAutoRearm' determines whether
+	 * actions are triggered again after condition reoccurres. The
+	 * 'hasMatched' flag is true if the condition was true once and the rule
+	 * is not rearmed yet. The 'isSystem' flag is readonly and if set marks
+	 * the action as not deletable. The 'actionIds' are the actions to
+	 * perform if the rule evaluates to true. The arguments are passed to
+	 * the actions.
+	 */
+	structure Rule {
+	    string id;			///< Rule ID
+	    string name;		///< User-defined name
+	    boolean isSystem;		///< \c true for system-defined rules
+	    boolean isEnabled;		///< \c true if the rule is enabled
+	    boolean isAutoRearm;	///< \c true for auto-rearming rules
+	    boolean hasMatched;		///< \c true if the rule has matched since being armed
+	    Condition condition;	///< Trigger condition
+	    vector<string> actionIds;	///< List of action IDs
+	    vector<KeyValue> arguments;	///< Argument map
+	};
+	
+	/**
+	 * Add a new rule.
+	 *
+	 * The id, hasMatched and isSystem fields are ignored. The rule's
+	 * id field is allocated automatically and returned in the the ruleId
+	 * parameter.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the name of the new rule already exists
+	 * @return 2 if generating the rule id failed
+	 * @return 3 if the rule condition contains an invalid event id
+	 * @return 4 if the maximum number of rules have been created
+	 * @return 5 if the maximum number of actions per rule is exceeded
+	 */
+	int addRule(in Rule rule, out string ruleId);
+
+	/**
+	 * Modify a rule.
+	 *
+	 * The hasMatched and isSystem fields are ignored.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the name of the new rule already exists
+	 * @return 2 if the rule id does not exist
+	 * @return 3 if the rule condition contains an invalid event id
+	 * @return 4 if the maximum number of actions per rule is exceeded
+	 */
+	int modifyRule(in Rule rule);
+
+	/**
+	 * Enable a rule.
+	 *
+	 * An enabled rule will be evaluated when processing events.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if id is unknown
+	 */
+	int enableRule(in string ruleId);
+	
+	/**
+	 * Disable a rule.
+	 *
+	 * A disabled rule will be ignored when processing events.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if ruleId is unknown
+	 */
+	int disableRule(in string ruleId);
+	
+	/**
+	 * Delete a rule.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if ruleId is unknown
+	 * @return 2 if the rule is not deletable
+	 */
+	int deleteRule(in string ruleId);
+
+	/**
+	 * List all rules.
+	 *
+	 * Question: will number of rules be small enough to list them
+	 *           all in a single operation.
+	 *           A single Rule may be quite large...
+	 *           See below for alternative interface using iterator.
+	 */
+	vector<Rule> listRules();
+
+	
+	/* Deliver and confirm events. */
+	/* --------------------------- */
+	
+	/**
+	 * Deliver an event.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if event is unknown
+	 */
+	int deliverEvent(in Event event);
+
+	/**
+	 * Rearm an event rule that is active.
+	 *
+	 * Once a Rule triggers its actions it is done once. If the condition
+	 * of the rules becomes false and back again true, no action will be
+	 * performed unless the rule is rearmed. Rules may be auto-rearmed what
+	 * means whenever the rule's conditions changes from false to true
+	 * actions are triggered over and again.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the rule is unknown
+	 * @return 2 if the rule is not enabled
+	 */
+	int rearmRule(in string ruleId);
+
+    };
+    
+}

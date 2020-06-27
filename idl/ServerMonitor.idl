@@ -1,0 +1,245 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+#include <UserEvent.idl>
+
+/** Server Monitor */
+module servermon {
+
+    /** Server Monitor Interface */
+    interface ServerMonitor_2_0_1 {
+
+	/**
+	 * Server Reachability State
+	 */
+	enumeration ServerReachability {
+	    WAITING,				///< Waiting for reliable connection
+	    REACHABLE,				///< Server is up and running
+	    UNREACHABLE,			///< No response from server
+	    ERROR				///< Error pinging server (e.g. DNS lookup failure)
+	};
+
+	/**
+	 * Server Power Control State
+	 */
+	enumeration ServerPowerState {
+	    UNKNOWN,				///< Power state currently not known
+	    ON,					///< Server power target is on
+	    OFF,				///< Server power target is off
+	    SHUTTING_DOWN			///< Server is being manually shut down
+	};
+
+	/**
+	* Server Power Control Result
+	*/
+	enumeration ServerPowerControlResult {
+	    NO_ERROR,				///< No error, operation may still be in progress
+	    SHUTDOWN_CMD_FAILED,		///< Error issuing the shutdown command to the server
+	    SWITCHING_OFF_FAILED,		///< Switching the outlet or outlet group off failed
+	    SWITCHING_ON_FAILED,		///< Switching the outlet or outlet group on failed
+	    POWER_CHECK_TIMEOUT			///< Checking if power is off timed out
+	};
+
+	/**
+	 * Methods of checking power state
+	 */
+	enumeration ServerPowerCheckMethod {
+	    TIMER,				///< Server is assumed to be off after a time interval
+	    POWER_DROP				///< Server is off if power consumption dropped
+	};
+
+	/**
+	 * Settings for controlling and checking power state of the server
+	 */
+	structure ServerPowerSettings {
+	    boolean enabled;			///< Power control for this server enabled
+	    Object target;			///< Target for power control, Outlet or OutletGroup
+	    ServerPowerCheckMethod powerCheck;	///< Method to check server's power state
+	    double powerThreshold;		///< Active power below this threshold means server is off (in Watt)
+	    int timeout;			///< Seconds the power check takes before it ends / times out
+	    string shutdownCmd;			///< Shutdown command to send to the server
+	    string username;			///< Login used to issue shutdown command to the server
+	    string password;			///< Password for the login, write-only, not set if empty
+	    int sshPort;			///< SSH port of the server
+	};
+
+	/**
+	 * Server Reachability Settings
+	 */
+	[sparse_in]
+	structure ServerSettings {
+	    string host;			///< Server hostname/IP address
+	    boolean enabled;			///< Pinging enabled
+	    int pingInterval;			///< Wait time after successful ping
+	    int retryInterval;			///< Wait time after unsuccessful ping
+	    int activationCount;		///< Minimum number of successful pings to enable feature
+	    int failureCount;			///< Number of unsuccessful pings to consider server down
+	    int resumeDelay;			///< Wait time before resuming pinging
+	    int resumeCount;			///< Number of resumes before going back to WAITING state
+	    ServerPowerSettings powerSettings;  ///< Settings for controlling the power state of the server
+	};
+
+	/**
+	 * Server Reachability Status
+	 */
+	structure ServerStatus {
+	    ServerPowerState powerState;			///< Power control state
+	    ServerPowerControlResult lastPowerControlResult;	///< Last result of a power control operation
+	    ServerReachability reachable;			///< Reachability state
+	    time lastRequest;					///< Timestamp of last request sent
+	    time lastResponse;					///< Timestamp of last response received
+	    int requests;					///< Number of requests sent
+	    int responses;					///< Number of responses received
+	    int failures;					///< Number of consecutive failed pings
+	    int resumes;					///< Number of resumes
+	};
+
+	/**
+	 * Event: ServerPowerState has changed
+	 */
+	valueobject ServerPowerStateEvent extends idl.Event {
+	    int id;				///< id of the server entry
+	    string host;			///< Server hostname/IP address
+	    ServerPowerState oldPowerState;	///< Old power state
+	    ServerPowerState newPowerState;	///< New power state
+	};
+
+	/**
+	 * Event: A power control operation was initiated
+	 */
+	valueobject ServerPowerControlInitiatedEvent extends event.UserEvent {
+	    int id;				///< id of the server
+	    string host;			///< Server hostname/IP address
+	    boolean on;				///< True if server shall be switched on, false otherwise
+	};
+
+	/**
+	 * Event: A power control operation was completed
+	 */
+	valueobject ServerPowerControlCompletedEvent extends idl.Event {
+	    int id;				///< id of the server
+	    string host;			///< Server hostname/IP address
+	    ServerPowerControlResult result;	///< Result of the power control operation
+	};
+
+	/**
+	 * Event: Reachability status for a monitored server has changed or
+	 * server continues to be unreachable
+	 */
+	valueobject ServerReachabilityEvent extends idl.Event {
+	    int id;				///< id of the server entry
+	    string host;			///< Server hostname/IP address
+	    ServerReachability reachable;	///< Current Reachability state
+	};
+
+	/**
+	 * A new server entry was added
+	 */
+	valueobject ServerAddedEvent extends event.UserEvent {
+	    int id;				///< id of the added server entry
+	    ServerSettings settings;		///< Settings of the added server
+	};
+
+	/**
+	 * A server entry was changed
+	 */
+	valueobject ServerSettingsChangedEvent extends event.UserEvent {
+	    int id;				///< id of the server entry
+	    ServerSettings oldSettings;		///< Settings before change
+	    ServerSettings newSettings;		///< Settings after change
+	};
+
+	/**
+	 * A server entry was deleted
+	 */
+	valueobject ServerDeletedEvent extends event.UserEvent {
+	    int id;				///< id of the deleted server entry
+	};
+
+	/**
+	 * Server Entry
+	 */
+	structure Server {
+	    ServerSettings settings;		///< Server settings
+	    ServerStatus status;		///< Server status
+	};
+
+	constant int ERR_NO_SUCH_ID		= 1; ///< No such ID
+	constant int ERR_INVALID_SETTINGS	= 2; ///< Invalid settings
+	constant int ERR_DUPLICATE_HOSTNAME	= 3; ///< Duplicate hostname
+	constant int ERR_MAX_SERVERS_REACHED	= 4; ///< Maximum number of server entries
+
+	/**
+	 * Add a new server entry.
+	 *
+	 * @param id        New entry id, automatically assigned
+	 * @param settings  New server settings
+	 *
+	 * @return 0 if OK
+	 * @return 2 if the settings are invalid
+	 * @return 3 if an entry for the given hostname exists
+	 * @return 4 if the maximum number of servers is reached
+	 */
+	int addServer(out int id, in ServerSettings settings);
+
+	/**
+	 * Modify an existing server entry.
+	 *
+	 * @param id        Entry id
+	 * @param settings  New settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 * @return 2 if the settings are invalid
+	 * @return 3 if an entry for the given hostname exists
+	 */
+	int modifyServer(in int id, in ServerSettings settings);
+
+	/**
+	 * Delete a server entry.
+	 *
+	 * @param id        Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 */
+	int deleteServer(in int id);
+
+	/**
+	 * Retrieve a server entry (settings and status).
+	 *
+	 * @param server    Server settings and status
+	 * @param id        Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 */
+	int getServer(out Server server, in int id);
+
+	/**
+	 * Retrieve a list of server entries (settings and status).
+	 *
+	 * @return Server list
+	 */
+	map<int, Server> listServers();
+
+	/**
+	 * Control the power state of the outlets the server uses.
+	 * Attempting to switch the power off will issue a graceful shutdown of
+	 * the server beforehand.
+	 *
+	 * @param id	   Entry id
+	 * @param on	   Switch power on if true, off if false
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 * @return 2 if the settings are invalid
+	 */
+	int powerControl(in int id, in boolean on);
+
+    };
+
+}

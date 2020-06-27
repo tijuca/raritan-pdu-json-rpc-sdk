@@ -1,0 +1,216 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PERIPHERAL_DEVICE_MANAGER_IDL__
+#define __PERIPHERAL_DEVICE_MANAGER_IDL__
+
+#include <PeripheralDeviceSlot.idl>
+#include <PeripheralDevicePackage.idl>
+#include <PortFuse.idl>
+#include <NumericSensor.idl>
+#include <Sensor.idl>
+#include <UserEvent.idl>
+
+/** Peripheral Devices */
+module peripheral {
+
+    /** Peripheral Device Manager */
+    interface DeviceManager_3_0_2 {
+
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	
+	/** Z Coordinate Mode identifier */
+	enumeration ZCoordMode {
+	    RACKUNITS,	  ///< Z coordinate of slot settings is in rack units
+	    FREEFORM      ///< Z coordinate of slot settings is free form text
+	};
+	
+	/** peripheral DeviceManager's s settings */
+	structure Settings {
+	    ZCoordMode	zCoordMode;  	    	  ///< Z coordinate semantics
+	    boolean 	autoManageNewDevices;	  ///< Automatically manage newly detected devices
+	    float       deviceAltitude;     	  ///< Altitude of device in meters
+	    int     	presenceDetectionTimeout; ///< Timeout for presence detection (sec)
+	    map<string, sensors.NumericSensor_4_0_3.Thresholds> defaultThresholdsMap; ///< Default thresholds by peripheral device type
+            int         maxActivePoweredDryContacts; ///< The maximum number of concurrently active powered dry contacts
+	};
+	
+    	/** Peripheral DeviceManager's metadata */
+    	structure MetaData {
+    	    int     oneWirePortCount;	///< Number of 1-wire ports
+    	    int     onboardDeviceCount;	///< Number of onboard peripheral devices
+    	};
+
+	/** Peripheral device type info */
+	structure DeviceTypeInfo {
+	    sensors.Sensor_4_0_3.TypeSpec	type;	    ///< Device (sensor) type
+	    boolean				isActuator; ///< Is actuator or not
+	    string				identifier; ///< Device type identifier
+	    string				name;	    ///< Device type display name
+	    sensors.NumericSensor_4_0_3.Range	defaultRange;  ///< Default sensor range (numeric sensors only)
+	    int					defaultDecDigits;  ///< Default sensor precision (numeric sensors only)
+	};
+
+	/** Firmware update status */
+	structure FirmwareUpdateState {
+	    boolean active;			///< \c true if any peripheral device is currently updated
+	    int remaining;			///< Number of peripheral devices that are still pending to be updated
+	};
+
+	/** Event: Peripheral device manager's settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;	///< Settings before change
+	    Settings newSettings;	///< Settings after change
+	};
+
+	/** Event: A peripheral device was added or removed */
+	valueobject DeviceEvent_2_0_0 extends idl.Event {
+	    vector<Device_3_0_2> devices;	///< Affected devices
+	    vector<Device_3_0_2> allDevices;	///< New list of discovered devices after change
+	};
+
+	/** Event: A peripheral device was added */
+	valueobject DeviceAddedEvent_2_0_0 extends DeviceEvent_2_0_0 { };
+
+	/** Event: A peripheral device was removed */
+	valueobject DeviceRemovedEvent_2_0_0 extends DeviceEvent_2_0_0 { };
+
+	/** Event: An unknown device was attached */
+	valueobject UnknownDeviceAttachedEvent extends idl.Event {
+	    string romCode;			///< Device ROM code
+	    vector<PosElement> position;	///< Device position in the chain
+	};
+
+	/** Enumeration: State of device firmware update */
+	enumeration DeviceFirmwareUpdateState {
+	    UPDATE_STARTED,			///< Update is running
+	    UPDATE_SUCCESSFUL,			///< Update has finished successfully
+	    UPDATE_FAILED			///< Update has failed
+	};
+
+	/** Event: Firmware update on a device was started or has finished */
+	valueobject DeviceFirmwareUpdateStateChangedEvent extends idl.Event {
+	    string oldVersion;			///< Firmware version before update
+	    string newVersion;			///< Firmware version to be updated to
+	    string serial;			///< Serial number of device
+	    DeviceFirmwareUpdateState state;	///< Update state
+	};
+
+	/** Event: Firmware update state has changed
+	 *  This event will be sent to enclose one of more {@link DeviceFirmwareUpdateStateChangedEvent}.
+	 *  That is, it will be sent before a series of firmware updates is started and after the
+	 *  firmware update series has ended. */
+	valueobject FirmwareUpdateStateChangedEvent extends idl.Event {
+	    FirmwareUpdateState newState;		///< New update state
+	};
+
+	/** Event: A peripheral device package was added or removed */
+	valueobject PackageEvent_2_0_0 extends idl.Event {
+	    vector<PackageInfo_2_0_1> packageInfos;	///< Information about affected packages
+	    vector<PackageInfo_2_0_1> allPackages;	///< New list of discovered packages after change
+	};
+
+	/** Event: A peripheral device package was added */
+	valueobject PackageAddedEvent_2_0_0 extends PackageEvent_2_0_0 { };
+	/** Event: A peripheral device package was removed */
+	valueobject PackageRemovedEvent_2_0_0 extends PackageEvent_2_0_0 { };
+
+ 	/** Peripheral device statistics */
+	structure Statistics {
+	    int cSumErrCnt; 	    ///< CRC / checksum error counter
+	};
+    	
+	/**
+	 * Get the list of peripheral device slots.
+	 *
+	 * @return List of peripheral device slots
+	 */
+	vector<DeviceSlot_2_0_3> getDeviceSlots();
+
+        /**
+         * Get a DeviceSlot by its index
+         * 
+         * @param idx  index of the slot to get
+         * @return     the requested slot
+         */
+        DeviceSlot_2_0_3 getDeviceSlot(in int idx);
+
+	/**
+	 * Get the list of currently attached peripheral devices
+	 *
+	 * @return List of all discovered peripheral devices
+	 */
+	vector<Device_3_0_2> getDiscoveredDevices();
+
+	/**
+	 * Get the list of currently attached peripheral device packages
+	 *
+	 * @return List of all discovered peripheral device packages
+	 */
+	vector<PackageInfo_2_0_1> getDiscoveredPackageInfos();
+	
+	/**
+	 * Retrieve the peripheral DeviceManager's settings.
+	 *
+	 * @return peripheral DeviceManager's settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the peripheral DeviceManager's settings.
+	 *
+	 * @param settings  	      New peripheral DeviceManager's settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+    	
+    	/**
+    	 * Retreive the Peripheral DeviceManager's metadata.
+    	 *
+    	 * @return Peripheral DeviceManager's metadata
+    	 */
+    	MetaData getMetaData();
+
+	/**
+	 * Get the list of all peripheral device type infos
+	 *
+	 * @return List of all peripheral device type infos
+	 */
+	vector<DeviceTypeInfo> getDeviceTypeInfos();
+
+	/**
+	 * Return the state of device firmware updates running
+	 * on devices connected to this device manager
+	 *
+	 * @return Firmware update state
+	 */
+	FirmwareUpdateState getFirmwareUpdateState();
+
+	/**
+	 * Retrieve statistics
+	 *
+	 * @return peripheral device statistics
+	 */
+	Statistics getStatistics();
+
+	/**
+	 * Get the list of currently attached peripheral device packages
+	 *
+	 * @return List of all discovered peripheral device packages
+	 */
+	vector<Package_1_0_1> getDiscoveredPackages();
+
+	/**
+	 * Get the fuse for the sensor port
+	 *
+	 * @return A fuse instance, if available
+	 */
+	portsmodel.PortFuse getPortFuse();
+    };
+}
+
+#endif /* !__PERIPHERAL_DEVICE_MANAGER_IDL__ */

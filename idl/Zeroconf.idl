@@ -1,0 +1,40 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+
+/**
+ * Device Settings
+ */
+module devsettings {
+    /** Zero-config service settings interface */
+    interface Zeroconf_2_0_0 {
+
+	/** Zero-configservice settings */
+	structure Settings {
+	    boolean mdnsEnabled;	///< Enable zero-config advertising via mDNS for device
+	    boolean llmnrEnabled;	///< Enable zero-config advertising via LLMNR for device
+	};
+
+	valueobject SettingsChangedEvent extends idl.Event {
+	    Settings oldSettings; ///< old settings
+	    Settings newSettings; ///< new settings
+	};
+
+	/**
+	 * Retrieve the service settings.
+	 *
+	 * @return Zero-config service settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Set the service settings.
+	 *
+	 * @param settings New settings
+	 */
+	void setSettings(in Settings settings);
+    };
+}

@@ -1,0 +1,43 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LOG_IDL__
+#define __LOG_IDL__
+
+/** Device Logging */
+module logging {
+
+    /** General log info */
+    structure LogInfo {
+	long creationTime;	///< Creation time of log; changed by clear()
+	int idFirst;		///< Serial number of first entry of the log
+	int idNext;		///< Next unused serial number of the log
+    };
+
+    /** A log entry */
+    structure LogEntry {
+	int id;			///< Serial number
+	time timestamp;	        ///< Time stamp
+	string eventClass;	///< Category (aka event class)
+	string message;		///< Message
+    };
+
+    /** A log chunk */
+    structure LogChunk {
+	long logCreationTime;	///< Creation time of log at chunk generation
+	int idFirst;		///< Serial number of first entry in the chunk
+	int allEntryCnt;	///< Number of all entries in the chunk
+	vector<LogEntry> selEntries; ///< Selected entries of the chunk
+    };
+
+    /** Range direction when fetching log entries */
+    enumeration RangeDirection {
+	FORWARD,		///< Ascending serial numbers
+	BACKWARD		///< Descending serial numbers
+    };
+
+}
+
+#endif /* __LOG_IDL__ */

@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Device Settings
+ */
+module devsettings {
+
+    /** %Modbus service settings interface */
+    interface Modbus_2_0_0 {
+
+	constant int ERR_INVALID_PARAM = 1; ///< Invalid parameters
+
+	/** Device modbus capabilities */
+	structure Capabilities {
+	    boolean hasModbusSerial;	///< Device has a serial %Modbus port
+	};
+
+	/**
+	 * Retrieve the device %Modbus capabilities.
+	 *
+	 * @return %Modbus capbilities
+	 */
+	Capabilities getCapabilities();
+
+	/**
+	 * %Modbus/TCP settings.
+	 *
+	 * @note Port number and enabled flag are configured using
+	 *       net::Net::setNetworkConfigServices.
+	 */
+	structure TcpSettings {
+	    boolean readonly;		///< Disallow write requests
+	};
+
+	/** Serial line parity */
+	enumeration Parity { NONE, EVEN, ODD };
+
+	/** %Modbus/serial settings. */
+	structure SerialSettings {
+	    boolean enabled;		///< Enable the %Modbus/RTU service
+	    int baudrate;		///< Baudrate
+	    Parity parity;		///< Parity
+	    int stopbits;		///< Number of stop bits (1 or 2)
+	    boolean readonly;		///< Disallow write requests
+	};
+
+	/** %Modbus service settings */
+	structure Settings {
+	    TcpSettings tcp;		///< %Modbus/TCP settings
+	    SerialSettings serial;	///< %Modbus/serial settings
+	    int primaryUnitId;		///< Main unit ID, 0 to disable
+					///< @note Models that act as a simple Modbus device
+					///< will ignore this setting for TCP connections and
+					///< respond to all unit IDs.
+	};
+
+	/**
+	 * Retrieve the %Modbus service settings.
+	 *
+	 * @return %Modbus service settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Set the %Modbus service settings.
+	 *
+	 * @param settings New settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+    };
+
+}

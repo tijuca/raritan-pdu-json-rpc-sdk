@@ -1,0 +1,142 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <GsmModem.idl>
+#include <AnalogModem.idl>
+
+/** Serial Ports */
+module serial {
+
+    /**
+     * Interface describing a physical serial port
+     * and the devices which can be attached to it
+     */
+    interface SerialPort_3_0_1 {
+	/**
+	 * Error codes
+	 */
+	constant int SUCCESS           = 0; ///< No error
+	constant int ERR_INVALID_VALUE = 1; ///< Invalid arguments
+
+	/**
+	 * Possible states the port can be in at a given time
+	 */
+	enumeration PortState {
+	    CONSOLE,		///< The console application is running on the port
+	    ANALOGMODEM,	///< An analog modem is attached to the port
+	    GSMMODEM,		///< A GSM modem is attached to the port
+	    DISCONNECTED	///< No device matching the configured mode is detected
+	};
+
+	/**
+	 * Device type the port shall be looking for
+	 */
+	enumeration DetectionType {
+	    AUTOMATIC,		///< Try to automatically determine the connected device
+	    FORCE_CONSOLE,	///< Always assume a console (terminal) is connected
+	    FORCE_ANALOGMODEM,	///< Always assume an analog modem is connected
+	    FORCE_GSMMODEM	///< Always assume a GSM modem is connected
+	};
+
+	/**
+	 * Possible baud rates
+	 */
+	enumeration BaudRate {
+	    BR1200,		///<   1.200 kbit/s
+	    BR2400,		///<   2.400 kbit/s
+	    BR4800,		///<   4.800 kbit/s
+	    BR9600,		///<   9.600 kbit/s
+	    BR19200,		///<  19.200 kbit/s
+	    BR38400,		///<  38.400 kbit/s
+	    BR57600,		///<  57.600 kbit/s
+	    BR115200		///< 115.200 kbit/s
+	};
+
+	/**
+	 * (Static) meta data containing port properties
+	 */
+	structure MetaData {
+	    boolean hasModemSupport; ///< Whether or not the port can detect modems (if false,
+				     ///< this port can only operate in console mode)
+	};
+
+	/**
+	 * Structure holding information about
+	 * the current state of the port
+	 */
+	structure State {
+	    PortState state;	///< Current connection state
+	    string deviceName;	///< Name of the device currently connected
+	};
+
+	/**
+	 * Port settings
+	 */
+	structure Settings {
+	    BaudRate consoleBaudRate;	///< Baud rate to be used for running the console application
+	    BaudRate modemBaudRate;	///< Baud rate to be used for communicating with an attached modem
+	    DetectionType detectType;	///< Type of connected device to be assumed in device detection
+	};
+
+	/**
+	 * Event emitted when the modem connection state changes
+	 */
+	valueobject ModemEvent extends idl.Event {
+	    Object modem;		///< Either a {@link AnalogModem} or a {@link GsmModem}
+	};
+
+	/**
+	 * Event emitted when a modem is connected
+	 */
+	valueobject ModemAddedEvent extends ModemEvent {
+	};
+
+	/**
+	 * Event emitted when a modem is disconnected
+	 */
+	valueobject ModemRemovedEvent extends ModemEvent {
+	};
+
+	/**
+	 * @brief Get port meta data
+	 *
+	 * @return -- Meta data
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * @brief Get current settings
+	 *
+	 * @return -- Settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * @brief Set settings
+	 *
+	 * @param settings -- new settings
+	 *
+	 * @return SUCCESS           -- on success
+	 * @return ERR_INVALID_VALUE -- if any passed value was invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * @brief Get current port state
+	 *
+	 * @return -- Port state
+	 */
+	State getState();
+
+	/**
+	 * @brief Get modem connected to port
+	 *
+	 * @return -- an instance of the connected modem (either
+	 *            {@link AnalogModem} or {@link GsmModem})
+	 */
+	Object getModem();
+    };
+    
+}

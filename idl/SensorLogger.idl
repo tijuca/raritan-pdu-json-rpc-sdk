@@ -1,0 +1,306 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <Sensor.idl>
+#include <PeripheralDeviceSlot.idl>
+#include <UserEvent.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /**
+     * Sensor logger interface.
+     *
+     * The sensor log stores a fixed number of log records for each
+     * enabled sensor. Log records hold the minimum, maximum and average
+     * reading of all samples within the period as well as the most
+     * critical state.
+     *
+     * Record IDs start at 1 and grow continuously without wrap-around. To
+     * avoid race conditions it is allowed to request records that are no
+     * longer available, i.e. have rotated out of the log. Unavailable
+     * records come back empty (available = false, timestamp = 0). It is
+     * not OK to read past newestRecId.
+     *
+     * Log record periods are synchronized with the system time, so all
+     * devices with the same log settings and proper time configuration
+     * move to a new record simultaneously.
+     */
+    interface Logger_2_1_6 {
+
+	/** Sensor logger settings */
+	structure Settings {
+	    boolean isEnabled;			///< \c true if sensor logging is enabled
+	    int samplePeriod;			///< Sensor scan interval in milliseconds
+	    int samplesPerRecord;		///< Number of samples per log record
+	    int oldestRecId;			///< ID of oldest record in buffer (0 if empty)
+	    int newestRecId;			///< ID of newest record in buffer (0 if empty)
+	    int logCapacity;			///< Maximum number of log records in buffer
+	};
+
+	/** Set of logged sensors */
+	structure SensorSet {
+	    /** List of numeric or state sensors */
+	    vector<sensors.Sensor_4_0_3> sensors;
+	    /** List of peripheral device slots */
+	    vector<peripheral.DeviceSlot_2_0_3> slots;
+	};
+
+	/** Event: Sensor logger settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;		///< Settings before change
+	    Settings newSettings;		///< Settings after change
+	};
+
+	/** Event: Set of logged sensors has been changed */
+	valueobject LoggedSensorsChangedEvent extends event.UserEvent {
+	    SensorSet oldSensors;		///< Sensor set before change
+	    SensorSet newSensors;		///< Sensor set after change
+	};
+
+	/**
+	 * Retrieve the sensor logger settings.
+	 *
+	 * @return Sensor logger settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the sensor logger settings.
+	 *
+	 * @param isEnabled         \c true to enable sensor logging
+	 * @param samplesPerRecord  Number of samples per log record
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in boolean isEnabled, in int samplesPerRecord);
+
+	/** Sensor state in log record */
+	constant int STATE_UNAVAILABLE = 0;		///< Unavailable
+	constant int STATE_OPEN = 1;			///< Circuit breaker open
+	constant int STATE_CLOSE = 2;			///< Circuit breaker closed
+	constant int STATE_BELOW_LOWER_CRITICAL = 3;	///< Numeric sensor below lower critical threshold
+	constant int STATE_BELOW_LOWER_WARNING = 4;	///< Numeric sensor below lower warning threshold
+	constant int STATE_NORMAL = 5;			///< Numeric sensor in normal range; normal operation
+	constant int STATE_ABOVE_UPPER_WARNING = 6;	///< Numeric sensor above upper warning threshold
+	constant int STATE_ABOVE_UPPER_CRITICAL = 7;	///< Numeric sensor above upper critical threshold
+	constant int STATE_ON = 8;			///< Power state on
+	constant int STATE_OFF = 9;			///< Power state off
+	constant int STATE_ALARMED = 10;		///< Alarmed
+	constant int STATE_OK = 11;			///< OK
+	constant int STATE_MARGINAL = 12;		///< Marginal
+	constant int STATE_FAIL = 13;			///< Fail
+	constant int STATE_YES = 14;			///< Yes
+	constant int STATE_NO = 15;			///< No
+	constant int STATE_STANDBY = 16;		///< Standby operation
+	constant int STATE_ONE = 17;			///< First source active
+	constant int STATE_TWO = 18;			///< Second source active
+	constant int STATE_IN_SYNC = 19;		///< Phases are in sync
+	constant int STATE_OUT_OF_SYNC = 20;		///< Phases are out of sync
+	constant int STATE_FAULT = 21;			///< Fault
+	constant int STATE_SELF_TEST = 22;		///< Sensor is currently testing itself
+	constant int STATE_I1_OPEN_FAULT = 23;		///< Inlet 1 switch open fault
+	constant int STATE_I1_SHORT_FAULT = 24;		///< Inlet 1 switch short fault
+	constant int STATE_I2_OPEN_FAULT = 25;		///< Inlet 2 switch open fault
+	constant int STATE_I2_SHORT_FAULT = 26;		///< Inlet 2 switch short fault
+	constant int STATE_WARNING = 27;		///< Warning
+	constant int STATE_CRITICAL = 28;		///< Critical
+	constant int STATE_NON_REDUNDANT = 29;		///< Non-redundant operation
+
+	/**
+	 * Retrieve a set of log record timestamps.
+	 *
+	 * @param timestamps  Result: Log record timestamps
+	 * @param recid       First record id
+	 * @param count       Number of records
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any record id is invalid
+	 */
+	int getTimeStamps(out vector<time> timestamps,
+                          in int recid, in int count);
+
+	/** Sensor log record */
+	structure Record {
+	    boolean available;			///< Sensor was available for at least one sample
+	    int takenValidSamples;		///< Number of samples with a valid reading/state
+	    int state;				///< Sensor state
+	    double minValue;			///< Minimum sensor reading
+	    double avgValue;			///< Average sensor reading
+	    double maxValue;			///< Maximum sensor reading
+	};
+
+	/**
+	 * Retrieve log records for a given sensor.
+	 *
+	 * @param recs    Result: Sensor log records
+	 * @param sensor  Sensor reference
+	 * @param recid   First record id
+	 * @param count   Number of records
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any record id is invalid
+	 */
+	int getSensorRecords(out vector<Record> recs, in sensors.Sensor_4_0_3 sensor,
+		             in int recid, in int count);
+
+	/**
+	 * Retrieve log records for an peripheral device slot.
+	 *
+	 * @param recs       Result: Sensor log records
+	 * @param slot	     Peripheral device slot reference
+	 * @param recid      First record id
+	 * @param count      Number of records
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any record id is invalid
+	 */
+	int getPeripheralDeviceRecords(out vector<Record> recs,
+				       in peripheral.DeviceSlot_2_0_3 slot,
+				       in int recid, in int count);
+
+	/** Sensor log record with timestamp */
+	structure TimedRecord {
+	    time timestamp;			///< Timestamp
+	    Record record;			///< Log record
+	};
+
+	/**
+	 * Retrieve log records with timestamps for a given sensor.
+	 *
+	 * @param recs    Result: Sensor log records
+	 * @param sensor  Sensor reference
+	 * @param recid   First record id
+	 * @param count   Number of records
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any record id is invalid
+	 */
+	int getSensorTimedRecords(out vector<TimedRecord> recs, in sensors.Sensor_4_0_3 sensor,
+			    in int recid, in int count);
+
+	/**
+	 * Retrieve log records with timestamps for an peripheral device slot.
+	 *
+	 * @param recs       Result: Sensor log records
+	 * @param slot	     Peripheral device slot reference
+	 * @param recid      First record id
+	 * @param count      Number of records
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any record id is invalid
+	 */
+	int getPeripheralDeviceTimedRecords(out vector<TimedRecord> recs,
+					    in peripheral.DeviceSlot_2_0_3 slot,
+					    in int recid, in int count);
+	
+	/**
+	 * Retrieve the set of logged sensors.
+	 *
+	 * @return Set of logged sensors
+	 */
+	SensorSet getLoggedSensors();
+
+	/**
+	 * Change the set of logged sensors.
+	 *
+	 * @param sensors  New set of sensors
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any sensor in the list is unknown
+	 */
+	int setLoggedSensors(in SensorSet sensors);
+
+	/**
+	 * Enable logging for one or more sensors or peripheral device slots.
+	 *
+	 * Sensors in the list that are already logged are ignored. Logged
+	 * sensors not in the list remain enabled.
+	 *
+	 * @param sensors  Sensors and slots to be logged
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any sensor in the list is unknown
+	 */
+	int enableSensors(in SensorSet sensors);
+
+	/**
+	 * Disable logging for one or more sensors or peripheral device slots.
+	 *
+	 * Sensors in the list that are not logged are ignored. Logged sensors
+	 * not in the list remain enabled.
+	 *
+	 * @param sensors  Sensors and slots to be disabled
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any sensor in the list is unknown
+	 */
+	int disableSensors(in SensorSet sensors);
+
+	/**
+	 * Check if logging is enabled for a given sensor.
+	 *
+	 * @param sensor  Sensor to be checked
+	 *
+	 * @return \c true if sensor is logged, \c false otherwise
+	 */
+	boolean isSensorEnabled(in sensors.Sensor_4_0_3 sensor);
+
+	/**
+	 * Check if logging is enabled for a given peripheral device slot.
+	 *
+	 * @param sensor  Peripheral device slot to be checked
+	 *
+	 * @return \c true if slot is logged, \c false otherwise
+	 */
+	boolean isSlotEnabled(in peripheral.DeviceSlot_2_0_3 slot);
+
+	/**
+	 * Enable logging for all PDU sensors.
+	 */
+	void enableAllSensors();
+
+	/**
+	 * Disable logging for all PDU sensors.
+	 */
+	void disableAllSensors();
+
+	/**
+	 * Get the time of the last sensor set modification.
+	 *
+	 * This can be used by clients which keep a cached copy of the sensor
+	 * set to determine whether that copy is still up-to-date.
+	 *
+	 * @return Sensor set time stamp
+	 */
+	time getSensorSetTimestamp();
+
+	/** One full log row */
+	structure LogRow {
+	    /** Time of last sensor set modification */
+	    time sensorSetTimestamp;
+	    /** Log row time stamp */
+	    time timestamp;
+	    /** Sensor records; same order as in SensorSet::sensors */
+	    vector<Record> sensorRecords;
+	    /** Peripheral device records; same order as in SensorSet::slots */
+	    vector<Record> peripheralDeviceRecords;
+	};
+
+	/**
+	 * Get one full log row.
+	 *
+	 * @param row    Result: Log row
+	 * @param recid  Record id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the record id is invalid
+	 */
+	int getLogRow(out LogRow row, in int recid);
+
+    };
+
+}

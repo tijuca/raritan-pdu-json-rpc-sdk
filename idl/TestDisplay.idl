@@ -1,0 +1,72 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __TEST_DISPLAY_IDL__
+#define __TEST_DISPLAY_IDL__
+
+/**
+ * Test Interfaces
+ */
+module test {
+
+    /** Type-independent display test interface */
+    interface Display_1_0_1 {
+
+	/** Display orientation */
+	enumeration Orientation {
+	    NORMAL,                             ///< Normal orientation
+	    FLIPPED,                            ///< Upside-down
+	    LEFT,                               ///< Left side down
+	    RIGHT                               ///< Right side down
+	};
+
+	/** Collected display meta information */
+	structure Info {
+	    string type;                        ///< Display type
+	    string address;                     ///< Display address
+	    map<string, string> options;        ///< Display options
+	    Orientation orientation;            ///< Display orientation
+	};
+
+	/**
+	 * Retrieve display's meta information.
+	 *
+	 * @return Display information
+	 */
+	Info getInfo();
+
+	/**
+	 * Execute a test sequence that is a bit more elaborate than
+	 * just on and off all.
+	 *
+	 * @param cycleTime_ms  Delay between state changes in ms
+	 */
+	void testSequence(in int cycleTime_ms);
+
+	/** Status of interactive test */
+	enumeration TestStatus {
+	    TEST_IDLE,                          ///< Test has not been started
+	    TEST_BUSY,                          ///< Test is in progress
+	    TEST_PASSED,                        ///< The test finished successfully
+	    TEST_FAILED                         ///< The test failed
+	};
+
+	/**
+	 * Start an interactive test on units which support it.
+	 */
+	void enterTestMode();
+
+	/**
+	 * Get the current status of the interactive test.
+	 *
+	 * @return Test status
+	 */
+	TestStatus getTestStatus();
+
+    };
+
+}
+
+#endif

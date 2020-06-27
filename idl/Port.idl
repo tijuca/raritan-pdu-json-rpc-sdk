@@ -1,0 +1,117 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PORTSMODEL_PORT_IDL__
+#define __PORTSMODEL_PORT_IDL__
+
+#include <Event.idl>
+#include <PortFuse.idl>
+
+/**
+ * Ports
+ */
+module portsmodel {
+
+    /** Port interface */
+    interface Port_2_0_2 {
+
+	/** Error codes */
+	constant int NO_ERROR		= 0;	///< operation successful, no error
+	constant int ERR_INVALID_PARAM	= 1;	///< invalid parameter for an operation
+	constant int ERR_DEVICE_BUSY	= 2;	///< operation fails because connected device is busy
+
+	/** Port detection type */
+	enumeration DetectionType {
+	    AUTO,				///< auto detection of connected devices
+	    PINNED,				///< port is pinned to a specific device type
+	    DISABLED	    	    	    	///< port is disabled and will not detect any device connected
+	};
+
+	/** Port detection mode */
+	structure DetectionMode {
+	    DetectionType type;			///< detection type: auto or pinned
+	    string pinnedDeviceType;		///< contains specific device type in pinned mode, not used for auto
+	};
+
+	/** Port properties */
+	structure Properties {
+	    string name;    	    	    	///< user defineable name - NOT USED RIGHT NOW!
+	    string label;			///< label on device
+	    DetectionMode mode;			///< detection mode
+	    string detectedDeviceType;		///< detected device type or empty if nothing connected
+	    string detectedDeviceName;		///< detected device name or empty if nothing connected
+	};
+
+	/** Event: The port properties have changed */
+	valueobject PropertiesChangedEvent extends idl.Event {
+	    Properties oldProperties;		///< Properties before change
+	    Properties newProperties;		///< Properties after change
+	};
+
+	/** Event: The device connected to the port has changed */
+	valueobject DeviceChangedEvent extends idl.Event {
+	    Object oldDevice;			///< Connected device before change
+	    Object newDevice;			///< Connected device after change
+	};
+
+	/**
+	 * Get the current properties of the port
+	 * 
+	 * @return Properties of the Port
+	 */
+	Properties getProperties();
+	
+	/**
+	 * NOT USED RIGHT NOW!
+	 *
+	 * Set the port name
+	 *
+	 * @param  name			new port name
+	 */
+	void setName(in string name);
+
+	/**
+	 * Set the detection mode for the port
+	 *
+	 * @param  mode			new detection mode
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    invalid parameter
+	 * @return ERR_DEVICE_BUSY    	device busy (e.g. Asset Strip Firmware Update)
+	 */
+	int setDetectionMode(in DetectionMode mode);
+
+	/**
+	 * Get all detectable devices of this port
+	 * 
+	 * @return List of all registered detectable Devices
+	 */
+	vector<string> getDetectableDevices();
+
+	/**
+	 * Get the connected device of the port
+	 * 
+	 * @return Device connected to Port
+	 */
+	Object getDevice();
+	
+	/**
+	 * Get device type specific configuration interface.
+	 *
+	 * @param deviceType	Device type to get configuration interface for
+	 *
+	 * @return  	    	Device configuration interface
+	 */
+	Object getDeviceConfig(in string deviceType);
+
+	/**
+	 * Get the fuse for this port
+	 *
+	 * @return A fuse instance, if available
+	 */
+	PortFuse getFuse();
+    };
+}
+
+#endif /* __PORTSMODEL_PORT_IDL__ */

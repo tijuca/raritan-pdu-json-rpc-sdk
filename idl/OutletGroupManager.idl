@@ -1,0 +1,42 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_OUTLETGROUPMANAGER_IDL__
+#define __PDUMODEL_OUTLETGROUPMANAGER_IDL__
+
+#include <Outlet.idl>
+#include <OutletGroup.idl>
+
+module pdumodel {
+
+    /** Main PDU interface */
+    interface OutletGroupManager_1_0_1 {
+	constant int ERR_INVALID_ARGUMENT = 1;
+	constant int ERR_NO_SUCH_ID = 2;
+	constant int ERR_MAX_GROUP_COUNT_REACHED = 3;
+
+	valueobject GroupCreatedEvent extends event.UserEvent {
+	    int id;
+	    int uniqueId;
+	    OutletGroup_1_0_1 group;
+	    OutletGroup_1_0_1.Settings settings;
+	};
+
+	valueobject GroupDeletedEvent extends event.UserEvent {
+	    int id;
+	    int uniqueId;
+	    OutletGroup_1_0_1.Settings settings;
+	};
+
+	int createGroup(in string name, in vector<Outlet_2_1_5> members, out OutletGroup_1_0_1 group);
+
+	map<int, OutletGroup_1_0_1> getAllGroups();
+	int getGroup(in int id, out OutletGroup_1_0_1 group);
+
+	int deleteGroup(in int id);
+    };
+}
+
+#endif

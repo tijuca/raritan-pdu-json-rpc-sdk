@@ -1,0 +1,189 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ASSETMGRMODEL_ASSETSTRIP_CONFIG_IDL__
+#define __ASSETMGRMODEL_ASSETSTRIP_CONFIG_IDL__
+
+#include <Event.idl>
+#include <UserEvent.idl>
+
+/**
+ * Asset Management Model
+ */
+module assetmgrmodel {
+    /** Asset Strip Config interface */
+    interface AssetStripConfig_1_0_1 {
+
+	/**
+	 * %AssetStripConfig scan mode is active
+	 *
+	 * This is a demonstration feature providing a 'running lights' kind of effect
+	 * where not all LEDs are lit statically (depending on their mode) but
+	 * only a few LED which change all the time.
+	 */
+	enumeration ScanMode {
+	    SCANMODE_DISABLED, ///< LED scanmode is disabled, all LEDs are lit up statically
+	    SCANMODE_BOTH      ///< LED scanmode is enabled providing a 'running light' effect
+	};
+
+	/**
+	 * %AssetStripConfig rack unit numbering mode
+	 *
+	 * Indicates the way the rack unit numbers are defined. 
+	 * Basically this determines what number are 'written/printed' at a specific rack unit 
+	 * on the rack.
+	 *
+	 * An additional numberingOffset may be specified in the settings if the numbering
+	 * does not start at the default 1.
+	 */
+	enumeration NumberingMode {
+	    TOP_DOWN,		///< numbering goes from top to bottom, top is the smallest number
+	    BOTTOM_UP		///< numbering goes from bottom to top, bottom is the smallest number
+	};
+
+	/**
+	 * %AssetStripConfig orientation
+	 *
+	 * The asset strip may be mounted in a rack 
+	 * a) with its cable connector on top, growing top->bottom
+	 * b) with its cable connector on bottom, growing bottom->top
+	 *
+	 * This enumeration indicates the mounting option.
+	 * It is detected automatically and writes to the setting are ignored.
+	 */
+	enumeration Orientation {
+	    TOP_CONNECTOR,	///< cable connector on top, strip growing top->bottom
+	    BOTTOM_CONNECTOR	///< cable connector on top, strip growing bottom->top
+	};
+
+	/** 
+	 * Operation mode for the LED of a single rack unit.
+	 *
+	 * The LED may either be manually controlled or its color
+	 * may be chosen automatically depending on whether an asset tag
+	 * is connected or not. In automatic mode the LED is always on.
+	 */
+	enumeration LEDOperationMode {
+	    LED_OPERATION_MANUAL, ///< LED color and mode is manually controlled
+	    LED_OPERATION_AUTO    ///< LED color controlled automatically, LED always on
+	};
+
+	/**
+	 * Mode for the LED of a single rack unit
+	 */
+	enumeration LEDMode {
+	    LED_MODE_ON,	    ///< LED on
+	    LED_MODE_OFF,	    ///< LED off
+	    LED_MODE_BLINK_FAST,    ///< LED is blinking (fast)
+	    LED_MODE_BLINK_SLOW	    ///< LED is blinking (slow)
+	};
+
+	/**
+	 * The LED color in RGB format, 8 bit per channel
+	 * 
+	 * Supported range is 0-255
+	 */
+	structure LEDColor {
+	    int r; ///< red channel of the LED
+	    int g; ///< green channel of the LED
+	    int b; ///< blue channel of the LED
+	};
+
+	/**
+	 * Settings for this Asset Strip
+	 */
+	structure StripSettings {
+	    int		    rackUnitCount;		///< rack unit count, number of rack units (range: 8..64), will be ignored on strips that auto-detect their rack unit count
+	    string	    name;			///< user defined name (up to 64 alphanumeric characters)
+	    ScanMode	    scanMode;			///< LED scan (demo) mode
+	    LEDColor	    defaultColorConnected;	///< auto color for rack units with an asset tag connected
+	    LEDColor	    defaultColorDisconnected;	///< auto color for rack units without an asset tag connected
+	    NumberingMode   numberingMode;		///< rack unit numbering mode (top down, bottom up)
+	    int		    numberingOffset;		///< rack unit numbering starting offset (default is 1)
+	    Orientation	    orientation;		///< orientation. If orientationSensAvailable, writes are ignored
+	};
+
+	/**
+	 * Settings for a single rack unit (LED state)
+	 */
+	structure RackUnitSettings {
+	    LEDOperationMode opmode;		///< Operation mode for this rack unit
+	    LEDMode mode;			///< LED mode (on,off,blinking)
+	    LEDColor color;			///< Color of the LED at this rack unit
+	    string name;			///< user defined name (up to 64 alphanumeric characters)
+	};
+
+	/** Event: Asset strip settings were changed */
+	valueobject StripSettingsChangedEvent extends event.UserEvent {
+	    StripSettings oldSettings;		///< Settings before change
+	    StripSettings newSettings;		///< Settings after change
+	};
+
+	/** Event: A rack unit's settings were changed */
+	valueobject RackUnitSettingsChangedEvent extends event.UserEvent {
+	    int rackUnitNumber;			///< Affected rack unit position
+	    RackUnitSettings oldSettings;	///< Settings before change
+	    RackUnitSettings newSettings;	///< Settings after change
+	};
+
+        /**
+	 * Get the asset strip settings which are not rack unit specific
+	 *
+	 * @return settings		settings for this asset strip
+	 */
+	StripSettings getStripSettings();
+
+	/**
+	 * Set the asset strip settings which are not rack unit specific
+	 *
+	 * @param  settings		Settings for this asset strip
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM	one or more of the settings is invalid
+	 */
+	int setStripSettings(in StripSettings settings);
+
+	/**
+	 * Get settings of a rack unit at once
+	 *
+	 * @param  rackUnitNumber	rack unit to get the settings for, range 0..rackUnitCount-1
+	 * @param  settings		settings for this rack unit
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    rack unit count exceeded
+	 */
+	int getRackUnitSettings(in int rackUnitNumber, out RackUnitSettings settings);
+
+	/**
+	 * Get settings for all rack units
+	 *
+	 * @return			Result: the rack unit settings
+	 */
+	vector<RackUnitSettings> getAllRackUnitSettings();
+
+	/**
+	 * Set all settings of the specified rack unit at once
+	 *
+	 * The addressed rack unit is part of the  parameter
+	 *
+	 * @param  rackUnitNumber	rack unit to set the settings for, range 0..rackUnitCount-1
+	 * @param  settings		settings for this rack unit
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    one or more of the settings is invalid
+	 */
+	int setRackUnitSettings(in int rackUnitNumber, in RackUnitSettings settings);
+
+	/**
+	 * Set all settings of multiple rack units at once
+	 *
+	 * @param  settings		map of rack units and their settings
+	 * @return NO_ERROR		on success
+	 * @return ERR_INVALID_PARAM    one or more of the settings is invalid 	 
+	 *				(rack unit count exceeded or color/mode not supported,
+	 *				 rack unit count and setting count differ...)
+	 */
+	int setMultipleRackUnitSettings(in map<int, RackUnitSettings> settings);
+    };
+}
+
+#endif /* __ASSETMGRMODEL_ASSETSTRIP_CONFIG_IDL__ */

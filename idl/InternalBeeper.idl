@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+#include <UserEvent.idl>
+
+/**
+ * Human Machine Interface
+ */
+module hmi {
+
+    /** Internal beeper interface */
+    interface InternalBeeper_2_0_1 {
+	/** Activation state */
+	enumeration State {
+	    OFF,				///< Beeper is currently off
+	    ON_NOTIFICATION,			///< Beeper is currently active due to an internal alarm notification
+	    ON_ACTIVATION			///< Beeper is currently active due to an external activation
+	};
+
+	/** Event: The beeper has been muted or unmuted */
+	valueobject MuteChangedEvent extends event.UserEvent {
+	    boolean muted;
+	};
+
+	/** Event: The beeper activation status has changed */
+	valueobject StateChangedEvent extends idl.Event {
+	    State state;			///< The current beeper state
+	    string reason;			///< Activation reason
+	    boolean mutedTemporarily;
+	};
+
+	/**
+	 * Mute beeper, turn off all internal alarm notifications.
+	 *
+	 * @param mute  \c true to mute beeper, \c false for normal mode
+	 */
+	void mute(in boolean muted);
+
+	/**
+	 * Check whether beeper is currently muted
+	 *
+	 * @return \c true if muted, \c false if not
+	 */
+	boolean isMuted();
+
+	/**
+	 * Activate the beeper for a given time.
+	 *
+	 * @param activate Whether to turn on or off the beeper
+	 * @param reason   Description of the reason to turn on the beeper
+	 *                 (only valid whtn turning on the beeper)
+	 * @param timeout  Activation timeout in milliseconds
+	 *                 (only valid when turning on the beeper, 0 = infinite activation)
+	 */
+	void activate(in boolean on, in string reason, in int timeout);
+
+	/**
+	 * Retrieve the current beeper activation state.
+	 *
+	 * @param reason           Return value for activation reason if the beeper
+	 *                         is currently active
+	 * @param mutedTemporarily Whether the beeper is currently muted due to a call
+	 *                         to {@link muteCurrentActivation}.
+	 * @return The current beeper state
+	 */
+	State getState(out string reason, out boolean mutedTemporarily);
+
+	/**
+	 * Mute the beeper for the current activation.
+	 *
+	 * If the beeper is currently on, it will be turned off until another call to
+	 * the {@link activate} method or until a new internal notification happens.
+	 */
+	void muteCurrentActivation();
+    };
+}

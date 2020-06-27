@@ -1,0 +1,118 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2015 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_POWER_METER_CONTROLLER_IDL__
+#define __PDUMODEL_POWER_METER_CONTROLLER_IDL__
+
+#include <Panel.idl>
+#include <UserEvent.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /**
+     * Power Meter Controller (PMC) interface
+     */
+    interface PowerMeterController_1_1_5 {
+
+	constant int ERR_INVALID_PARAM = 1; ///< Invalid parameters
+	constant int ERR_METER_BOARD_BUSY = 2; ///< A power meter with the given ID already exists
+
+	/** Meter board scan result */
+	structure ScanResult {
+	    boolean present;     ///< Meter board was found
+	    int meterCount;      ///< Number of meter channels
+	};
+
+	/**
+	 * Scan for presence and configuration of a meter board.
+	 *
+	 * @param powerMeterId  ID of meter board to be scanned
+	 * @param result        Detected meter board properties
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the meter board ID is out of range
+	 */
+	int scanMeterBoard(in int powerMeterId, out ScanResult result);
+
+	/** Event: A power meter or panel was created */
+	valueobject PowerMeterCreatedEvent extends event.UserEvent {
+	    PowerMeter_1_1_5 powerMeter;        ///< New power meter instance
+	    PowerMeter_1_1_5.Config config;     ///< New power meter config
+	    PowerMeter_1_1_5.Settings settings; ///< New power meter settings
+	};
+
+	/** Event: A power meter was deleted */
+	valueobject PowerMeterDeletedEvent extends event.UserEvent {
+	    PowerMeter_1_1_5.Config config;     ///< Old power meter config
+	    PowerMeter_1_1_5.Settings settings; ///< Old power meter settings
+	};
+
+	/** Event: A panel was created */
+	valueobject PanelCreatedEvent extends PowerMeterCreatedEvent {
+	    Panel_1_1_5.PanelSettings panelSettings; ///< New panel settings
+	};
+
+	/** Event:: A panel was deleted */
+	valueobject PanelDeletedEvent extends PowerMeterDeletedEvent {
+	    Panel_1_1_5.PanelSettings panelSettings; ///< Old panel settings
+	};
+
+	/**
+	 * Retrieve the list of power meters and panels.
+	 *
+	 * @return Power meter and panel instances, indexed by power meter ID
+	 */
+	map<int, PowerMeter_1_1_5> getPowerMeters();
+
+	/**
+	 * Create a new standalone power meter (no panel).
+	 *
+	 * @param powerMeter    Result: Newly created instance
+	 * @param config        New power meter config
+	 * @param settings      Power meter settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 * @return 2 if a power meter with the given ID already exists
+	 */
+	int createPowerMeter(out PowerMeter_1_1_5 powerMeter,
+			     in PowerMeter_1_1_5.Config config,
+			     in PowerMeter_1_1_5.Settings settings);
+
+	/**
+	 * Create a new panel.
+	 *
+	 * @param panel               Result: Newly created instance
+	 * @param config              New power meter config
+	 * @param powerMeterSettings  Power meter settings
+	 * @param panelSettings       Panel settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 * @return 2 if a power meter with the given ID already exists
+	 */
+	int createPanel(out Panel_1_1_5 panel,
+			in PowerMeter_1_1_5.Config config,
+			in PowerMeter_1_1_5.Settings powerMeterSettings,
+			in Panel_1_1_5.PanelSettings panelSettings);
+
+	/**
+	 * Delete a panel or power meter.
+	 *
+	 * @param powerMeterId  Power meter ID
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the power meter ID is invalid
+	 */
+	int deletePowerMeter(in int powerMeterId);
+
+    };
+
+}
+
+#endif

@@ -1,0 +1,199 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/** Bulk Configuration */
+module bulkcfg {
+
+    /** Bulk Configuration Interface */
+    interface BulkConfiguration_1_0_2 {
+
+	/** Status of the last bulk configuration restore operation */
+	enumeration Status {
+	    UNKNOWN,		///< No bulk configuration was done yet
+	    UPLOAD_FAILED,	///< Uploading a bulk configuration failed
+	    RESTORE_PENDING,	///< Restore is pending
+	    RESTORE_OK,		///< Restoring bulk configuration successful
+	    RESTORE_FAILED	///< Restoring bulk configuration failed
+	};
+
+	/**
+	 * Retrieve the status of the last bulk configuration restore
+	 * operation.
+	 *
+	 * @param status     Result: Bulk configuration restore status
+	 * @param timeStamp  Result: Time of last restore operation
+	 */
+	void getStatus(out Status status, out time timeStamp);
+
+	/**
+	 * These are the supported supported filter types.
+	 */
+	enumeration FilterType {
+	    WHITELIST,			///< Whitelist filter (value is part of the bulk configuration)
+	    BLACKLIST			///< Blacklist filter (value is not part of the bulk configuration)
+	};
+
+	/**
+	 * This structure defines a filter.
+	 */
+	structure Filter {
+	    string name;		///< internal name of the filter
+	    string displayName;		///< name of the filter in the user interface
+	    boolean noOverride;		///< true if filter is always active and has a fixed type
+	    boolean bulkOnly;           ///< true if filter is not for backup
+	    vector<string> ruleSpecs;   ///< filter rule specifications (used only internally)
+	};
+
+	/**
+	 * Filter profiles are named collections of filters.
+	 *
+	 * Custom filter profiles inherit all filters from the builtin profile, i.e. if the filter profile
+	 * is empty it is identical to the builtin profile. The type for most of the inherited filters can
+	 * be changed in the derived profile. Only filters with the noOverride flag set are unchangable.
+	 */
+	structure FilterProfile {
+	    string name;				///< name of the filter profile
+	    string description;				///< description of the filter profile
+	    map<string,FilterType> filterNameToTypeMap;	///< map filter name to type
+	};
+
+	/**
+	* Settings
+	*/
+	structure Settings {
+	    vector<FilterProfile> filterProfiles;	///< Defined filter profiles
+	    string defaultProfileName;			///< Name of the default profile
+	};
+
+	/** Event: Bulk configuration settings changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	};
+
+	/** Event: Bulk configuration saved (also used for saving config backup) */
+	valueobject SavedEvent extends event.UserEvent {
+	    boolean isBackup; ///< true if the event is caused by saving a full configuration backup
+	};
+
+	/** Event: Bulk configuration restored (also used for restoring config backup) */
+	valueobject RestoredEvent extends event.UserEvent {
+	    boolean isBackup; ///< true if the event is caused by restoring a full configuration backup
+	};
+
+	/**
+	 * Error codes
+	 */
+	constant int SUCCESS			= 0;	///< The operation was successful
+	constant int ERR_FILTER_NAME_UNKNOWN	= 1;	///< A referenced filter name is unknown
+	constant int ERR_FILTER_TYPE_READONLY	= 2;	///< A referenced filter can't be overridden
+	constant int ERR_PROFILE_ALREADY_EXISTS	= 3;	///< A profile with the given name already exists
+	constant int ERR_PROFILE_DOES_NOT_EXIST	= 4;	///< A profile with the given name does not exist
+	constant int ERR_PROFILE_IS_DEFAULT	= 5;	///< The selected profile is the current default profile
+	constant int ERR_PROFILE_IS_BUILTIN	= 6;	///< The selected profile is the builtin profile
+	constant int ERR_PROFILE_NAME_TOO_LONG	= 7;	///< The profile name is too long
+	constant int ERR_PROFILE_NAME_INVALID	= 8;	///< The profile name contains invalid characters
+	constant int ERR_PROFILE_TOO_MANY	= 9;	///< The maximum number of profiles already exist.
+
+	/**
+	 * Retrieve the list of supported filters.
+	 *
+	 * @return List of supported filters
+	 */
+	vector<Filter> getFilters();
+
+	/**
+	 * Retrieve the configured filter profiles.
+	 *
+	 * @return List of filter profiles
+	 */
+	vector<FilterProfile> getFilterProfiles();
+
+	/**
+	 * Add a new filter profile.
+	 *
+	 * @param profile  The new filter profile
+	 *
+	 * @return SUCCESS                    if OK
+	 * @return ERR_FILTER_NAME_UNKNOWN    if a referenced filter name is unknown
+	 * @return ERR_FILTER_TYPE_READONLY   if a referenced filter can't be overridden
+	 * @return ERR_PROFILE_ALREADY_EXISTS if a profile with the given name already exists
+	 * @return ERR_PROFILE_IS_BUILTIN     if the selected profile is the builtin profile
+	 * @return ERR_PROFILE_NAME_TOO_LONG  if the profile name is too long
+	 * @return ERR_PROFILE_NAME_INVALID   if the profile name contains invalid characters
+	 * @return ERR_PROFILE_TOO_MANY       if the maximum number of profiles already exist
+	 */
+	int addFilterProfile(in FilterProfile profile);
+
+	/**
+	 * Modify an existing filter profile.
+	 *
+	 * @param profile  The updated filter profile
+	 *
+	 * @return SUCCESS                    if OK
+	 * @return ERR_FILTER_NAME_UNKNOWN    if a referenced filter name is unknown
+	 * @return ERR_FILTER_TYPE_READONLY   if a referenced filter can't be overridden
+	 * @return ERR_PROFILE_DOES_NOT_EXIST if a profile with the given name does not exist
+	 * @return ERR_PROFILE_IS_BUILTIN     if the selected profile is the builtin profile
+	 */
+	int modifyFilterProfile(in FilterProfile profile);
+
+	/**
+	 * Delete an existing filter profile.
+	 *
+	 * @param profileName  The name of the profile to be deleted
+	 *
+	 * @return SUCCESS                    if OK
+	 * @return ERR_PROFILE_DOES_NOT_EXIST if a profile with the given name does not exist
+	 * @return ERR_PROFILE_IS_DEFAULT     if the selected profile is the current default profile
+	 * @return ERR_PROFILE_IS_BUILTIN     if the selected profile is the builtin profile
+	 */
+	int deleteFilterProfile(in string profileName);
+
+	/**
+	 * Retrieve the name of the currently selected default profile.
+	 *
+	 * @return  The name of the current default profile
+	 */
+	string getDefaultFilterProfileName();
+
+	/**
+	 * Select a new default filter profile.
+	 *
+	 * @param profileName  The name of the new default profile
+	 *
+	 * @return SUCCESS                    if OK
+	 * @return ERR_PROFILE_DOES_NOT_EXIST if a profile with the given name does not exist
+	 */
+	int selectDefaultFilterProfile(in string profileName);
+
+	/**
+	 * Get settings
+	 *
+	 * @return Settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Set settings
+	 *
+	 * NOTE: The builtin profile will be ignored when present in the list of filter profiles.
+	 *
+	 * @param settings  The settings to set
+	 *
+	 * @return SUCCESS                    if OK
+	 * @return ERR_FILTER_NAME_UNKNOWN    if a referenced filter name is unknown
+	 * @return ERR_FILTER_TYPE_READONLY   if a referenced filter can't be overridden
+	 * @return ERR_PROFILE_ALREADY_EXISTS if the settings contain multiple profiles with the same name
+	 * @return ERR_PROFILE_NAME_TOO_LONG  if the profile name is too long
+	 * @return ERR_PROFILE_NAME_INVALID   if the profile name contains invalid characters
+	 * @return ERR_PROFILE_TOO_MANY       if the settings contain too many profiles
+	 * @return ERR_PROFILE_DOES_NOT_EXIST if a profile with the given name does not exist
+	 */
+	int setSettings(in Settings settings);
+
+    };
+
+}

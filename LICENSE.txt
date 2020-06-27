@@ -1,0 +1,6 @@
+Information regarding the license of the API documentation can be found in the file
+LICENSE.api-documentation.
+
+Currently, all the provided JSON bindings use a 3-clause BSD license. The official license and copyright
+information can be obtained from the individual source files provided in this SDK. The license is usually
+referred to using an SPDX tag and the according license text is provided in the LICENSES subdirectory.

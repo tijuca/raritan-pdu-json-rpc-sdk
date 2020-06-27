@@ -1,0 +1,53 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LIBISYS_AUTH_ROLE_IDL__
+#define __LIBISYS_AUTH_ROLE_IDL__
+
+/**
+ * %User Management
+ */
+module usermgmt {
+
+    /** %Role management interface */
+    interface Role {
+
+	constant int ERR_INVALID_VALUE = 1;	///< Invalid arguments
+
+	/** A granted privilege */
+	structure Privilege {
+	    string  	    name;		///< Privilege name
+	    vector<string>  args;		///< Privilege arguments
+	};
+
+	/** %Role information */
+	structure Info {
+	    string  	    	description;	///< Free-form description
+	    boolean 	    	locked;		///< \c true if the role cannot be deleted
+	    vector<Privilege>	privileges;	///< List of privileges for this role
+	};
+
+	/**
+	 * Retrieve role information.
+	 *
+	 * @return role info
+	 */
+	Info getInfo();
+
+	/**
+	 * Change role settings.
+	 *
+	 * @param info  New role information
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the role information is invalid
+	 */
+	int updateFull(in Info info);
+
+    };
+
+}
+
+#endif /* !__LIBISYS_AUTH_ROLE_IDL__ */

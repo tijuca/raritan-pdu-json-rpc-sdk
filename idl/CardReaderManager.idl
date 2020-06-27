@@ -1,0 +1,55 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SMARTCARD_CARD_READER_MANAGER_IDL__
+#define __SMARTCARD_CARD_READER_MANAGER_IDL__
+
+#include <CardReader.idl>
+#include <Event.idl>
+
+/** Card Reader Manager */
+module smartcard {
+
+    /** Card Reader Manager Interface */
+    interface CardReaderManager_1_0_2 {
+
+	/**
+	 * Card Reader base event
+	 */
+    	valueobject CardReaderEvent extends idl.Event {
+	    CardReader_1_0_2 cardReader;	///< affected card reader
+    	};
+
+	/**
+	 * Card Reader attached event
+	 */
+    	valueobject CardReaderAttachedEvent extends CardReaderEvent {};
+
+	/**
+	 * Card Reader detached event
+	 */
+    	valueobject CardReaderDetachedEvent extends CardReaderEvent {};
+
+    	/**
+	 * Retrieve the list of connected card readers.
+	 *
+	 * @return Card Readers list
+	 */
+	vector<CardReader_1_0_2> getCardReaders();
+
+    	/**
+	 * Get card reader for a specific id.
+	 *
+	 * @param  readerId	card reader id
+	 *
+	 * @return Card Reader with given id or null
+	 */
+	CardReader_1_0_2 getCardReaderById(in string readerId);
+
+    };
+
+}
+
+#endif /* __SMARTCARD_CARD_READER_MANAGER_IDL__ */

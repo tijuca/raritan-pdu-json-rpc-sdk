@@ -1,0 +1,53 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#include "RadiusServerSettings.idl"
+
+/** Local and Remote Authentication Management */
+module auth {
+
+    /** RADIUS server configuration interface */
+    interface RadiusManager_2_0_0 {
+
+	constant int ERR_INVALID_CFG	    	= 1; ///< The server configuration is invalid
+	constant int ERR_SERVER_UNSPECIFIED 	= 2; ///< Unspecified error
+	constant int ERR_INVALID_SHARED_SECRET 	= 3; ///< The shared secret is invalid
+	constant int ERR_SERVER_UNREACHABLE 	= 4; ///< RADIUS server could not be contacted
+	constant int ERR_AUTHENTICATION_FAILED	= 5; ///< User could not be authenticated
+	constant int ERR_NO_ROLES		= 6; ///< No roles are defined for the user
+	constant int ERR_NO_KNOWN_ROLES		= 7; ///< No known rules are defined for the user
+
+	/**
+	 * Get a list of RADIUS server settings
+	 *
+	 * @return list of radius.ServerSettings
+	 */
+	vector<radius.ServerSettings_2_0_0> getRadiusServers();
+
+	/**
+	 * Sets a list of RADIUS servers.
+	 * Any existing RADIUS Server configuration will be cleared / overwritten.
+	 *
+	 * @return 0 				on success
+	 * @return \c ERR_INVALID_CFG		in case of invalid configuration
+	 */
+	int setRadiusServers(in vector<radius.ServerSettings_2_0_0> serverList);
+
+	/**
+	 * Tests an RADIUS server configuration.
+	 *
+	 * @return 0 					on success
+	 * @return \c ERR_SERVER_UNSPECIFIED		an unspecified error occurred
+	 * @return \c ERR_INVALID_CFG			RADIUS server configuration is invalid (reused from setRadiusServers)
+	 * @return \c ERR_INVALID_SHARED_SECRET		the shared secret is invalid
+	 * @return \c ERR_SERVER_UNREACHABLE		RADIUS server could not be contacted
+	 * @return \c ERR_AUTHENTICATION_FAILED		user could not be authenticated
+	 * @return \c ERR_NO_ROLES			no roles are defined for the user
+	 * @return \c ERR_NO_KNOWN_ROLES		no known roles are defined for the user
+	 */
+	int testRadiusServer(in string username, in string password, in radius.ServerSettings_2_0_0 settings);
+
+    };
+}

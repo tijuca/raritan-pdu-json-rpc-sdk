@@ -1,0 +1,47 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+
+module fitness {
+
+    interface HardwareHealth_1_0_1 {
+
+	/** hardware failure types */
+	constant int FAILURE_TYPE_NETWORK_DEVICE_NOT_DETECTED		=  1;
+	constant int FAILURE_TYPE_I2C_BUS_STUCK				=  2;
+	constant int FAILURE_TYPE_SLAVE_CTRL_NOT_REACHABLE		=  3;
+	constant int FAILURE_TYPE_SLAVE_CTRL_MALFUNCTION		=  4;
+	constant int FAILURE_TYPE_OUTLET_POWER_STATE_INCONSISTENT	=  5;
+
+	/** Hardware Failure */
+	structure Failure {
+	    int creationOrderId;	///< failures created later have a larger id; range 1..failure-count
+	    string componentId;		///< the ID of the affected hardware component
+	    int type;			///< one of the hardware failure type constants
+	    string description;		///< human readable string describing HW component and failure
+	    boolean isAsserted;		///< \c true when the failure is currently asserted
+	    time lastAssertTimeStamp;   ///< timestamp when the failure was last asserted
+	    time lastDeassertTimeStamp;	///< timestamp when the failure was last deasserted (0 if asserted)
+	    int assertCount;		///< count of assertions
+	};
+
+	/** Event that is send when the hardware failure status changes */
+	valueobject FailureStatusChangedEvent extends idl.Event {
+	    string componentId;		///< the ID of the affected hardware component
+	    int failureType;		///< one of the hardware failure type constants
+	    boolean isAsserted;		///< \c true when the failure is currently asserted
+	};
+
+	/**
+	* Return a vector with past and present hardware failures.
+	*
+	* @return hardware failure vector
+	*/
+	vector<Failure> getFailures();
+
+    };
+
+}

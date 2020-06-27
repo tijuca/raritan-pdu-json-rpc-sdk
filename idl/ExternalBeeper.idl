@@ -1,0 +1,65 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __HMI_EXTERNAL_BEEPER_IDL__
+#define __HMI_EXTERNAL_BEEPER_IDL__
+
+#include <Event.idl>
+
+/**
+ * Human Machine Interface
+ */
+module hmi {
+
+    /** External Beeper interface */
+    interface ExternalBeeper_1_0_1 {
+	/**
+	 * Beeper state
+	 */
+	enumeration State {
+	    OFF,
+	    ON,
+	    ALARMING
+	};
+
+	/**
+	 * Event: beeper state has changed
+	 */
+	valueobject StateChangedEvent extends idl.Event {
+	    State oldState;
+	    State newState;
+	};
+
+	/**
+	 * Get current beeper state
+	 */
+	State getState();
+
+	/**
+	 * Start beeper alarm
+	 * 
+	 * Starts and repeats an alarm sequence of beeper on and beeper off. 
+	 * The sequence will be infinitely repeated until "off" is called.
+	 */
+	void alarm();
+
+	/**
+	 * Turn beeper on
+	 * 
+	 * Enables the beeper sound.
+	 */
+	void on();
+
+	/**
+	 * Turn beeper off
+	 * 
+	 * Disables beeper sound and also stops beeper alarm.
+	 */
+	void off();
+
+    };
+}
+
+#endif /* __HMI_EXTERNAL_BEEPER_IDL__ */

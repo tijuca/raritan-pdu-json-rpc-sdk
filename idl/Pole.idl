@@ -1,0 +1,76 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_POLE_IDL__
+#define __PDUMODEL_POLE_IDL__
+
+#include <NumericSensor.idl>
+#include <ResidualCurrentStateSensor.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Power line */
+    enumeration PowerLine_2_0_0 {
+	L1,				///< Line 1
+	L2,				///< Line 2
+	L3,				///< Line 3
+	NEUTRAL,			///< Neutral
+	EARTH				///< Earth
+    };
+
+    /** An inlet or outlet pole */
+    structure Pole_5_0_0 {
+	string label;                                        ///< %Pole label
+	PowerLine_2_0_0 line;                                ///< Power line
+	int nodeId;                                          ///< Circuit node id
+	sensors.NumericSensor_4_0_3 voltage;                 ///< RMS voltage sensor, L-L
+	sensors.NumericSensor_4_0_3 voltageLN;               ///< RMS voltage sensor, L-N
+	sensors.NumericSensor_4_0_3 current;                 ///< RMS current sensor
+	sensors.NumericSensor_4_0_3 peakCurrent;             ///< Peak current sensor
+	sensors.NumericSensor_4_0_3 activePower;             ///< Active power sensor
+	sensors.NumericSensor_4_0_3 reactivePower;           ///< Reactive power sensor
+	sensors.NumericSensor_4_0_3 apparentPower;           ///< Apparent power sensor
+	sensors.NumericSensor_4_0_3 powerFactor;             ///< Power factor sensor
+	sensors.NumericSensor_4_0_3 phaseAngle;              ///< Phase angle sensor
+	sensors.NumericSensor_4_0_3 displacementPowerFactor; ///< Displacement power factor sensor
+	sensors.NumericSensor_4_0_3 activeEnergy;            ///< Active energy sensor
+	sensors.NumericSensor_4_0_3 apparentEnergy;          ///< Apparent energy sensor
+	sensors.NumericSensor_4_0_3 residualCurrent;         ///< RMS current sensor
+	sensors.NumericSensor_4_0_3 residualDCCurrent;       ///< DC Residual current sensor
+	sensors.NumericSensor_4_0_3 crestFactor;             ///< Crest factor sensor
+	ResidualCurrentStateSensor_2_0_3 residualCurrentStatus; ///< Residual current monitor state sensor
+    };
+
+    /** for OCP */
+    structure DoublePole_5_0_0 {
+	string label;				   ///< %Pole label
+	PowerLine_2_0_0 line;			   ///< Power line
+	int inNodeId;				   ///< Upstream (inlet-side) circuit node id
+	int outNodeId;				   ///< Downstream (outlet-side) circuit node id
+	sensors.NumericSensor_4_0_3 voltage;		   ///< RMS voltage sensor, L-L
+	sensors.NumericSensor_4_0_3 voltageLN;		   ///< RMS voltage sensor, L-N
+	sensors.NumericSensor_4_0_3 current;		   ///< RMS current sensor
+	sensors.NumericSensor_4_0_3 peakCurrent;	   ///< Peak current sensor
+	sensors.NumericSensor_4_0_3 activePower;	   ///< Active power sensor
+	sensors.NumericSensor_4_0_3 apparentPower;	   ///< Apparent power sensor
+	sensors.NumericSensor_4_0_3 powerFactor;	   ///< Power factor sensor
+	sensors.NumericSensor_4_0_3 activeEnergy;	   ///< Active energy sensor
+	sensors.NumericSensor_4_0_3 apparentEnergy;	   ///< Apparent energy sensor
+    };
+
+    /** A pole that can select one of multiple inputs */
+    structure ThrowPole_2_0_0 {
+	string label;				   ///< %Pole label
+	PowerLine_2_0_0 line;			   ///< Power line
+	vector<int> inNodeIds;			   ///< Upstream node ids
+	int outNodeId;				   ///< Downstream node id
+    };
+
+}
+
+#endif

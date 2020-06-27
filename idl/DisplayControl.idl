@@ -1,0 +1,88 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/** Front panel display interface */
+module display {
+    /**
+     * Interface to control the device's front panel display
+     */
+    interface DisplayControl_1_0_1 {
+	/**
+	 * Error codes
+	 */
+	constant int SUCCESS           = 0; ///< No error
+	constant int ERR_INVALID_VALUE = 1; ///< Invalid argument
+
+	/** Collected display meta information */
+	structure Info {
+	    int fwAppVersion;		///< Firmware application version; 0 if unavailable
+	    int fwBootVersion;		///< Firmware bootloader version; 0 if unavailable
+	    int orientation;		///< Display orientation
+	    int width;			///< Display width
+	    int height;			///< Display height
+	    boolean versionAvailable;	///< \c true if version information is available
+	};
+
+	/**
+	 * Representation of a possible default view
+	 */
+	structure DefaultViewItem {
+	    string id;			///< View ID
+	    string description;		///< Textual description
+	};
+
+	/** Event: The default view was changed */
+	valueobject DefaultViewChangedEvent extends event.UserEvent {
+	    DefaultViewItem newView;	///< New default view
+	};
+
+	/**
+	 * Get available default views. This returns all views that can be
+	 * used as default views on the device display.
+	 *
+	 * @return Possible default views, or empty list if the default view
+	 *         can not be configured for the device's display
+	 */
+	vector<DefaultViewItem> getAvailableDefaultViews();
+
+	/**
+	 * Get the currently active default view.
+	 *
+	 * @return View ID of current default view.
+	 *         If the device doesn't allow configuration of
+	 *         the default view, an empty string is returned.
+	 */
+	string getDefaultView();
+
+	/**
+	 * Set the active default view.
+	 *
+	 * @param id  View ID of new default view
+	 *
+	 * @return 0 on success
+	 * @return 1 if id is not part of the key set returned by
+	 *           getAvailableDefaultViews
+	 */
+	int setDefaultView(in string id);
+
+	/**
+	 * Retrieve display's meta information.
+	 *
+	 * @return Display information
+	 */
+	Info getInfo();
+
+	/**
+	 * Show smiley on display
+	 *
+	 * @param on    \c true to turn on smiley
+	 * @param happy \c true to show happy smiley,\c false to show sad smiley
+	 * @param msg   String for message
+	 */
+	void showSmiley(in boolean on, in boolean happy, in string msg);
+    };
+}

@@ -1,0 +1,81 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_BCM_IDL__
+#define __PDUMODEL_BCM_IDL__
+
+#include <Pole.idl>
+
+/** PDU Model */
+module pdumodel {
+
+    /** Branch Circuit Monitor */
+    interface Bcm {
+
+	/** Power Line Configuration */
+	enumeration LineConfig {
+	    UNCONNECTED,		///< Not connected
+	    L1_N,			///< L1-Neutral
+	    L2_N,			///< L2-Neutral
+	    L3_N			///< L3-Neutral
+	};
+
+	/** Current Transformer Type */
+	enumeration TransformerType {
+	    VOLTAGE,			///< Voltage-type transformer
+	    TURNSRATIO			///< Turns ratio transformer
+	};
+
+	/** Phase Configuration */
+	structure PhaseConfig {
+	    LineConfig lineConfig;	///< Power line configuration
+	    TransformerType ctType;	///< Current transformer type
+	    int fsCurrent;		///< Full-scale current (voltage-type transformer)
+	    int fsVoltage;		///< Full-scale voltage (voltage-type transformer)
+	    int turnsRatio;		///< Turns ratio (turns ratio transformer)
+	    int burdenResistor;		///< Burden resistor (turns ratio transformer)
+	};
+
+	/** Channel Configuration */
+	structure ChannelConfig {
+	    int channel;		///< Channel number
+	    string label;		///< Channel label
+	    boolean is3Phase;		///< \c true for three-phase channels
+	    PhaseConfig lineA;		///< Line A phase config
+	    PhaseConfig lineB;		///< Line B phase config (three-phase only)
+	    PhaseConfig lineC;		///< Line C phase config (three-phase only)
+	};
+
+	/**
+	 * Retrieve the BMC's channel count.
+	 *
+	 * @return Number of BCM channels
+	 */
+	int getChannelCount();
+
+	/**
+	 * Retrieve the configuration for all channels.
+	 *
+	 * @return List of channel configurations
+	 */
+	vector<ChannelConfig> getChannelConfigs();
+
+	/**
+	 * Set the configuration for one channel.
+	 *
+	 * @param channel  Channel number
+	 * @param config   New channel configuration
+	 *
+	 * @return 0 if OK
+	 * @return 1 for invalid phase configuration
+	 * @return 2 for invalid arguments
+	 */
+	int setChannelConfig(in int channel, in ChannelConfig config);
+
+    };
+
+}
+
+#endif

@@ -1,0 +1,33 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __MODBUS_IDL__
+#define __MODBUS_IDL__
+
+module modbus {
+    interface Device {
+	/** modbus encapsulated transport device identification (0x2B / 0x0E) */
+	structure DeviceID {
+    	    string      	vendor;     	///< the vendor name (0x00)
+    	    string      	code;	    	///< the product code (0x01)
+    	    string      	version;    	///< the major minor revision (0x02)
+	    string	    	url;	    	///< the vendor URL (0x03) (optional)
+	    string	    	name;	    	///< the product name (0x04) (optional)
+	    string	    	model;	    	///< the model name (0x05) (optional)
+	    string	    	app;	    	///< the user application name (0x06) (optional)
+    	    // type of optional proprietary objects (0x80 - 0xFF) are not known
+	    // needs to be defined by proprietary DeviceID if required
+	};
+	
+	/**
+	 * Read the modbus encapsulated transport device identification (0x2B / 0x0E).
+	 *
+	 * @return device identification.
+	 */
+	DeviceID readDeviceIdentification();
+    };
+}
+
+#endif /* __MODBUS_IDL__ */

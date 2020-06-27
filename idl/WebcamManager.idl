@@ -1,0 +1,134 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <WebcamChannel.idl>
+#include <Event.idl>
+
+/** Webcam Management */
+module webcam {
+
+    /** 
+     * Priority
+     */
+    enumeration Priority {
+        VERY_LOW,  ///< very low
+        LOW,       ///< low
+        NORMAL,    ///< normal
+        HIGH,      ///< high
+        VERY_HIGH  ///< very high
+    };
+    
+    /* event definitions */
+    /**
+     * Base type of all webcam event
+     */
+    valueobject WebcamEvent_1_0_1 extends idl.Event {
+	Webcam_2_0_1 webcam; 		///< The webcam which was affected
+        Information_3_0_0 information;	///< Information about the camera
+        string name;			///< The user-assigned camera name
+    };
+
+    /**
+     * This event is emitted after a webcam was added 
+     */
+    valueobject WebcamAddedEvent_1_0_1 extends WebcamEvent_1_0_1 {};
+    
+    /**
+     * This event is emitted after a webcam has been removed
+     */
+    valueobject WebcamRemovedEvent_1_0_1 extends WebcamEvent_1_0_1 {};
+
+    /** The webcam manager interface */
+    interface WebcamManager_2_0_1 {
+
+	/** 
+	 * Error codes 
+	 */
+	constant int NO_ERROR			= 0; ///< Operation successful, no error
+	constant int ERR_INVALID_PARAM          = 1; ///< Invalid parameter for an operation
+
+	/**
+	 * Retrieve all connected webcams.
+	 *
+	 * @return List of webcams
+	 */
+	vector<Webcam_2_0_1> getWebcams();
+
+	/**
+	 * Returns an existing channel that is currently viewing the given webcam or creates one
+         * If the client type is unknown it's added to the list of client types.
+         *
+         * Note: When a new channel is created the priority of the given webcam and
+         * channel type is summed up. The result is used to determine the used overall priority.
+	 *
+	 * @param  webcam		webcam
+	 * @param  clientType	        the channel client type -> @ref getClientTypes()
+	 * @param  channel		Result: The channel
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    one of the parameters is invalid
+	 */
+	int getChannel(in Webcam_2_0_1 webcam, in string clientType, out Channel_1_0_1 channel);
+
+	/**
+	 * Returns all channels. Note: you need to release every unneeded channel
+	 *
+	 * @return List of all channels
+	 */
+	vector<Channel_1_0_1> getChannels();
+
+	/**
+	 * Remove a client type
+	 *
+	 * @param  clientType	        client type
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    one of the parameters is invalid
+	 */
+        int removeClientType(in string clientType);
+
+        /**
+         * Get all known client types
+	 *
+         * @return List of all client types
+	 */
+        vector<string> getClientTypes();
+        
+        /**
+         * Get the priority of all known client types
+	 *
+         * @return a hash map with the key "event type ID" and the value "priority"
+	 */
+        map<string, Priority> getClientTypePriorities();
+
+        /**
+         * Set the priority of a client type
+	 *
+         * @param  priorities           a hash map with the key "event type ID" and the value "priority"
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    one of the parameters is invalid
+	 */
+	int setClientTypePriorities(in map<string, Priority> priorities);
+
+        /**
+         * Get the priority of a webcam
+	 *
+         * @return a hash map with the key "webcam ID" and the value "priority"
+	 */
+	map<string, Priority> getWebcamPriorities();
+
+        /**
+         * Set the priority of a webcam
+	 *
+         * @param  priorities           a hash map with the key "webcam ID" and the value "priority"
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    one of the parameters is invalid
+	 */
+	int setWebcamPriorities(in map<string, Priority> priorities);
+
+    };
+}

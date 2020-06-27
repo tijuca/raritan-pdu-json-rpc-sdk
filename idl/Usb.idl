@@ -1,0 +1,60 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/**
+ * USB Ports
+ */
+module usb {
+
+    /** USB device information */
+    structure UsbDevice {
+	int bus;	///< Bus number
+	int device;	///< Device address
+	int vendorId;	///< Vendor ID
+	int productId;	///< Product ID
+    };
+
+    /** USB interface */
+    interface Usb_1_0_2 {
+
+	/** USB interface settings */
+	structure Settings {
+	    boolean hostPortsEnabled; ///< \false to deactivate the device's USB-A host ports
+	};
+
+	/** Event: Settings have changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings; ///< Settings before change
+	    Settings newSettings; ///< Settings after change
+	};
+
+	/**
+	 * Retrieve the USB interface settings.
+	 *
+	 * @return USB interface settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the USB interface settings.
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 if OK
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Get a list of USB devices connected to the host port.
+	 *
+	 * @param usbDevices  Result: List of discovered devices
+	 */
+	void getDevices(out vector<UsbDevice> usbDevices);
+
+    };
+
+}

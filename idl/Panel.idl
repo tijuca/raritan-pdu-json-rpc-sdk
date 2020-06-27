@@ -1,0 +1,113 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2015 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_PANEL_IDL__
+#define __PDUMODEL_PANEL_IDL__
+
+#include <Circuit.idl>
+#include <PowerMeter.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /**
+     * PMC panel.
+     *
+     * A panel contains:
+     *  - a three-phase power meter
+     *  - a configurable number of branch meter channels
+     *  - a configurable number of circuit positions
+     *  - configurable logical circuits combining multiple positions
+     */
+    interface Panel_1_1_5 extends PowerMeter_1_1_5 {
+
+	/**
+	 * Mapping of physical circuit positions (0-based) to logical labels.
+	 */
+	enumeration LabelingScheme {
+	    SEQUENTIAL, ///< Circuit positions 0..2 are labeled 1, 2 and 3
+	    ODD_EVEN    ///< Circuit positions 0..2 are labeled 1, 3 and 5 (two columns)
+	};
+
+	/** Panel settings */
+	structure PanelSettings {
+	    int meterCount;                ///< Number of branch meter channels
+	    int panelSize;                 ///< Panel size (number of circuit positions)
+	    int columns;                   ///< Display circuit positions in two columns
+	    LabelingScheme labelingScheme; ///< Mapping of physical circuit positions to logical labels
+	};
+
+	/** Event: Panel settings have changed */
+	valueobject PanelSettingsChangedEvent extends event.UserEvent {
+	    PanelSettings oldSettings; ///< Panel settings before change
+	    PanelSettings newSettings; ///< Panel settings after change
+	};
+
+	/**
+	 * Retrieve the panel settings.
+	 *
+	 * @return Panel settings
+	 */
+	PanelSettings getPanelSettings();
+
+	/**
+	 * Change the panel settings.
+	 *
+	 * @param settings  New panel settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setPanelSettings(in PanelSettings settings);
+
+	/**
+	 * Retrieve the list of circuits.
+	 *
+	 * @return Configured circuits by position
+	 */
+	map<int, Circuit_1_0_3> getCircuits();
+
+	/** Event: A new circuit was added */
+	valueobject CircuitCreatedEvent extends event.UserEvent {
+	    Circuit_1_0_3 circuit;           ///< New circuit
+	    Circuit_1_0_3.Config config;     ///< New circuit config
+	    Circuit_1_0_3.Settings settings; ///< New circuit settings
+	};
+
+	/** Event: A circuit was deleted */
+	valueobject CircuitDeletedEvent extends event.UserEvent {
+	    Circuit_1_0_3.Config config;     ///< Old circuit config
+	    Circuit_1_0_3.Settings settings; ///< Old circuit settings
+	};
+
+	/**
+	 * Create a new circuit.
+	 *
+	 * @param circuit   Result: Newly created instance
+	 * @param config    New circuit config
+	 * @param settings  New circuit settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the circuit config or settings are invalid
+	 */
+	int createCircuit(out Circuit_1_0_3 circuit, in Circuit_1_0_3.Config config, in Circuit_1_0_3.Settings settings);
+
+	/**
+	 * Delete a circuit.
+	 *
+	 * @param position  Position of circuit to be deleted
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the circuit position is invalid
+	 */
+	int deleteCircuit(in int position);
+
+    };
+
+}
+
+#endif

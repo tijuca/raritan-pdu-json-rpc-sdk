@@ -1,0 +1,50 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Resource Monitor interface
+ *
+ */
+
+module res_mon {
+
+    /** ResMon Entry */
+    structure Entry {
+
+        /** Type of this ResMon Entry*/
+	enumeration Type {
+	    GLOBAL_CPU_USAGE,     ///< global cpu usage
+	    GLOBAL_FREE_MEM,      ///< global free memory
+	    GLOBAL_PROC_COUNT,    ///< global process count
+	    FS_FREE_SPACE,        ///< free filesystem space
+	    FS_FREE_INODES,       ///< free filesystem inodes
+	    PROC_CPU_USAGE,       ///< process cpu usage
+	    PROC_VM_SIZE,         ///< process virtual mem size
+	    PROC_FREE_FILE_DESC,  ///< process free file descriptors
+	    PROC_LIFE_TIME,       ///< process life time
+	    PROC_COUNT            ///< process count
+	};
+
+        /** Type of this ResMon Entry */
+	Type type;
+        /** ResMon Entry name */
+	string name;
+        /** ResMon Entry value */
+	long value;
+    };
+
+    /** ResMon interface */
+    interface ResMon {
+
+	/**
+	 * Retrieve ResMon data Entry array.
+	 *
+	 * @param entries  Result: List of data events
+	 */
+	void getDataEntries(out vector<Entry> entries);
+	
+    };
+
+}

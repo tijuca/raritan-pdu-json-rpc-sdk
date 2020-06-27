@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LOG_WLANLOG_IDL__
+#define __LOG_WLANLOG_IDL__
+
+#include <Log.idl>
+
+/**
+ * Device Logging
+ */
+module logging {
+
+    /** WLAN diagnostic log interface */
+    interface WlanLog {
+
+	/**
+	 * Clear the WLAN diagnostic log.
+	 */
+	void clear();
+
+	/**
+	 * Get info about the WLAN diagnostic log.
+	 *
+	 * @return log info
+	 */
+	LogInfo getInfo();
+
+	/**
+	 * Fetch a chunk from the WLAN diagnostic log.
+	 *
+	 * @param refId      First log id to fetch
+	 * @param count      Number of entries to fetch
+	 * @param direction  Range direction
+	 *
+	 * @return log chunk
+	 */
+	LogChunk getChunk(in int refId, in int count, in RangeDirection direction);
+
+    };
+
+}
+
+#endif /* __LOG_WLANLOG_IDL__ */

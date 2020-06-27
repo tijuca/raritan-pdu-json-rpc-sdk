@@ -1,0 +1,48 @@
+====================
+Lua Binding Examples
+====================
+
+Works only with a PDU with LuaPLC support.
+
+Basic
+=====
+
+Folder: basic
+
+Some Lua basics:
+
+- Generate a PDU object and get information from a PDU (get_info.lua)
+- Switching an outlet (outlet_switch.lua)
+- Change outlet settings (outlet_settings.lua)
+- EventEngine example (event_rule_on_off.lua)
+
+Basic Remote
+============
+
+Folder: basic_remote
+
+How to use the Lua remote binding:
+
+- Get information from a remote PDU (get_info_remote.lua)
+- Switch outlet from a remote PDU (outlet_switch_remote.lua)
+
+Advanced
+========
+
+Folder: advanced
+
+More advanced use of the Lua binding: 
+
+- How to write an exit handler (exit_handler.lua)
+- Failure and exception handling example (failure_*.lua)
+- How to use the EventService, setup and receiving events (event_thresholds.lua)
+- Mixing local an remote PDU (mirror_outlet_state.lua)
+
+USB FW-Update
+=============
+
+Folder: usb_fwupdate
+
+Shows you how to use a Lua script on USB falsh device stick. Every folder contains
+one example. Just copy the config file and Lua script (or scripts) on a fresh
+formatted FAT32 USB stick and put the flash device into a PDU.

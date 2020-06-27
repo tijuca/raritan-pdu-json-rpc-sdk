@@ -1,0 +1,95 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_UNIT_IDL__
+#define __PDUMODEL_UNIT_IDL__
+
+#include <UserEvent.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Unit interface */
+    interface Unit_2_0_1 {
+
+	constant int ERR_INVALID_PARAM = 1;	///< Invalid parameters
+
+	/** Display orientation */
+	enumeration Orientation {
+	    NORMAL,				///< Normal orientation
+	    FLIPPED				///< Upside-down
+	};
+
+	/** %Unit metadata */
+	structure MetaData {
+	    boolean hasOrientationSensor;	///< \c true if a tilt sensor is present
+	    vector<Orientation> supportedDisplayOrientations;
+						///< Supported display orientations
+	};
+
+	/** %Unit settings */
+	structure Settings {
+	    boolean buzzerMuted;		///< \c true if the buzzer is muted
+	    boolean autoDisplayOrientation;	///< \c true for automatic orientation control
+	    Orientation displayOrientation;	///< \c Manually configured orientation
+	};
+
+	/** Event: %Unit identification requested */
+	valueobject IdentificationStartedEvent extends event.UserEvent {
+	    int duration;			///< Number of seconds the identification should be displayed
+	};
+
+	/**
+	 * Retrieve the unit metadata.
+	 *
+	 * @return %Unit metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the unit settings.
+	 *
+	 * @return %Unit settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the unit settings.
+	 *
+	 * @param settings  New unit settings
+	 *
+	 * @return 0 if OK
+	 * @return ERR_INVALID_PARAM if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Display something distictive to identify the unit.
+	 *
+	 * @param seconds  Number of seconds to display the identify string
+	 */
+	void identify(in int seconds);
+
+	/**
+	 * Mute buzzer, turn of all audible alarms.
+	 *
+	 * @param mute  \c true to mute buzzer, \c false for normal mode
+	 */
+	void muteBuzzer(in boolean mute);
+
+	/**
+	 * Retrieve the current orientation of the display.
+	 *
+	 * @return Display orientation.
+	 */
+	Orientation getDisplayOrientation();
+
+    };
+
+}
+
+#endif

@@ -1,0 +1,43 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_NAMEPLATE_IDL__
+#define __PDUMODEL_NAMEPLATE_IDL__
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Numerical usage ratings */
+    structure Rating_2_0_0 {
+	int current;		///< Maximum current in Amperes rounded down to the nearest integer
+	float decimalCurrent;	///< Maximum current in Amperes with potential decimal places
+	int minVoltage;		///< Minimum voltage in Volts
+	int maxVoltage;		///< Maximum voltage in Volts
+    };
+
+    /** Component nameplate information */
+    structure Nameplate_2_0_0 {
+	/** Component ratings */
+	structure Rating {
+	    string voltage;	///< Voltage rating
+	    string current;	///< Current rating
+	    string frequency;	///< Frequency rating
+	    string power;	///< Power rating
+	};
+
+	string manufacturer;	///< Component manufacturer
+	string brand;		///< Component brand
+	string model;		///< Component model
+	string partNumber;	///< Part number
+	string serialNumber;	///< Serial number
+	Rating rating;		///< Ratings
+	string imageFileURL;	///< URL to component image
+    };
+
+}
+
+#endif

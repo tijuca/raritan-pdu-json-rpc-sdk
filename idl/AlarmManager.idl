@@ -1,0 +1,93 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __EVENT_ALARMMANAGER_IDL__
+#define __EVENT_ALARMMANAGER_IDL__
+
+#include <Event.idl>
+
+/** Event interface */
+module event {
+
+    /** AlarmManager interface */
+    interface AlarmManager {
+
+	/** Error codes */
+	constant int NO_ERROR			= 0;	///< operation successful, no error
+	constant int ERR_UNKNOWN_ALARM_ID	= 1;	///< unknown alarmId
+	constant int ERR_EXECUTING_ACTIONS	= 2;	///< failure during executing actions
+
+	/**
+	 * Alert structure
+	 * 
+	 * An alert contains the event id, the log message of the triggered
+	 * alarm condition plus time and counter fields to express
+	 * when and how often the alarm condition was triggered.
+	 */
+	structure Alert {
+	    string eventCondition;	///< Event condition
+	    string message;		///< Log message
+	    time firstAppearance;	///< Date & time of first appearance
+	    time lastAppearance;	///< Date & time of last appearance
+	    int numberAlerts;		///< Number of alerts
+	};
+
+	/**
+	 * Alarm structure
+	 *
+	 * An alarm has a name, a reference to its action source
+	 * and a list of all alerts which created the alarm. 
+	 */
+	structure Alarm {
+	    string id;			///< Alarm id
+	    string name;		///< Alarm name
+	    string actionId;		///< Corresponding action id
+	    vector<Alert> alerts;	///< List of alerts
+	};
+
+	/**
+	 * New alarm added event
+	 */
+    	valueobject AlarmAddedEvent extends idl.Event {
+    	    Alarm alarm;		///< Newly added alarm
+    	};
+
+	/**
+	 * Alarm updated event
+	 */
+    	valueobject AlarmUpdatedEvent extends idl.Event {
+    	    Alarm alarm;		///< Updated alarm
+    	};
+
+	/**
+	 * Existing alarm acknowledgement event
+	 */
+    	valueobject AlarmAcknowledgedEvent extends idl.Event {
+	    string alarmId;		///< Alarm id of acknowledged alarm
+    	};
+
+    	/**
+	 * Acknowledges an alarm.
+	 * 
+	 * This stops notification sending and will remove
+	 * the specified alarm from the alarm list.
+	 *
+	 * @param  alarmId			alarm id
+	 * @return NO_ERROR			if OK
+	 * @return ERR_UNKNOWN_ALARM_ID		if alarmId is unknown
+	 * @return ERR_EXECUTING_ACTIONS	if failure during executing acknowledgment actions
+	 */
+	int acknowledgeAlarm(in string alarmId);
+
+	/**
+	 * List alarms that need to be acknowledged.
+	 */
+	vector<Alarm> listAlarms();
+
+    };
+
+}
+
+#endif /* __EVENT_ALARMMANAGER_IDL__ */

@@ -1,0 +1,201 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include "Role.idl"
+#include "SnmpV3.idl"
+
+/**
+ * %User Management
+ */
+module usermgmt {
+
+    /** SNMPv3 settings */
+    structure SnmpV3Settings {
+	boolean			enabled;		///< SNMPv3 enabled
+	um.SnmpV3.SecurityLevel	secLevel;		///< Security level
+	um.SnmpV3.AuthProtocol	authProtocol;		///< Authentication protocol
+	boolean			usePasswordAsAuthPassphrase;
+							///< Use account password for SNMPv3 authentication
+	boolean			haveAuthPassphrase;	///< Authentication passphrase present
+	string			authPassphrase;		///< Authentication passphrase; cannot be read back
+	um.SnmpV3.PrivProtocol	privProtocol;		///< Privacy protocol
+	boolean			useAuthPassphraseAsPrivPassphrase;
+							///< Use authentication passphrase as privacy passphrase
+	boolean			havePrivPassphrase;	///< Privacy passphrase present
+	string			privPassphrase;		///< Privacy passphrase; cannot be read back
+    };
+
+    /** Auxiliary user information */
+    structure AuxInfo {
+	string fullname;				///< Full name
+	string telephone;				///< Telephone number
+	string eMail;					///< Email address
+    };
+
+    /** Preferred display unit for temperature sensors */
+    enumeration TemperatureEnum {
+	DEG_C,						///< Degrees Celsius
+	DEG_F						///< Degrees Fahrenheit
+    };
+
+    /** Preferred display unit for length measurements, e.g. device altitude */
+    enumeration LengthEnum {
+	METER,						///< Meters
+	FEET						///< Feet
+    };
+
+    /** Preferred display unit for (air) pressure sensors */
+    enumeration PressureEnum {
+	PASCAL,						///< Pascal
+	PSI						///< pound-force per square inch
+    };
+
+    /** %User preferences */
+    structure Preferences {
+	TemperatureEnum temperatureUnit;		///< Display unit for temperature sensors
+	LengthEnum      lengthUnit;			///< Display unit for length measurements
+	PressureEnum    pressureUnit;			///< Display unit for pressure sensors
+    };
+
+    /** %User information */
+    structure UserInfo {
+	boolean        enabled;			///< \c true if the account is enabled
+	boolean        locked;			///< \c true if the account cannot be deleted
+	boolean        blocked;			///< \c true if the account is blocked due to failed logins
+	boolean        needPasswordChange;	///< \c true to force a password change on the next login
+	AuxInfo        auxInfo;			///< Auxiliary user information
+	SnmpV3Settings snmpV3Settings;		///< SNMPv3 settings
+	string         sshPublicKey;		///< Public key for SSH access
+	Preferences    preferences;		///< %User preferences
+	vector<int>    roleIds;			///< List of role ids for this account
+    };
+    
+    /**
+     * %User Capabilities
+     * Describe if certain operations can be performed for user.
+     * May require according privileges.
+     */
+    structure UserCapabilities {
+    	boolean canSetPassword;  	    	///< User password is modifyable
+	boolean canSetPreferences;  	    	///< User preferences are modifyable
+    };
+
+    /** %User interface */
+    interface User_1_0_2 {
+
+	constant int ERR_PASSWORD_UNCHANGED	    	= 1;  ///< The new password must differ from the old password
+        constant int ERR_PASSWORD_EMPTY    	    	= 2;  ///< The password must not be empty
+        constant int ERR_PASSWORD_TOO_SHORT	    	= 3;  ///< The password is too short
+        constant int ERR_PASSWORD_TOO_LONG 	    	= 4;  ///< The password is too long
+        constant int ERR_PASSWORD_CTRL_CHARS	    	= 5;  ///< The password must not contain control characters
+        constant int ERR_PASSWORD_NEED_LOWER	    	= 6;  ///< The password must contain at least one lower-case character
+        constant int ERR_PASSWORD_NEED_UPPER	    	= 7;  ///< The password must contain at least one upper-case character
+        constant int ERR_PASSWORD_NEED_NUMERIC     	= 8;  ///< The password must contain at least one numeric character
+        constant int ERR_PASSWORD_NEED_SPECIAL     	= 9;  ///< The password must contain at least one special character
+        constant int ERR_PASSWORD_IN_HISTORY	    	= 10; ///< The password is already in the password history
+        constant int ERR_PASSWORD_TOO_SHORT_FOR_SNMP	= 11; ///< The password is too short to be used as SNMPv3 passphrase
+        constant int ERR_INVALID_ARGUMENT	    	= 12; ///< Invalid arguments
+        constant int ERR_WRONG_PASSWORD	                = 13; ///< The passed-in password was wrong
+        constant int ERR_SSH_PUBKEY_DATA_TOO_LARGE      = 14; ///< The ssh public key data is too large.
+        constant int ERR_SSH_PUBKEY_INVALID             = 15; ///< The ssh public key is invalid.
+        constant int ERR_SSH_PUBKEY_NOT_SUPPORTED       = 16; ///< The ssh public key is not supported.
+        constant int ERR_SSH_RSA_PUBKEY_TOO_SHORT       = 17; ///< The ssh RSA public key is too short.
+
+	/**
+	 * Get user information.
+	 *
+	 * @return %User information
+	 */
+	UserInfo getInfo();
+
+	/**
+	 * Set the account password.
+	 *
+	 * @param password The new password
+	 *
+	 * @return  0 OK
+	 * @return  1 The new password has to differ from old password.
+	 * @return  2 The password must not be empty.
+	 * @return  3 The password is too short.
+	 * @return  4 The password is too long.
+	 * @return  5 The password must not contain control characters.
+	 * @return  6 The password has to contain at least one lower case
+	 *            character.
+	 * @return  7 The password has to contain at least one upper case
+	 *            character.
+	 * @return  8 The password has to contain at least one numeric
+	 *            character.
+	 * @return  9 The password has to contain at least one printable
+	 *            special character.
+	 * @return 10 The password already is in history.
+	 * @return 11 SNMPv3 USM is activated for the user and the
+	 *            password shall be used as auth passphrase. For this
+	 *            case, the password is too short (must be at least 8
+	 *            characters).
+	 */
+	int setAccountPassword(in string password);
+
+	/**
+	 * Update user information.
+	 *
+	 * @param password The new password; empty to leave unchanged
+	 * @param info     The new user information
+	 *
+	 * @return  0 OK
+	 * @return  1 The new password has to differ from old password.
+	 * @return  3 The password is too short.
+	 * @return  4 The password is too long.
+	 * @return  5 The password must not contain control characters.
+	 * @return  6 The password has to contain at least one lower case
+	 *            character.
+	 * @return  7 The password has to contain at least one upper case
+	 *            character.
+	 * @return  8 The password has to contain at least one numeric
+	 *            character.
+	 * @return  9 The password has to contain at least one printable
+	 *            special character.
+	 * @return 10 The password already is in history.
+	 * @return 11 SNMPv3 USM is activated for the user and the
+	 *            password shall be used as auth passphrase. For this
+	 *            case, the password is too short (must be at least 8
+	 *            characters).
+	 * @return 12 An argument is invalid or out of range
+	 * @return 13 The password passed in as SNMPv3 authentication pass
+ 	 *	      phrase was wrong.
+	 * @return 14 The ssh public key data is too large.
+	 * @return 15 The ssh public key is invalid.
+	 * @return 16 The ssh public key is not supported.
+	 * @return 17 The ssh RSA public key is too short.
+	 */
+	int updateAccountFull(in string password, in UserInfo info);
+
+	/**
+	 * Get information and a list of granted privileges for a user.
+	 *
+	 * @param info        %User information
+	 * @param privileges  List of granted privileges
+	 */
+	void getInfoAndPrivileges(out UserInfo info,
+				  out vector<Role.Privilege> privileges);
+				  
+	/**
+	 * Sets the user preferences.
+	 *
+	 * @param prefs     	    	User Preferences
+	 *
+	 * @return 0 	    	    	OK
+	 * @return ERR_INVALID_ARGUMENT An argument is invalid or out of range
+	 */
+    	int setPreferences(in Preferences prefs);
+	
+	/**
+	 * Gets the user capabilities.
+	 *
+	 * @return  capabilities
+	 */
+	UserCapabilities getCapabilities();
+    };
+
+}

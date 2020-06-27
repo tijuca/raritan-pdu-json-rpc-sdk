@@ -1,0 +1,48 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SENSORS_SWITCH_IDL__
+#define __SENSORS_SWITCH_IDL__
+
+#include <StateSensor.idl>
+#include <UserEvent.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /**
+     * Switch is an actuator and an extension to StateSensor. 
+     * An actuator actively outputs its state. In case of a Dry-Contact, 
+     * for instance, the switch may output ON or OFF.
+     * Because Switch is a StateSensor it is also possible to
+     * query the actual state of the Switch.
+     * The type of switch is determined by the sensor's TypeSpec
+     */
+    interface Switch_2_0_5 extends StateSensor_4_0_3 {
+    	constant int ERR_INVALID_PARAMETER  = 1;
+	constant int ERR_NOT_AVAILABLE	    = 2;
+	constant int ERR_PDC_POWER_LIMIT    = 3;
+
+	/**
+	 * This method outputs the given value. The int input value
+	 * is the counterpart of the value returned by StateSensor's
+	 * getState method. Valid values are determined by the
+	 * StateSensor's TypeSpec
+	 * @param newState the new state the switch shall switch to
+	 * @return 0 if OK
+	 * @return ERR_INVALID_PARAMETER if invalid parameter
+	 * @return ERR_NOT_AVAILABLE if unable to set new state
+	 */
+	int setState(in int newState);
+
+	/** SwitchEvent: new state set to switch via setState */
+	valueobject SwitchEvent extends event.UserEvent {
+            int targetState;	///< target state as set via setState
+	};
+    };
+
+}
+
+#endif

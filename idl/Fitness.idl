@@ -1,0 +1,80 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/** %Fitness Daemon */
+module fitness {
+
+    /** %Fitness Daemon interface */
+    interface Fitness {
+
+	/** The value/worstValue/rawValue is invalid (e.g. not initialized). */
+	constant int FLAG_VALUE_INVALID  = 0x1;
+
+	/** The value/rawValue is out-dated. */
+	constant int FLAG_VALUE_OLD      = 0x2;
+
+	/** Violating the threshold is a critical event. */
+	constant int FLAG_ENTRY_CRITICAL = 0x4;
+
+	/** An entry in the reliability database */
+	structure DataEntry {
+	    string id;		    /**< unique id of the entry */
+	    int value;		    /**< normalized value */
+	    int maxValue;	    /**< maximum possible normalized value */
+	    int worstValue;	    /**< worst normalized value seen yet */
+	    int thresholdValue;	    /**< normalized threshold value */
+	    long rawValue;	    /**< raw value */
+	    int flags;		    /**< flags (see above) */
+	};
+
+	/** 
+	 * An entry in the reliability error log
+	 *
+	 * An error log entry is made when the normalized value of a data entry
+	 * drops below the normalized threshold value.
+	 */
+	structure ErrorLogEntry {
+	    string id;		    /**< id of the associated data entry */
+	    int value;		    /**< normalized value */
+	    int thresholdValue;	    /**< normalized threshold value */
+	    long rawValue;	    /**< raw value */
+	    int powerOnHours;	    /**< power on hours when error occured */
+	    time timeStampUTC;	    /**< UTC time stamp when error occured */
+	};
+
+	/** 
+	* @brief Returns the fitness data entries.
+	*
+	* The count of entries depends on the device. For example a PDU each
+	* slave board currently has 3 entries + 2 entries per relay. The data
+	* is updated only once or twice a minute.
+	* 
+	* @return -- the vector with the fitness data entries
+	*/
+	vector<DataEntry> getDataEntries();
+
+	/** 
+	* @brief Returns the error log index range.
+	* 
+	* @param firstIndex -- the first valid index
+	* @param entryCount -- the count of entries in the error log
+	*/
+	void getErrorLogIndexRange(out int firstIndex, out int entryCount);
+
+	/** 
+	* @brief Returns the error log.
+	*
+	* If the startIndex is smaller than the first index in the log than
+	* the count of returned entries is smaller (or even 0) as well.
+	* 
+	* @param startIndex -- the index of the first entry to return
+	* @param count -- the count of entries starting from the startIndex
+	* @return -- the vector with the error log entries
+	*/
+	vector<ErrorLogEntry> getErrorLogEntries(in int startIndex, in int count);
+	
+    };
+
+}

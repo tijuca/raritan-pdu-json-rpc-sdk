@@ -1,0 +1,134 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * %Session Management
+ */
+module session {
+
+    /** %Session information */
+    structure Session_2_0_0 {
+	int sessionId;          ///< ID of the session
+	string username;        ///< Name of user owning the session
+	string remoteIp;	///< Session IP address
+	string clientType;	///< Client type
+	time creationTime;      ///< Session creation timestamp
+	int timeout;            ///< Session timeout in seconds
+	int idle;               ///< Session idle time in seconds
+	int userIdle;		///< User idle time in seconds
+    };
+
+    /** %Session history entry */
+    structure HistoryEntry {
+	time creationTime;	///< Session creation timestamp
+	string remoteIp;	///< Session IP address
+	string clientType;	///< Session client type
+    };
+
+    /**
+     * %Session manager interface
+     * 
+     * Session manager allows clients to announce a user session, 
+     * i.e. consecutive activity that is related to each other, 
+     * and make use of session services.
+     * Depending on transport protocoll an established session 
+     * allows simplified authentication using the session token.
+     * For instance, for HTTP transport implementation sessiontoken
+     * can be written into HTTP Header while other authentication
+     * schemes may be omitted (for details, see transport mapping
+     * documentation).
+     * Each session has a defined timeout and an idle timer. 
+     * A session is deleted once idle time is equal or greater 
+     * than session timeout. Idle timer is implicitely touched
+     * by transport implementation whenever a call arrives that 
+     * can be mapped to a particular session. In addition a client
+     * may decide to call touchCurrentSession with userActivity flag
+     * set to true. In this case userIdle attribute of session is reset
+     * to 0. This has purely informational character and will not cause 
+     * any further action of session manager. It may be used to determine
+     * user activity under the assumptions that clients may do frequent 
+     * background calls without actual user activity. 
+     */
+    interface SessionManager_2_0_0 {
+
+	constant int ERR_ACTIVE_SESSION_EXCLUSIVE_FOR_USER = 1; ///< Session creation denied due to single login limitation
+
+	/** %Session close reasons */
+	enumeration CloseReason {
+	    CLOSE_REASON_LOGOUT,		///< Regular logout
+	    CLOSE_REASON_TIMEOUT,		///< Session timed out
+	    CLOSE_REASON_BROWSER_CLOSED,	///< Browser window was closed
+	    CLOSE_REASON_FORCED_DISCONNECT	///< Session was forcibly closed
+	};
+
+	/**
+	 * Open a new session.
+	 *
+	 * This function will create a new session for the authenticated user.
+	 * Upon success it will return a session token which can be used to
+	 * authenticate future requests.
+	 *
+	 * @param session  %Session information
+	 * @param token    Returned token for the newly created session
+	 *
+	 * @return 0 if OK
+	 * @return 1 if session creation was denied due to single login limitation
+	 */
+	int newSession(out Session_2_0_0 session, out string token);
+
+	/**
+	 * Retrieve current session information.
+	 *
+	 * This call must be authenticated using a session token.
+	 *
+	 * @return %Session information
+	 */
+	Session_2_0_0 getCurrentSession();
+
+	/**
+	 * Retrieve all open sessions.
+	 *
+	 * @return List of sessions
+	 */
+	vector<Session_2_0_0> getSessions();
+	
+	/**
+	 * Close a session identified by its token.
+	 *
+	 * @param sessionId ID of the session that should be closed
+	 * @param reason    close reason
+	 */
+	void closeSession(in int sessionId, in CloseReason reason);
+
+	/**
+	 * Close the current session.
+	 *
+	 * This call must be authenticated using a session token.
+	 *
+	 * @param reason close reason
+	 */
+	void closeCurrentSession(in CloseReason reason);
+
+	/**
+	 * Reset the current session's idle timer.
+	 *
+	 * @param userActivity  Indicates that the session is touched
+         *                      due to user activity.
+         *
+	 * If userActivity is not set, this is internally a NOP since
+	 * any RPC call will implicitly touch the session.
+	 * This call must be authenticated using a session token.
+	 */
+	void touchCurrentSession(in boolean userActivity);
+
+	/**
+	 * Get previous session data for the current user 
+	 *
+	 * @return History data, sorted from newer to older sessions
+	 */
+	vector<HistoryEntry> getSessionHistory();
+    };
+
+}

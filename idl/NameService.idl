@@ -1,0 +1,22 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+/** Raritan JSON-RPC */
+module jsonrpc {
+
+    /** RPC Object Name Service */
+    interface NameService {
+
+	/**
+	 * Find an RPC object by its resource ID or well-known name.
+	 *
+	 * @param name  Resource id or well-known name
+	 *
+	 * @returns Object reference; \c nil if the name can't be resolved
+	 */
+	Object lookup(in string name);
+    };
+
+}

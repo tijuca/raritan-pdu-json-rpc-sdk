@@ -1,0 +1,173 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LHXMODEL_LHX_IDL__
+#define __LHXMODEL_LHX_IDL__
+
+#include <Sensor.idl>
+#include "LhxSensor.idl"
+#include "LhxParameter.idl"
+
+/** LHX Model */
+module lhxmodel {
+
+    /** LHX Interface */
+    interface Lhx_3_2_4 {
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	constant int ERR_NOT_SUPPORTED  = 2; ///< Not supported
+	
+	/** Configuration parameter characteristics */
+	structure ParamCfg {
+	    double min;	    ///< Minimum value
+	    double max;	    ///< Maximum value
+	    int decdigits;  ///< Number of significant decimal digits
+	};
+	
+	/** LHX metadata */
+	structure MetaData {
+	    string model;  	    	     ///< The LHX model (e.g. "LHX 20")
+	    string version;	    	     ///< The LHX firmware version, empty if not available
+	    ParamCfg setpointWaterValveCfg;  ///< Water valve configuration characteristics
+	    ParamCfg setpointVentilatorsCfg; ///< Ventilators configuration characteristics
+	    ParamCfg defaultFanSpeedCfg;     ///< Default fan speed configuration characteristics
+	};
+	
+	/** LHX settings */
+	structure Settings {
+	    double setpointWaterValve; 	///< setpoint temperature, default 20deg C
+	    double setpointVentilators;	///< setpoint temperature, default 3deg C / Pa
+	    double defaultFanSpeed; 	///< fanspeed for 'normal' operation, default 80%
+	};
+	
+	/** LHX alert status **/
+	structure AlertStatus {
+	    vector<boolean> sensorFailure;  	         ///< Sensor failure (broken or short circuit)
+	    vector<boolean> fanFailure;     	         ///< Fan motor failure
+	    vector<boolean> powerSupplyFailure;          ///< Power supply failure
+    	    boolean 	    thresholdAirOutlet;          ///< The air outlet temperature threshold was crossed
+    	    boolean 	    thresholdAirInlet;	         ///< The air inlet temperature threshold was crossed
+    	    boolean 	    thresholdWaterInlet;         ///< The water inlet temperature threshold was crossed
+    	    boolean 	    doorOpened;     	    	 ///< The door was opened
+    	    boolean 	    maximumCoolingRequest;	 ///< Maximum cooling was requested
+	    boolean 	    emergencyCooling;	    	 ///< LHX is in emergency cooling mode
+    	    boolean 	    waterLeak;	    	    	 ///< Water leakage was detected
+    	    boolean 	    thresholdHumidity;	    	 ///< The humidity threshold was crossed
+    	    boolean 	    externalWaterCoolingFailure; ///< An external water cooling failure occurred
+    	    boolean 	    thresholdWaterOutlet;   	 ///< The water outlet temperature threshold was crossed
+	    boolean 	    stBusError;     	    	 ///< ST-Bus communication error
+	    boolean 	    condenserPumpFailure;   	 ///< Condenser pump failure occurred
+	    boolean 	    baseElectronicsFailure; 	 ///< Base electronics failure occurred
+	    boolean 	    voltageLow;     	    	 ///< The battery voltage is low
+	};
+	
+	/** LHX operational state */
+	structure OpState {
+	    boolean 	    on;     	    	///< LHX is switched on
+	    AlertStatus     alertStatus;    	///< Alert status of LHX controller
+	    int    	    operatingHoursLhx;	///< Operating hours of Varistar LHX
+	    vector<int>     operatingHoursFan;	///< Operating hours of Fans
+	};
+	
+	/** LHX capabilities **/
+	structure Capabilities {
+	    AlertStatus     	    alerts;
+	    map<string, boolean>    features;
+	};
+
+	/** Event: LHX operational status has changed */
+	valueobject OpStateChangedEvent extends idl.Event {
+	    OpState oldState;			///< Status before change
+	    OpState newState;			///< Status after change
+	};
+
+	/** Event: LHX settings have changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;		///< Settings before change
+	    Settings newSettings;		///< Settings after change
+	};
+	
+	/**
+	 * Retrieve the LHX capabilities (static).
+	 */
+	Capabilities getCapabilities();
+	
+	/**
+	 * Retrieve the LHX metadata.
+	 *
+	 * @return LHX metadata
+	 */
+	MetaData getMetaData();
+	
+	/**
+	 * Retrieve the LHX settings.
+	 *
+	 * @return LHX settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the LHX settings.
+	 *
+	 * @param settings  	      New LHX settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+	
+	/**
+	 * Get LHX sensors
+	 */
+	vector<Sensor_4_0_3> getSensors();
+	
+	/**
+	 * Get LHX operational state
+	 */
+	OpState getOpState();
+	
+	/**
+	 * Switch powerstate of LHX
+	 *
+	 * @param state     	     on or off
+	 *
+	 * @return 0	    	     if OK
+	 * @return ERR_NOT_SUPPORTED if operation is not supported
+	 */
+	int setPowerState(in sensors.Sensor_4_0_3.OnOffState state);
+	
+	/**
+	 * Get parameter list.
+	 */
+	vector<Parameter_2_0_1> getParameters();
+	
+	/**
+	 * Get actual value list.
+	 */
+	vector<Parameter_2_0_1> getActualValues();
+	
+	/**
+	 * Request maximum cooling.
+	 *
+	 * @param requested true if request maximum cooling
+	 *  	    	    false if request normal operation
+	 *
+	 * @return 0	    	     if OK
+	 * @return ERR_NOT_SUPPORTED if operation is not supported
+	 */
+	int setMaximumCoolingRequest(in boolean requested);
+	
+	/**
+	 * Acknowledge alert status
+	 *
+	 * @return 0	    	     if OK
+	 * @return ERR_NOT_SUPPORTED if operation is not supported
+	 */
+	int acknowledgeAlertStatus();
+    };
+
+}
+
+#endif /* !__LHXMODEL_LHX_IDL__ */
+	

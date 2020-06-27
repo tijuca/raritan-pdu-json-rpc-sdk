@@ -1,0 +1,121 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <Role.idl>
+#include <UserEvent.idl>
+
+/**
+ * %User Management
+ */
+module usermgmt {
+
+    /* event definitions */
+    /**
+     * Base type of all account event
+     */
+    valueobject RoleEvent extends event.UserEvent {
+	string rolename;
+    };
+    
+    valueobject RoleAdded extends RoleEvent {};
+    
+    valueobject RoleRemoved extends RoleEvent {};
+    
+    valueobject RoleChanged extends RoleEvent {
+	Role.Info oldSettings;
+	Role.Info newSettings;
+    };
+	
+    /** Role manager interface */
+    interface RoleManager {
+
+	constant int ERR_ROLE_ALREADY_EXISTS = 1; ///< A role with that name already exists
+	constant int ERR_MAX_ROLES_REACHED   = 2; ///< Maximum number of roles reached
+	constant int ERR_INVALID_VALUE       = 3; ///< Invalid arguments
+
+	constant int ERR_ROLE_DOESNT_EXIST   = 1; ///< The role does not exist
+	constant int ERR_ROLE_NOT_DELETABLE  = 2; ///< The role cannot be deleted
+
+	/** Privilege Argument Description */
+	structure ArgumentDesc {
+	    string  	    name;   	    	///< Argument name
+	    string  	    desc;   	     	///< Argument description
+	};
+	
+	/** Privilege Description */
+	structure PrivilegeDesc {
+	    string  	    	 name;   	///< Privilege name
+	    string  	    	 desc;   	///< Privilege description
+	    vector<ArgumentDesc> args;   	///< List of supported arguments
+	};
+	
+	/** Role information */
+	structure RoleAccount {
+	    int     	    id;			///< Unique role id
+	    string  	    name;		///< Role name
+	    Role.Info	    info;		///< Role information
+	};
+
+	/** Full role manager information */
+	structure Info {
+	    vector<PrivilegeDesc>   privileges;	///< List of supported privileges
+	    vector<RoleAccount>     roles;	///< List of active roles
+	};
+
+	/**
+	 * Create new role with full information.
+	 *
+	 * @param name  New role name
+	 * @param info  New role information
+	 *
+	 * @return 0 if OK
+	 * @return 1 if a role with that name already exists
+	 * @return 2 if the maximum number of roles is reached
+	 * @return 3 if the role information is invalid
+	 */
+	int createRoleFull(in string name, in Role.Info info);
+
+	/**
+	 * Delete a role.
+	 *
+	 * @param name  Name of the role to delete
+	 *
+	 * @return 0 if OK
+	 * @return 1 if a role with the given name does not exist
+	 * @return 2 if the role cannot be deleted
+	 */
+	int deleteRole(in string name);
+
+	/**
+	 * Retrieve a list of role names
+	 *
+	 * @return List of role names
+	 */
+	vector<string> getAllRoleNames();
+
+	/**
+	 * Retrieve a list of active roles.
+	 *
+	 * @return List of active roles
+	 */
+	vector<RoleAccount> getAllRoles();
+
+	/**
+	 * Retrieve a list of supported privileges.
+	 *
+	 * @return List of privilege names
+	 */
+	vector<PrivilegeDesc> getAllPrivileges();
+
+	/**
+	 * Retrieve full role manager information.
+	 *
+	 * @return Role manager information
+	 */
+	Info getInfo();
+
+    };
+
+}

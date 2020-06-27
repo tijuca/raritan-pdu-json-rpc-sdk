@@ -1,0 +1,226 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_OUTLET_IDL__
+#define __PDUMODEL_OUTLET_IDL__
+
+#include <Nameplate.idl>
+#include <NumericSensor.idl>
+#include <StateSensor.idl>
+#include <Pole.idl>
+#include <Inlet.idl>
+#include <OverCurrentProtector.idl>
+#include <Controller.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** %Outlet statistics */
+    structure OutletStatistic {
+	int relayCycleCnt;			///< Relay switch count
+	int relayFailCnt;			///< Relay failure count
+    };
+
+    /** %Outlet interface */
+    interface Outlet_2_1_5 extends EDevice {
+
+	constant int ERR_OUTLET_NOT_SWITCHABLE = 1; ///< Outlet is not switchable
+	constant int ERR_LOAD_SHEDDING_ACTIVE  = 2; ///< Load-shedding is enabled (deprecated)
+	constant int ERR_OUTLET_DISABLED       = 3; ///< Outlet is disabled
+	constant int ERR_OUTLET_NOT_OFF        = 4; ///< Outlet is on or in power-cylce; unstick not possible
+	
+	constant int ERR_INVALID_PARAM         = 1; ///< Invalid parameters
+	
+	/** %Outlet metadata */
+	structure MetaData {
+	    string label;			///< %Outlet label
+	    string receptacleType;		///< Receptacle type
+	    Nameplate_2_0_0 namePlate;		///< %Nameplate information
+	    Rating_2_0_0 rating;		///< Numerical usage ratings
+	    boolean isSwitchable;		///< \c true if the outlet is switchable
+	    boolean isLatching;			///< \c true if the outlet is able to keep its state after power loss
+	    int maxRelayCycleCnt;		///< Maximum relay cycle count
+	};
+
+	/** %Outlet power state. Used both for switching and representing the current state */
+	enumeration PowerState {
+	    PS_OFF,				///< Switch off / Power is off
+	    PS_ON				///< Switch on / Power is on
+	};
+
+	/** %Outlet LED state */
+	structure LedState {
+	    boolean red;			///< \c true if the red LED is enabled
+	    boolean green;			///< \c true if the green LED is enabled
+	    boolean blinking;			///< \c true if the LED is blinking
+	};
+
+	/** %Outlet state */
+	structure State {
+	    boolean available;			///< powerState is available
+	    PowerState powerState;		///< Current power state of outlet
+						///< (represented by the control state of the relay, which
+						///<  was set by the last command sent to it)
+	    boolean switchOnInProgress;		///< \c true if the outlet is pending to be switched on
+						///< after the sequencing delay has passed.
+	    boolean cycleInProgress;		///< \c if a power-cycle is in progress. The outlet will
+						///< be switched on after the cycle delay has passed.
+	    boolean isLoadShed;                 ///< \c true if the outlet is currently switched off due
+						///< to being non-critical and load shedding being active
+	    LedState ledState;			///< LED state
+	    time lastPowerStateChange;		///< Time of last power state change
+	};
+
+	/** %Outlet power state on device startup */
+	enumeration StartupState {
+	    SS_ON,				///< %Outlet will be switched on
+	    SS_OFF,				///< %Outlet will be switched off
+	    SS_LASTKNOWN,			///< Last known power state will be restored
+	    SS_PDUDEF				///< Use default state as defined in PDU settings
+	};
+ 
+	/** %Outlet settings */
+	structure Settings {
+	    string name;			///< User-defined name
+	    StartupState startupState;		///< Power state on device startup
+	    boolean usePduCycleDelay;		///< \c true to use power-cycle delay as defined in PDU settings
+	    int cycleDelay;			///< %Outlet-specific power-cycle delay
+	    boolean nonCritical;		///< \c true if outlet is non-critical (for load shedding)
+	    int sequenceDelay;			///< Delay in ms after this outlet when switching multiple outlets on
+	};
+
+	/** %Outlet sensors */
+	structure Sensors {
+	    sensors.NumericSensor_4_0_3 voltage;		///< RMS voltage sensor
+	    sensors.NumericSensor_4_0_3 current;		///< RMS current sensor
+	    sensors.NumericSensor_4_0_3 peakCurrent;		///< Peak current sensor
+	    sensors.NumericSensor_4_0_3 maximumCurrent;	///< Maximum current sensor
+	    sensors.NumericSensor_4_0_3 unbalancedCurrent;	///< Current unbalance sensor
+	    sensors.NumericSensor_4_0_3 activePower;		///< Active power sensor
+	    sensors.NumericSensor_4_0_3 reactivePower;		///< Reactive power sensor
+	    sensors.NumericSensor_4_0_3 apparentPower;	///< Apparent power sensor
+	    sensors.NumericSensor_4_0_3 powerFactor;		///< Power factor sensor
+	    sensors.NumericSensor_4_0_3 displacementPowerFactor;///< Displacement power factor sensor
+	    sensors.NumericSensor_4_0_3 activeEnergy;		///< Active energy sensor
+	    sensors.NumericSensor_4_0_3 apparentEnergy;	///< Apparent energy sensor
+	    sensors.NumericSensor_4_0_3 phaseAngle;	///< Phase angle sensor
+	    sensors.NumericSensor_4_0_3 lineFrequency;	///< AC line frequency sensor
+	    sensors.NumericSensor_4_0_3 crestFactor;        ///< Crest factor sensor
+	    sensors.StateSensor_4_0_3   outletState;		///< %Outlet power state sensor
+	};
+
+	/** Event: Power control was initiated */
+	valueobject PowerControlEvent extends event.UserEvent {
+	    PowerState state;			///< State the outlet was switched to (if cycle is false)
+	    boolean cycle;			///< Whether the outlet was cycled
+	};
+
+	/** Event: Outlet state has changed */
+	valueobject StateChangedEvent extends idl.Event {
+	    State oldState;			///< State before change
+	    State newState;			///< State after change
+	};
+
+	/** Event: Outlet settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;		///< Settings before change
+	    Settings newSettings;		///< Settings after change
+	};
+
+	/**
+	 * Retrieve the outlet metadata.
+	 *
+	 * @return %Outlet metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Get the outlet sensors.
+	 *
+	 * @return %Outlet sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Retrieve the outlet state.
+	 *
+	 * @return %Outlet state
+	 */
+	State getState();
+    	
+	/**
+	 * Switch the outlet.
+	 *
+	 * @param pstate  New power state
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the outlet is not switchable
+	 * @return 3 if the outlet is disabled
+	 */
+	int setPowerState(in PowerState pstate);
+
+	/**
+	 * Power-cycle the outlet.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the outlet is not switchable
+	 * @return 3 if the outlet is disabled
+	 */
+	int cyclePowerState();
+
+	/**
+	 * Retrieve the outlet settings.
+	 *
+	 * @return %Outlet settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the outlet settings.
+	 *
+	 * @param settings  New outlet settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Get inlet, overcurrent protector and poles.
+	 *
+	 * @param i  Result: %Inlet reference
+	 * @param o  Result: Overcurrent protector reference
+	 * @param p  Result: List of poles
+	 */
+	void getIOP(out Inlet_2_0_4 i, out OverCurrentProtector_3_0_4 o, out vector<Pole_5_0_0> p);
+
+	/**
+	 * Get the controller for this outlet.
+	 *
+	 * @return Slave controller reference
+	 */
+	Controller_4_0_1 getController();
+
+	/**
+	 * Trigger an attempt to un-stick sticking relay contacts
+	 *
+	 * Tries repairing relay contacts that are sticked together due to wear
+	 * by switching the relay in a certain pattern.
+	 * Prior to running this method, the outlet must be in 'off' state
+	 * to acknowledge that loads were disconnected.
+	 *
+	 * @return 0 if unsticking was triggered successfully
+	 * @return 1 if outlet is not switchable
+	 * @return 3 if the outlet is disabled
+	 * @return 4 if relay is in a power cycle or on
+	 */
+	int unstick();
+    };
+
+}
+
+#endif

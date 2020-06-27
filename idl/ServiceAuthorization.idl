@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * %Security Configuration
+ */
+module security {
+
+    /** Service Authorization Configuration */
+    interface ServiceAuthorization {
+
+	constant int ERR_PASSWORD_INVALID = 1; ///< Invalid password
+	
+	/**
+	 * Change a certain service password
+	 *
+	 * @param service  	    	The service to set the password for
+	 * @param password  	    	The new password
+	 *
+	 * @return 0	    	    	if ok
+	 * @return ERR_PASSWORD_INVALID	if new password cannot be applied
+	 */
+    	int setPassword(in string service, in string password);
+    };
+
+}

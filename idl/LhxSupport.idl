@@ -1,0 +1,25 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+/** LHX */
+module lhx {
+    /** LHX Support Interface */
+    interface Support {
+	/**
+	 * Set the enabled state for LHX Support feature.
+	 *
+	 * @param enabled   	    	the feature state
+	 */
+    	void setEnabled(in boolean enabled);
+	
+	/**
+	 * Determine the enabled state of LHX Support feature.
+	 *
+	 * @return true	    	    	feature enabled
+	 * @return false    	    	feature disabled or unknown
+	 */
+    	boolean isEnabled();
+    };
+} 

@@ -1,0 +1,163 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/** Event interface */
+module event {
+
+    /** Data push service configuration interface */
+    interface DataPushService_1_0_1 {
+
+	/**
+	 * Data Push Entry Types
+	 */
+	enumeration EntryType {
+	    SENSORLIST,				///< Sensor values for a set of sensors
+	    SENSORLOG,				///< Sensor log
+	    AMSLIST,				///< Asset Management information for a set of AMS strips
+	    AMSLOG,				///< Asset Management log
+	    AUDITLOG				///< Audit log
+	};
+
+	/** Error codes */
+	constant int ERR_NO_SUCH_ID = 1;		///< No such ID
+	constant int ERR_INVALID_PARAMS = 2;		///< Invalid parameters
+	constant int ERR_MAX_ENTRIES_REACHED = 3;	///< Maximum number of entries reached
+
+	/**
+	 * Data Push Entry Settings
+	 */
+	structure EntrySettings {
+	    string url;         ///< Destination host
+	    boolean allowOffTimeRangeCerts; ///< allow expired and not yet valid TLS certificates
+	    string caCertChain; ///< TLS CA certificate chain
+	    boolean useAuth;    ///< \c true to use HTTP basic authentication
+	    string username;    ///< Authentication user name
+	    string password;    ///< Password; write-only, empty to leave unchanged
+	    EntryType type; ///< Type of data
+	    vector<string> items; ///< Included items (e.g. list of sensors) depending on type
+	};
+
+	/**
+	 * Data Push Entry Status
+	 */
+	structure EntryStatus {
+	    boolean busy;			///< \c true if the entry is currently being pushed
+	    boolean rescheduled;		///< \c true if the entry is set to be pushed again
+						///< immediately after completion
+	    time lastAttemptTime;		///< Timestamp of the last push attempt (0 = never)
+	    time lastSuccessTime;		///< Timestamp of last successful push (0 = never)
+	};
+
+	/**
+	 * Event: A new push destination has been added
+	 */
+	valueobject EntryAddedEvent extends UserEvent {
+	    int entryId;			///< New entry id
+	    EntrySettings settings;		///< New entry settings
+	};
+
+	/**
+	 * Event: A configured push destination has been modified
+	 */
+	valueobject EntryModifiedEvent extends UserEvent {
+	    int entryId;			///< Modified entry id
+	    EntrySettings oldSettings;		///< Settings before change
+	    EntrySettings newSettings;		///< Settings after change
+	};
+
+	/**
+	 * Event: A configured push destination has been deleted
+	 */
+	valueobject EntryDeletedEvent extends UserEvent {
+	    int entryId;			///< Deleted entry id
+	};
+
+	/**
+	 * Event: The status of a configured push destination has changed
+	 */
+	valueobject EntryStatusChangedEvent extends idl.Event {
+	    int entryId;			///< Entry id
+	    EntryStatus newStatus;		///< New status
+	};
+
+	/**
+	 * Add a new entry.
+	 *
+	 * @param entryId        Result: New entry id, automatically assigned
+	 * @param entrySettings  New Model Push Entry settings
+	 *
+	 * @return 0 if OK
+	 * @return 2 if the settings are invalid
+	 * @return 3 if the maximum number of entries is reached
+	 */
+	int addEntry(out int entryId, in EntrySettings entrySettings);
+
+	/**
+	 * Modify an existing entry.
+	 *
+	 * @param entryId        Entry id
+	 * @param entrySettings  New Model Push Entry settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 * @return 2 if the settings are invalid
+	 */
+	int modifyEntry(in int entryId, in EntrySettings entrySettings);
+
+	/**
+	 * Delete an entry.
+	 *
+	 * @param entryid  Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 */
+	int deleteEntry(in int entryId);
+
+	/**
+	 * Retrieve an entry.
+	 *
+	 * @param entrySettings  Result: Model Push Entry settings
+	 * @param entryId        Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 */
+	int getEntry(out EntrySettings entrySettings, in int entryId);
+
+	/**
+	 * Retrieve a list of entries.
+	 *
+	 * @return List of Entry Settings
+	 */
+	map<int, EntrySettings> listEntries();
+
+	/**
+	 * Push data for one specified entry
+	 *
+	 * @param entryId  Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if entry does not exist
+	 *
+	 */
+	int pushData(in int entryId);
+
+	/**
+	 * Retrieve an entry's status.
+	 *
+	 * @param entryStatus  Result: Entry status
+	 * @param entryId      Entry id
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the entry does not exist
+	 */
+	int getEntryStatus(out EntryStatus entryStatus, in int entryId);
+
+    };
+
+}

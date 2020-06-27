@@ -1,0 +1,41 @@
+[
+    {
+        "category": "Basic Examples",
+        "scripts": [
+            { "path": "basic/pdu_info.lua",
+              "description": "Displays some information from the PDU data model" },
+            { "path": "basic/outlet_state.lua",
+              "description": "Shows how to read the power state of outlets" },
+            { "path": "basic/outlet_switch.lua",
+              "description": "Demonstrates how to switch an outlet" },
+            { "path": "basic/outlet_settings.lua",
+              "description": "Reads and modifies the settings of an outlet" },
+            { "path": "basic/event_rule_on_off.lua",
+              "description": "Enables or disables rules in the event engine" }
+        ]
+    }, {
+        "category": "Remote Examples (using JSON-RPC)",
+        "scripts": [
+            { "path": "basic_remote/pdu_info_remote.lua",
+              "description": "Displays some information about a remote PDU" },
+            { "path": "basic_remote/outlet_switch_remote.lua",
+              "description": "Switches an outlet in a remote PDU" },
+            { "path": "basic_remote/outlet_switch_link_pdu.lua",
+              "description": "Switches an outlet of a link PDU" },
+            { "path": "basic_remote/outlet_settings_remote.lua",
+              "description": "Reads and modifies the settings of a remote outlet" }
+        ]
+    }, {
+        "category": "Advanced Use Cases",
+        "scripts": [
+            { "path": "advanced/exit_handler.lua",
+              "description": "Shows how to write an exit handler" },
+            { "path": "advanced/exception_handling.lua",
+              "description": "Demonstrates the use (and pitfalls) of pcall() error handling" },
+            { "path": "advanced/replicate_outlets.lua",
+              "description": "Forwards outlet state changes to a remote PDU; demonstrates the use of the EventService interface" },
+            { "path": "advanced/peripheral_alarms.lua",
+              "description": "Activates load shedding when any temperature sensor is alarmed" }
+        ]
+    }
+]

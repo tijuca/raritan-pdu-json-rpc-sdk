@@ -1,0 +1,76 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LHXMODEL_CONFIG_IDL__
+#define __LHXMODEL_CONFIG_IDL__
+
+#include <UserEvent.idl>
+
+/** LHX Model */
+module lhxmodel {
+
+    /** LHX Configuration Interface */
+    interface Config_1_0_1 {
+
+	constant int NO_ERROR           = 0; ///< No error
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	
+	/** LHX port communication settings */
+	structure ComSettings {
+	    byte devAddr;    	    	///< EMX/PX STBus address
+	    byte lhxAddr;    	    	///< LHX STBus address
+	};
+
+	/** Event: LHX port communication settings have changed */
+	valueobject ComSettingsChangedEvent extends event.UserEvent {
+	    ComSettings oldSettings;	///< Settings before change
+	    ComSettings newSettings;	///< Settings after change
+	};
+
+	/** Event: LHX port name has been changed */
+	valueobject PortNameChangedEvent extends event.UserEvent {
+	    string oldName;		///< Name before change
+	    string newName;		///< Name after change
+	};
+	
+	/**
+	 * Retrieve the LHX port communication settings.
+	 *
+	 * @return LHX port communication settings
+	 */
+	ComSettings getComSettings();
+
+	/**
+	 * Change the LHX port communication settings.
+	 *
+	 * @param settings  	      New LHX port communication settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setComSettings(in ComSettings settings);
+
+	/**
+	 * Retrieve the LHX port name.
+	 *
+	 * @return LHX port name
+	 */
+	string getName();
+
+	/**
+	 * Change the LHX port name.
+	 *
+	 * @param name  	      New LHX port name
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setName(in string name);
+    };
+
+}
+
+#endif /* !__LHXMODEL_CONFIG_IDL__ */
+	

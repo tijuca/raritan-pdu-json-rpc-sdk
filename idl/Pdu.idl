@@ -1,0 +1,328 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_PDU_IDL__
+#define __PDUMODEL_PDU_IDL__
+
+#include <Nameplate.idl>
+#include <Outlet.idl>
+#include <PeripheralDeviceManager.idl>
+#include <Port.idl>
+#include <OverCurrentProtector.idl>
+#include <Inlet.idl>
+#include <TransferSwitch.idl>
+#include <StateSensor.idl>
+#include <SensorLogger.idl>
+#include <Controller.idl>
+#include <InternalBeeper.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Main PDU interface */
+    interface Pdu_4_1_6 {
+
+	constant int ERR_INVALID_PARAM = 1;		///< Invalid parameters
+
+	/** PDU metadata */
+	structure MetaData {
+	    Nameplate_2_0_0 nameplate;			///< %Nameplate information
+	    string ctrlBoardSerial;			///< Main controller serial number
+	    string hwRevision;				///< Hardware revision
+	    string fwRevision;				///< Firmware revision
+	    string macAddress;				///< MAC address
+	    boolean hasSwitchableOutlets;		///< \c true if at least one outlet is switchable
+	    boolean hasMeteredOutlets;			///< \c true if at least one outlet is metered
+	    boolean hasLatchingOutletRelays;		///< \c true if at least one outlet has a latching relay
+	    boolean isInlineMeter;                      ///< \c true if all inlets have exactly one outlet
+	    boolean isEnergyPulseSupported;		///< \c true if the PDU has one or more LED(s) capable
+							///<         of emitting pulses to measure consumed energy
+	};
+
+	/** PDU sensors */
+	structure Sensors {
+	    vector<sensors.StateSensor_4_0_3> powerSupplyStatus;    ///< Power supply fault status
+	    sensors.NumericSensor_4_0_3 activePower;		    ///< Active power sensor
+	    sensors.NumericSensor_4_0_3 activeEnergy;		    ///< Active energy sensor
+	};
+
+	/** PDU statistics */
+	structure Statistic {
+	    vector<CircuitBreakerStatistic> cbStats;	///< Circuit breaker statistics
+	    vector<CtrlStatistic> ctrlStats;		///< Slave controller statistics
+	    vector<OutletStatistic> outletStats;	///< %Outlet statistics
+	    peripheral.DeviceManager_3_0_2.Statistics peripheralStats;	///< Peripheral device statistics
+	};
+
+	/** %Outlet power state on device startup */
+	enumeration StartupState {
+	    SS_ON,					///< %Outlet will be switched on
+	    SS_OFF,					///< %Outlet will be switched off
+	    SS_LASTKNOWN				///< Restore last known power state
+	};
+
+	/** PDU settings */
+	structure Settings {
+	    string name;				///< User-defined name
+	    StartupState startupState;			///< Default outlet state on device startup; can be overriden per outlet
+	    int cycleDelay;				///< Default power-cycle interval in seconds; can be overriden per outlet
+	    int inRushGuardDelay;			///< Minimum delay in milliseconds between switching two outlets on
+	    vector<int> outletPowerStateSequence;	///< The order in which multiple outlets should be switched.
+							///< Format: List of outlet numbers (zero-based), empty for default.
+							///< \n Affects the following functions:
+							///< \li \c setAllOutletPowerStates
+							///< \li \c cycleAllOutletPowerStates
+							///< \li \c setMultipleOutletPowerStates
+							///< \li \c cycleMultipleOutletPowerStates
+	    int powerOnDelay;				///< Delay in seconds before restoring outlet states after device startup
+	    boolean latchingRelays;			///< If true, relays keep their state during power-cycling
+	    boolean energyPulseEnabled;			///< Enables energy consumption counting using the PDU's LED(s)
+	    int energyPulsesPerKWh;			///< Ratio between LED pulses and energy consumption
+	};
+
+	/** %Outlet sequencing status */
+	structure OutletSequenceState {
+	    boolean sequenceRunning;			///< \c true if an outlet sequence is currently running
+	    int nextOutletToSwitch;			///< Number (zero-based) of the next outlet in the sequence
+	    int timeUntilNextSwitch;			///< Time in milliseconds before the next outlet is switched
+	    int outletsRemaining;			///< Number of outlets remaining in the sequence
+            int cancelableOutletsRemaining;             ///< Number of outlets remaining whose switch operation can be canceled
+                                                        ///< (non-cancelable operations won't be affected by canceling the sequence)
+	};
+
+	/** Event: PDU settings have been changed */
+    	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;			///< Settings before change
+	    Settings newSettings;			///< Settings after change
+	};
+
+	/** Event: Load shedding mode was enabled or disabled */
+    	valueobject LoadSheddingModeChangedEvent extends event.UserEvent {
+	    boolean enabled;				///< Whether load shedding mode is enabled after the change
+	};
+
+	/** Event: Outlet sequencing state has changed */
+	valueobject OutletSequenceStateChangedEvent extends idl.Event {
+	    OutletSequenceState newState;		///< New sequencing state
+	};
+
+	/**
+	 * Retrieve the PDU nameplate information.
+	 *
+	 * @return Nameplate information
+	 */
+	Nameplate_2_0_0 getNameplate();
+
+	/**
+	 * Retrieve the PDU metadata.
+	 *
+	 * @return PDU metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the PDU sensors.
+	 *
+	 * @return PDU sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Get the sensor logger.
+	 *
+	 * @return Sensor logger reference
+	 */
+	sensors.Logger_2_1_6 getSensorLogger();
+
+	/**
+	 * Get the list of slave controllers.
+	 *
+	 * @return List of slave controllers
+	 */
+	vector<Controller_4_0_1> getControllers();
+
+	/**
+	 * Get the list of outlets.
+	 *
+	 * @return List of outlets, indexed by their number (zero-based)
+	 */
+	vector<Outlet_2_1_5> getOutlets();
+
+	/**
+	 * Get the list of overcurrent protectors.
+	 *
+	 * @return List of OCPs, indexed by their number (zero-based)
+	 */
+	vector<OverCurrentProtector_3_0_4> getOverCurrentProtectors();
+
+	/**
+	 * Get the list of inlets.
+	 *
+	 * @return List of inlets, indexed by their number (zero-based)
+	 */
+	vector<Inlet_2_0_4> getInlets();
+
+	/**
+	 * Returns list of Transfer Switches.
+	 * This list may be empty.
+	 */
+	vector<TransferSwitch_4_0_4> getTransferSwitches();
+
+	/**
+	 * Get the peripheral device manager.
+	 *
+	 * @return Peripheral device manager
+	 */
+	peripheral.DeviceManager_3_0_2 getPeripheralDeviceManager();
+
+	/**
+	 * Get the built-in beeper, if there is any.
+	 *
+	 * @return Beeper interface
+	 */
+	hmi.InternalBeeper_2_0_1 getBeeper();
+
+	/**
+	 * Retrieve the PDU settings.
+	 *
+	 * @return PDU settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Retrieve the current load shedding state.
+	 *
+	 * @return \c true if load shedding is currently enabled
+	 */
+	boolean isLoadSheddingActive();
+
+	/**
+	 * Change the PDU settings.
+	 *
+	 * @param settings  New PDU settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Enable or disable load shedding.
+	 *
+	 * @param active  \c true to enable, \c false to disable load shedding
+	 */
+	void setLoadSheddingActive(in boolean active);
+
+	/**
+	 * Get all feature ports of this device
+	 * 
+	 * This returns an entry for all feature ports, no matter whether
+	 * something is connected or not.
+	 * A device with n feature ports will return n entries here.
+	 * 
+	 * @return List of all Feature Ports
+	 */
+	vector<portsmodel.Port_2_0_2> getFeaturePorts();
+
+	/**
+	 * Enter RS485 config mode and assign an address to a relay board.
+	 * @warning This is dangerous! Do not use except for manufacturing.
+	 *
+	 * @param addr     New relay board address
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int enterRS485ConfigModeAndAssignCtrlBoardAddress(in int addr);
+
+	/**
+	 * Enter RS485 config mode and assign an address to a slave controller
+	 * device with a given device ID.
+	 * @warning This is dangerous! Do not use except for manufacturing.
+	 *
+	 * @param deviceId Device id of the slave controller board
+	 *                 which is supposed to get the address
+	 * @param addr     New relay board address
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int enterRS485ConfigModeAndAssignSCBoardAddress(in int deviceId, in int addr);
+
+	/**
+	 * Leave RS485 config mode.
+	 *
+	 * @return 0 if OK
+	 */
+	int leaveRS485ConfigMode();
+
+	/**
+	 * Switch all outlets.
+	 *
+	 * @param pstate  New power state for all outlets
+	 *
+	 * @return 0 if OK
+	 */
+	int setAllOutletPowerStates(in Outlet_2_1_5.PowerState pstate);
+
+	/**
+	 * Switch multiple outlets.
+	 *
+	 * @param outletNumbers    List of outlet numbers (zero-based)
+	 * @param state            New power state for all outlets in list
+	 * @param respectSequence  \c true to switch in defined sequence order
+	 *
+	 * @return 0 if OK
+	 * @return 3 if any of the selected outlets is disabled
+	 */
+	int setMultipleOutletPowerStates(in vector<int> outletNumbers,
+					 in Outlet_2_1_5.PowerState state,
+					 in boolean respectSequence);
+
+	/**
+	 * Power-cycle all outlets.
+	 *
+	 * @return 0 if OK
+	 */
+	int cycleAllOutletPowerStates();
+
+	/**
+	 * Power-cycle multiple outlets.
+	 *
+	 * @param outletNumbers    List of outlet numbers (zero-based)
+	 * @param respectSequence  \c true to switch in defined sequence order
+	 *
+	 * @return 0 if OK
+	 * @return 3 if any of the selected outlets is disabled
+	 */
+	int cycleMultipleOutletPowerStates(in vector<int> outletNumbers,
+					   in boolean respectSequence);
+
+	/**
+	 * Retrieve PDU statistics.
+	 *
+	 * @return PDU statistics
+	 */
+	Statistic getStatistic();
+
+	/**
+	 * Retrieve the current outlet sequencing status.
+	 *
+	 * @return Sequencing status
+	 */
+	OutletSequenceState getOutletSequenceState();
+
+	/**
+	 * Stop a currently running outlet sequence.
+	 */
+	void cancelOutletSequence();
+
+    };
+
+}
+
+#endif

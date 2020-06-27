@@ -1,0 +1,60 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Network Configuration
+ */
+module net {
+
+    /** Diagnostics interface */
+    interface Diagnostics {
+	constant int NO_ERROR          = 0; ///< No error
+	constant int ERR_INVALID_PARAM = 1; ///< Invalid parameters
+	constant int ERR_EXEC_FAIL     = 2; ///< Error during execution
+	constant int ERR_TIMEOUT       = 3; ///< Timeout
+	constant int ERR_RESOLVE_FAIL  = 4; ///< Name resolution failure
+
+	/**
+	 * Ping a network host (send out ICMP echo requests)
+	 * 
+	 * @param hostName	host that should be pinged
+	 * @param count		number of echo requests that should be sent (up to 20)
+	 * @param results	output of the ping command
+	 *
+	 * @return NO_ERROR 		if ping command was successful
+	 * @return ERR_INVALID_PARAM 	if any parameters were invalid
+	 * @return ERR_EXEC_FAIL 	if there was an error during ping execution
+	 * @return ERR_RESOLVE_FAIL	if the host name could not be resolved
+	 */
+	int ping(in string hostName, in int count, out vector<string> results);
+
+	/**
+	 * Get the route packet trace to a network host
+	 *
+	 * @param hostName	destination host to track
+	 * @param timeout       Timeout (in seconds) to wait for traceroute results (up to 900)
+	 * @param useIcmp       use ICMP packets instead of UDP packets
+	 * @param results	trace output
+	 *
+	 * @return NO_ERROR 		if traceroute was successful
+	 * @return ERR_INVALID_PARAM 	if any parameters were invalid
+	 * @return ERR_EXEC_FAIL 	if there was an error during traceroute execution
+	 * @return ERR_TIMEOUT 		if traceroute didn't finish before timeout elapsed
+	 * @return ERR_RESOLVE_FAIL 	if the host name could not be resolved
+	 */
+	int traceRoute(in string hostName, in int timeout,
+		       in boolean useIcmp, out vector<string> results);
+
+	/**
+	 * List the currently active TCP connections (netstat -ta)
+	 * (lists both listening as well as established connections)
+	 *
+	 * @return NO_ERROR 		if netstat was successful
+	 * @return ERR_EXEC_FAIL 	if there was an error during netstat execution
+	 */
+	int listTcpConnections(out vector<string> results);
+    };
+
+}

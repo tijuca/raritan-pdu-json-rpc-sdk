@@ -1,0 +1,154 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __POWERLOGIC_POWERMETER_IDL__
+#define __POWERLOGIC_POWERMETER_IDL__
+
+#include <Event.idl>
+#include <NumericSensor.idl>
+#include <ModbusDevice.idl>
+
+module powerlogic {
+
+    /** PowerLogic Power Meter Interface */
+    interface PowerMeter_1_2_5 extends modbus.Device {
+    	
+	/** Structured object grouping minimum, maximum and current sensor */
+	structure MinMaxReading {
+	    sensors.NumericSensor_4_0_3 min;		    ///< minimum reading
+	    sensors.NumericSensor_4_0_3 max;		    ///< maximum reading
+	    sensors.NumericSensor_4_0_3 reading;	    ///< current reading
+	};
+	
+	/** Structured object for line to neutral sensors including neutral and average */
+	structure L2N_N_Avg {
+	    MinMaxReading   	    	l1;     	    ///< L1
+	    MinMaxReading   	    	l2;     	    ///< L2
+	    MinMaxReading   	    	l3;     	    ///< L3
+	    sensors.NumericSensor_4_0_3 n;		    ///< neutral
+	    sensors.NumericSensor_4_0_3 average;	    ///< average
+	};
+	
+	/** Structured object for line to line sensors including average */
+	structure L2L_Avg {
+	    MinMaxReading   	    	l1l2;   	    ///< L1-L2
+	    MinMaxReading   	    	l2l3;   	    ///< L2-L3
+	    MinMaxReading   	    	l3l1;   	    ///< L3-L1
+	    sensors.NumericSensor_4_0_3 average;	    ///< average
+	};
+	
+	/** Structured object for line to neutral sensors including average */
+	structure L2N_Avg {
+	    MinMaxReading   	    	l1;     	    ///< L1-L2
+	    MinMaxReading   	    	l2;     	    ///< L2-L3
+	    MinMaxReading   	    	l3;     	    ///< L3-L1
+	    sensors.NumericSensor_4_0_3 average;	    ///< average
+	};
+	
+	/** Structured object for line to neutral voltage sensors */
+	structure L2N {
+	    MinMaxReading    	    l1;     	    ///< L1
+	    MinMaxReading    	    l2;     	    ///< L2
+	    MinMaxReading    	    l3;     	    ///< L3
+	};
+	
+	/** Structured object for line to line sensors */
+	structure L2L {
+	    MinMaxReading    	    l1l2;   	    ///< L1-L2
+	    MinMaxReading    	    l2l3;   	    ///< L2-L3
+	    MinMaxReading    	    l3l1;   	    ///< L3-L1
+	};
+	
+	/** Structured object for line to neutral voltage sensors */
+	structure L2N_plain_total {
+	    sensors.NumericSensor_4_0_3 l1;		    ///< L1
+	    sensors.NumericSensor_4_0_3 l2;		    ///< L2
+	    sensors.NumericSensor_4_0_3 l3;		    ///< L3
+	    MinMaxReading   	    	total;  	    ///< total
+	};
+	
+	/** Sensors */
+	structure Sensors {
+	    L2N_N_Avg    	    	current;    	///< current sensors (L1, L2, L3, N, 3P average)
+	    L2L_Avg 	    	    	voltageL2L;     ///< line to line voltage sensors (L1-L2, L2-L3, L3-L1, 3P average)
+	    L2N_Avg 	    	    	voltageL2N;     ///< line to neutral voltage sensors (L1-N, L2-N, L3-N, 3P average)
+	    sensors.NumericSensor_4_0_3 frequency;	///< frequency sensor
+	    L2N_plain_total    	    	activePower;    ///< real power sensor (L1, L2, L3, total)
+	    L2N_plain_total    	    	reactivePower;  ///< reactive power sensor (L1, L2, L3, total)
+	    L2N_plain_total    	    	apparentPower;  ///< apparent power sensor (L1, L2, L3, total)
+	    MinMaxReading    	    	powerFactor;    ///< power factor sensor (total)
+	    sensors.NumericSensor_4_0_3 activeEnergy;   ///< real energy sensor (total)
+	    sensors.NumericSensor_4_0_3 reactiveEnergy; ///< reactive energy sensor (total)
+	    sensors.NumericSensor_4_0_3 apparentEnergy; ///< apparent energy sensor (total)
+    	    L2N	    	    	    	thdCurrent;     ///< total harmonic distortion sensors for current (L1, L2, L3)
+	    L2L     	    	    	thdVoltageL2L;  ///< total harmonic distortion sensors for voltage (L1-L2, L2-L3, L3-L1)
+	    L2N     	    	    	thdVoltageL2N;  ///< total harmonic distortion sensors for voltage (L1-N, L2-N, L3-N)
+	};
+    	
+	/** PowerLogic Power Meter setup */
+	structure Setup {
+	    int systemType; 	    	    	    ///< wiring identifier
+	    int displayMode;	    	    	    ///< IEC / IEEE units
+	};
+
+	/** Error status flags */
+	structure ErrorStatus {
+	    boolean vL1saturation; 	    	    ///< voltage L1 saturation
+	    boolean vL2saturation; 	    	    ///< voltage L2 saturation
+	    boolean vL3saturation; 	    	    ///< voltage L3 saturation
+	    boolean cL1saturation; 	    	    ///< current L1 saturation
+	    boolean cL2saturation; 	    	    ///< current L2 saturation
+	    boolean cL3saturation; 	    	    ///< current L3 saturation
+	    boolean freqInvalid;    	    	    ///< frequency invalid
+	};
+
+	/** Event: Power meter setup has changed */	
+	valueobject SetupChangedEvent extends idl.Event {
+	    Setup oldSetup;		///< Setup before change
+	    Setup newSetup;		///< Setup after change
+	};
+
+	/** Event: Error status has changed */
+	valueobject ErrorStatusChangedEvent extends idl.Event {
+	    ErrorStatus oldStatus;	///< Error status flags before change
+	    ErrorStatus newStatus;	///< Error status flags after change
+	};
+
+ 	/**
+	 * Get the sensors.
+	 * Not available sensors will be 'null'.
+	 *
+	 * @return Power Meter sensors.
+	 */
+	Sensors getSensors();
+	
+   	
+	/**
+	 * Read out Power Meter setup.
+	 *
+	 * @return Power Meter setup
+	 */
+    	Setup getSetup();
+	
+	/**
+	 * Get error status.
+	 *
+	 * @return ErrorStatus flags
+	 */
+	ErrorStatus getErrorStatus();
+	
+	/**
+	 * Reset the min/max values to defaults.
+	 */
+	void resetAllMinMaxValues();
+	
+	/**
+	 * Reset the energy accumulators to 0.
+	 */
+	void clearAllEnergyAccumulators();
+    };
+}
+
+#endif /* !__POWERLOGIC_POWERMETER_IDL__ */

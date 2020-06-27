@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __EVENT_USEREVENT_IDL__
+#define __EVENT_USEREVENT_IDL__
+
+#include <Event.idl>
+
+/** Event interface */
+module event {
+
+    /**
+     * This UserEvent may be used as base valueobject for
+     * all concrete events that are triggered because of
+     * user interaction.
+     */
+    valueobject UserEvent extends idl.Event {
+        string actUserName;  ///< user who triggered event
+	string actIpAddr;    ///< ip or device on which user is logged in
+    };
+
+}
+
+
+#endif

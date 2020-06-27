@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+/** RADIUS server interface */
+module radius {
+
+    /** RADIUS auth type */
+    enumeration AuthType_2_0_0 {
+	PAP,		///< PAP
+	CHAP,		///< CHAP
+	MSCHAPv2	///< MSCHAPv2
+    };
+
+    /** Server settings */
+    structure ServerSettings_2_0_0 {
+	string		id;            ///< This field is unused; empty on read, ignored on write
+	string		server;        ///< IP or name of the radius servers
+	string		sharedSecret;
+	int		udpAuthPort;
+	int		udpAccountPort;
+	int		timeout;
+	int		retries;
+	AuthType_2_0_0	authType;
+    };
+}

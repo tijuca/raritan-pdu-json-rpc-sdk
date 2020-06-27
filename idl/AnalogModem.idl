@@ -1,0 +1,71 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ANALOGMODEM_IDL__
+#define __ANALOGMODEM_IDL__
+
+#include <Event.idl>
+
+/** Serial Ports */
+module serial {
+
+    /**
+     * Interface for communication with an analog modem attached
+     * to a serial port
+     */
+    interface AnalogModem {
+	/**
+	 * Error codes
+	 */
+	constant int SUCCESS                   = 0; ///< No error
+	constant int ERR_INVALID_VALUE         = 1; ///< Invalid argument
+
+	structure Settings {
+	    boolean dialInEnabled;	///< Whether dial-in to device is enabled 
+	    int ringsUntilAnswer;	///< Number of rings until incoming call is answered
+	};
+
+	/**
+	 * Dial-in event
+	 */
+	valueobject DialInEvent extends idl.Event {
+	    string number;		 ///< The caller's phone number
+	};
+
+	/**
+	 * An event that's emitted when a dial-in call was answered
+	 */
+	valueobject CallReceivedEvent extends DialInEvent {
+	};
+
+	/**
+	 * An event that's emitted when a dial-in call was hung up
+	 */
+	valueobject CallEndedEvent extends DialInEvent {
+	    boolean disconnectedRemotely;	///< If true, the call was disconnected by the caller
+						///< If false, the call was disconnected locally,
+						///<  e.g. due to a connection failure
+	};
+
+    	/**
+	 * @brief Get modem settings
+	 *
+	 * @return -- Current modem settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * @brief Set modem settings
+	 *
+	 * @param settings -- New settings
+	 *
+	 * @return SUCCESS           -- on success
+	 * @return ERR_INVALID_VALUE -- if any passed value was invalid
+	 */
+	int setSettings(in Settings settings);
+    };
+}
+
+#endif /* __ANALOGMODEM_IDL__ */

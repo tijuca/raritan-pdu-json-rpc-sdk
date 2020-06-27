@@ -1,0 +1,135 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_OVERCURRENTPROTECTOR_IDL__
+#define __PDUMODEL_OVERCURRENTPROTECTOR_IDL__
+
+#include <Nameplate.idl>
+#include <StateSensor.idl>
+#include <NumericSensor.idl>
+#include <Pole.idl>
+#include <Inlet.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Overcurrent protector statistics */
+    structure CircuitBreakerStatistic {
+	int tripCnt;			///< Trip count
+    };
+
+    /** Overcurrent protector interface */
+    interface OverCurrentProtector_3_0_4 extends EDevice {
+
+	/** Overcurrent protector type */
+	enumeration Type {
+	    BREAKER_1POLE,		///< Single-pole circuit breaker
+	    BREAKER_2POLE,		///< Two-pole circuit breaker
+	    BREAKER_3POLE,		///< Three-pole circuit breaker
+	    FUSE,			///< Fuse
+	    FUSE_PAIR,			///< Fuse Pair
+	    RCBO_2POLE,			///< Two-pole residual-current device including overcurrent protection
+	    RCBO_3POLE,			///< Three-pole residual-current device including overcurrent protection
+	    RCBO_4POLE			///< Four-pole residual-current device including overcurrent protection
+	};
+
+	/** Overcurrent protector metadata */
+	structure MetaData {
+	    string label;		///< OCP label
+	    Nameplate_2_0_0 namePlate;	///< %Nameplate information
+	    Rating_2_0_0 rating;	///< Numerical usage ratings
+	    Type type;			///< OCP type
+	    int maxTripCnt;		///< Maximum trip count
+	};
+
+	/** Overcurrent protector sensors */
+	structure Sensors {
+	    sensors.StateSensor_4_0_3 trip;			///< Trip sensor (an instance of {@link OverCurrentProtectorTripSensor})
+	    sensors.NumericSensor_4_0_3 voltage;		///< RMS voltage sensor
+	    sensors.NumericSensor_4_0_3 current;		///< RMS current sensor
+	    sensors.NumericSensor_4_0_3 peakCurrent;		///< Peak current sensor
+	    sensors.NumericSensor_4_0_3 maximumCurrent;		///< Maximum current sensor
+	    sensors.NumericSensor_4_0_3 activePower;		///< Active power sensor
+	    sensors.NumericSensor_4_0_3 reactivePower;		///< Reactive power sensor
+	    sensors.NumericSensor_4_0_3 apparentPower;		///< Apparent power sensor
+	    sensors.NumericSensor_4_0_3 powerFactor;		///< Power factor sensor
+	    sensors.NumericSensor_4_0_3 displacementPowerFactor;///< Displacement power factor sensor
+	    sensors.NumericSensor_4_0_3 crestFactor;        ///< Crest factor sensor
+	    sensors.NumericSensor_4_0_3 activeEnergy;		///< Active energy sensor
+	    sensors.NumericSensor_4_0_3 apparentEnergy;		///< Apparent energy sensor
+	    sensors.NumericSensor_4_0_3 phaseAngle;		///< Phase angle sensor
+	    sensors.NumericSensor_4_0_3 lineFrequency;		///< AC line frequency sensor
+	};
+
+	/** Overcurrent protector settings */
+	structure Settings {
+	    string name;		///< User-defined name
+	};
+
+	/** Event: Overcurrent protector settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;	///< Settings before change
+	    Settings newSettings;	///< Settings after change
+	};
+
+	/**
+	 * Retrieve the OCP metadata.
+	 *
+	 * @return OCP metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Get the OCP sensors.
+	 *
+	 * @return OCP sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Get the list of OCP poles.
+	 *
+	 * @return List of OCP poles
+	 */
+	vector<DoublePole_5_0_0> getPoles();
+
+	/**
+	 * Get the inlet this OCP is connected to
+	 *
+	 * @return inlet
+	 */
+	Inlet_2_0_4 getInlet();
+
+	/**
+	 * Get parent OCP - next OCP going towards inlet (for cascaded OCPs).
+         *
+         * @return OCP or null
+         */
+        OverCurrentProtector_3_0_4 getOCP();
+
+	/**
+	 * Retrieve the OCP settings.
+	 *
+	 * @return OCP settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the OCP settings.
+	 *
+	 * @param settings  New OCP settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+    };
+
+}
+
+#endif

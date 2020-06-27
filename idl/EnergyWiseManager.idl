@@ -1,0 +1,31 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ENERGYWISE_MANAGER_IDL__
+#define __ENERGYWISE_MANAGER_IDL__
+
+#include <EnergyWiseSettings.idl>
+
+/** Cisco EnergyWise */
+module cew {
+    /** EnergyWise manager */
+    interface EnergyWiseManager{
+	
+	/**
+	 * Retrieve EnergyWiseSettings
+	 *
+	 * @return \c EnergyWiseSettings
+	 */
+	EnergyWiseSettings getSettings();
+	/**
+	 * Set settings (domain level)
+	 * @return 0 if OK
+	 * @return 1 if invalid param
+	 */
+	int setSettings(in EnergyWiseSettings settings);
+    };
+}
+
+#endif //__ENERGYWISE_PDU_IDL__

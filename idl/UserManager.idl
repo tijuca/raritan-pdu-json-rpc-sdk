@@ -1,0 +1,198 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <User.idl>
+#include <UserEvent.idl>
+
+/**
+ * %User Management
+ */
+module usermgmt {
+
+    /** %Account information */
+    structure Account {
+	string   name;	///< %Account name
+	UserInfo info;	///< %User information
+    };
+
+    /* event definitions */
+    /**
+     * Base type of all account event
+     */
+    valueobject AccountEvent extends event.UserEvent {
+	string username; ///< id of user which was affected
+    };
+
+    /**
+     * This event is emitted after a new account with the 
+     * provided username was added 
+     */
+    valueobject AccountAdded extends AccountEvent {};
+
+    /**
+     * This event is emitted after the account with
+     * the provided username has been removed
+     */
+    valueobject AccountRemoved extends AccountEvent {};
+
+    /**
+     * This event is emitted after the password for
+     * an account was changed
+     */
+    valueobject PasswordChanged extends AccountEvent {};
+
+    /**
+     * This event is emitted if the settings of an account
+     * as defined in usermgmt.UserInfo have changed
+     * (Note: we may add an indication what in the structure
+     * has changed or even split the event, if handling is difficult)
+     */
+    valueobject AccountChanged extends AccountEvent {
+	usermgmt.UserInfo oldSettings;
+	usermgmt.UserInfo newSettings;
+    };
+
+
+    /** %User manager interface */
+    interface UserManager_1_0_4 {
+
+	constant int ERR_USER_DOESNT_EXIST		= 1; ///< A user with the given name does not exist
+	constant int ERR_USER_NOT_DELETABLE		= 2; ///< The user is not deletable
+
+	constant int ERR_USER_ALREADY_EXISTS		= 1; ///< A user with the given name already exists
+	constant int ERR_MAX_USERS_REACHED		= 2; ///< Maximum number of users reached
+	constant int ERR_PASSWORD_TOO_SHORT_FOR_SNMP	= 3; ///< The password is too short to be used as SNMPv3 passphrase
+	constant int ERR_INVALID_VALUE			= 4; ///< Invalid arguments
+	constant int ERR_PASSWORD_EMPTY			= 5;  ///< The password must not be empty
+	constant int ERR_PASSWORD_TOO_SHORT		= 6;  ///< The password is too short
+	constant int ERR_PASSWORD_TOO_LONG		= 7;  ///< The password is too long
+	constant int ERR_PASSWORD_CTRL_CHARS		= 8;  ///< The password must not contain control characters
+	constant int ERR_PASSWORD_NEED_LOWER		= 9;  ///< The password must contain at least one lower-case character
+	constant int ERR_PASSWORD_NEED_UPPER		= 10;  ///< The password must contain at least one upper-case character
+	constant int ERR_PASSWORD_NEED_NUMERIC		= 11;  ///< The password must contain at least one numeric character
+	constant int ERR_PASSWORD_NEED_SPECIAL		= 12;  ///< The password must contain at least one special character
+        constant int ERR_SSH_PUBKEY_DATA_TOO_LARGE      = 14; ///< The ssh public key data is too large.
+        constant int ERR_SSH_PUBKEY_INVALID             = 15; ///< The ssh public key is invalid.
+        constant int ERR_SSH_PUBKEY_NOT_SUPPORTED       = 16; ///< The ssh public key is not supported.
+        constant int ERR_SSH_RSA_PUBKEY_TOO_SHORT       = 17; ///< The ssh RSA public key is too short.
+	constant int ERR_USERNAME_INVALID		= 18; ///< The user name contains one or more invalid character(s).
+
+	/**
+	 * Get a list of account names available on the system.
+	 *
+	 * @return List of account names
+	 */
+	vector<string> getAccountNames();
+
+	/**
+	 * Create a new account.
+	 *
+	 * @param username  New user name
+	 * @param password  New password
+	 *
+	 * @return  0 if OK
+	 * @return  1 if a user with the given name already exists
+	 * @return  2 if the maximum number of users is reached
+	 * @return  3 SNMPv3 USM is activated for the user and the
+	 *           password shall be used as auth passphrase. For this
+	 *           case, the password is too short (must be at least 8
+	 *           characters).
+	 * @return  5 The password must not be empty.
+	 * @return  6 The password is too short.
+	 * @return  7 The password is too long.
+	 * @return  8 The password must not contain control characters.
+	 * @return  9 The password has to contain at least one lower case
+	 *            character.
+	 * @return 10 The password has to contain at least one upper case
+	 *            character.
+	 * @return 11 The password has to contain at least one numeric
+	 *            character.
+	 * @return 12 The password has to contain at least one printable
+	 *            special character.
+	 * @return 18 if the user name is invalid.
+	 */
+	int createAccount(in string username, in string password);
+
+	/**
+	 * Deletes an account.
+	 *
+	 * @param username  Name of user to delete
+	 *
+	 * @return 0 if OK
+	 * @return 1 if a user with the given name does not exist
+	 * @return 2 if the user cannot be deleted
+	 */
+	int deleteAccount(in string username);
+
+	/**
+	 * Get information about all available user accounts.
+	 *
+	 * @return List of accounts
+	 */
+	vector<Account> getAllAccounts();
+
+	/**
+	 * Create a new account with defined settings.
+	 *
+	 * @param username  New user name
+	 * @param password  New password
+	 * @param info      New user information
+	 *
+	 * @return  0 if OK
+	 * @return  1 if a user with the given name already exists
+	 * @return  2 if the maximum number of users is reached
+	 * @return  3 SNMPv3 USM is activated for the user and the
+	 *           password shall be used as auth passphrase. For this
+	 *           case, the password is too short (must be at least 8
+	 *           characters).
+	 * @return  4 if any value in the user info is invalid.
+	 * @return  5 The password must not be empty.
+	 * @return  6 The password is too short.
+	 * @return  7 The password is too long.
+	 * @return  8 The password must not contain control characters.
+	 * @return  9 The password has to contain at least one lower case
+	 *            character.
+	 * @return 10 The password has to contain at least one upper case
+	 *            character.
+	 * @return 11 The password has to contain at least one numeric
+	 *            character.
+	 * @return 12 The password has to contain at least one printable
+	 *            special character.
+	 * @return 14 The ssh public key data is too large.
+	 * @return 15 The ssh public key is invalid.
+	 * @return 16 The ssh public key is not supported.
+	 * @return 17 The ssh RSA public key is too short.
+	 * @return 18 if the user name is invalid.
+	 */
+	int createAccountFull(in string username, in string password,
+			      in UserInfo info);
+
+	/**
+	 * Get a list of accounts that have a given role.
+	 *
+	 * @param roleName  Role name
+	 *
+	 * @return List of accounts
+	 */
+	vector<Account> getAccountsByRole(in string roleName);
+
+	/**
+	 * Get default user preferences.
+	 *
+	 * @return Default user preferences.
+	 */
+	Preferences getDefaultPreferences();
+
+	/**
+	 * Set default user preferences.
+	 *
+	 * @param prefs Default user preferences.
+	 *
+	 * @return  	0 if OK
+	 */
+	int setDefaultPreferences(in Preferences prefs);
+    };
+
+}

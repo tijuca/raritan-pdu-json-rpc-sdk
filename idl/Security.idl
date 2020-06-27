@@ -1,0 +1,396 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/**
+ * %Security Configuration
+ */
+module security {
+
+    /** IP packet filter policy */
+    enumeration IpfwPolicy {
+	ACCEPT,				///< Accept the packet
+	DROP,				///< Silently discard the packet
+	REJECT				///< Discard packet, send error response
+    };
+
+    /** IP packet filter rule */
+    structure IpfwRule {
+	string ipMask;			///< Remote IP and network mask
+	IpfwPolicy policy;		///< Filter policy
+    };
+
+    /** IP packet filter configuration */
+    structure IpFw_2_0_0 {
+        boolean enabled;		///< \c true to enable packet filtering
+        IpfwPolicy defaultPolicyIn;	///< The default policy for inbound traffic in case no rule matches
+        IpfwPolicy defaultPolicyOut;	///< The default policy for outbound traffic in case no rule matches
+        vector<IpfwRule> ruleSetIn;	///< Ordered list of inbound firewall rules
+        vector<IpfwRule> ruleSetOut;	///< Ordered list of outbound firewall rules
+    };
+
+    /** Role-based access policy */
+    enumeration RoleAccessPolicy {
+	ALLOW,				///< Access granted
+	DENY				///< Access denied
+    };
+
+    /** Role-based access rule */
+    structure RoleAccessRule {
+	string		 startIp;	///< Start of IP range
+	string		 endIp;		///< End of IP range
+	int		 roleId;	///< Role id
+	RoleAccessPolicy policy;	///< Access policy
+    };
+
+    /** Role-based access control settings */
+    structure RoleAccessControl {
+	boolean enabled;		///< \c true to enable role-based access control
+	RoleAccessPolicy defaultPolicy;	///< Default policy
+	vector<RoleAccessRule> rules;	///< List of access rules
+    };
+
+    /** Password settings */
+    structure PasswordSettings {
+	boolean   enableAging;		///< \c true to enable password aging
+	int       agingInterval;	///< Aging interval in days
+	boolean   enableStrongReq;	///< \c true to enable strong password requirements
+	int       minPwLength;		///< Minimum password length
+	int       maxPwLength;		///< Maximum password length
+	boolean   enforceLower;		///< Passwords must contain at least one lower case character
+	boolean   enforceUpper;		///< Passwords must contain at least one upper case character
+	boolean   enforceNumeric;	///< Passwords must contain at least one numeric character
+	boolean   enforceSpecial;	///< Passwords must contain at least one special character
+	int       pwHistoryDepth;	///< Number of entries in password history
+    };
+
+    /** SSH authentication settings */
+    structure SSHSettings {
+	boolean  allowPasswordAuth;	///< Allow password authentication
+	boolean  allowPublicKeyAuth;	///< Allow public key authentication
+    };
+
+    /** Type of SSH host key */
+    enumeration SSHHostKeyType {
+	SSH_HOST_KEY_TYPE_RSA,
+	SSH_HOST_KEY_TYPE_ECDSA
+    };
+
+    /** Type of SSH key fingerprint */
+    enumeration SSHKeyFingerprintType {
+	SSH_KEY_FPRINT_TYPE_MD5_HEX,
+	SSH_KEY_FPRINT_TYPE_SHA256_BASE64,
+	SSH_KEY_FPRINT_TYPE_UNKNOWN
+    };
+
+    /** Fingerprints of SSH host key */
+    structure SSHKeyFingerprint {
+	string fingerprint;		///< Fingerprint of SSH key
+	SSHKeyFingerprintType type;	///< Type of fingerprint
+    };
+
+    /** SSH host keys */
+    structure SSHHostKey {
+	string key;						    ///< Public key
+	SSHHostKeyType type;					    ///< Type of public key
+	vector<SSHKeyFingerprint> fingerprints;  ///< Fingerprints of public key
+    };
+    
+    /** Restricted Service Agreement settings */
+    structure RestrictedServiceAgreement {
+    	boolean enabled;    	    	///< Enforce Restricted Service Agreement
+	string	banner;     	    	///< Restricted Service Agreement Banner
+    };
+    
+    /**
+     * This Event is emitted after any of the password-settings
+     * has been changed
+     */
+    valueobject PasswordSettingsChanged extends event.UserEvent {
+	PasswordSettings oldSettings;
+	PasswordSettings newSettings;
+    };
+
+    /**
+     * Front panel privileges have been changed
+     */
+    valueobject FrontPanelPrivilegesChanged extends event.UserEvent {
+	vector<string> oldPrivileges;   ///< old front panel privileges
+	vector<string> newPrivileges;   ///< new front panel privileges
+    };
+    
+    /** %Security configuration interface */
+    interface Security_3_0_2 {
+
+	constant int ERR_INVALID_VALUE = 1; ///< Invalid arguments
+
+	/** %Security configuration
+	 * This structure is deprecated and will be removed in V3.0,
+	 * use concrete getters and setters instead!
+	 */
+	structure Settings {
+	    boolean		http2httpsRedir;	///< \c true to enable HTTP-to-HTTPS redirection
+	    int			userBlockTimeout;	///< User blocking timeout in minutes
+	    int			userMaxFailedLogins;	///< Maximum number of failed logins before blocking a user
+	    IpFw_2_0_0		ipFw;			///< IP packet filter configuration
+	    IpFw_2_0_0		ipV6Fw;			///< IPv6 packet filter configuration
+	    RoleAccessControl	roleAccessControl;	///< Role-based access control settings
+	    RoleAccessControl	roleAccessControlV6;	///< Role-based access control settings for IPv6
+	    PasswordSettings	pwSettings;		///< Password settings
+	    int			idleTimeout;		///< Session idle timeout in minutes
+	    boolean		singleLogin;		///< \c true to enable single login limitation
+	    SSHSettings         sshSettings;		///< SSH authentication settings
+	};
+
+	/**
+	 * Retrieve the security configuration.
+	 * This method is depreacted and will be removed in V3.0,
+	 * use concrete getter instead!
+	 *
+	 * @return %Security configuration
+	 */
+	[deprecated]
+	Settings getSettings();
+
+	/**
+	 * Set the security configuration.
+	 * This method is depreacted and will be removed in V3.0,
+	 * use concrete setter instead!
+	 *
+	 * @param settings  New security settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	[deprecated]
+	int setSettings(in Settings settings);
+
+	/**
+	 * Retrieve the current state of the HTTP-to-HTTPS redirection.
+	 *
+	 * @return \c true if the HTTP-to-HTTPS redirection is enabled
+	 */
+	boolean getHttpRedirSettings();
+
+	/**
+	 * Enable or disable HTTP-to-HTTPS redirection.
+	 *
+	 * @param http2httpsRedir  \c true to enable the redirection
+	 */
+	void setHttpRedirSettings(in boolean http2httpsRedir);
+
+	/**
+	 * Check whether HTTP Strict Transport Security (HSTS) is enabled
+	 *
+	 * @return \c true when HSTS is enabled
+	 */
+	boolean isHstsEnabled();
+
+	/**
+	 * Enable or disable HTTP Strict Transport Security (HSTS).
+	 *
+	 * @param enable \c true to enable HSTS
+	 */
+	void setHstsEnabled(in boolean enable);
+
+	/**
+	 * Retrieve the IPv4 packet filter configuration.
+	 *
+	 * @return %IPv4 packet filter configuration
+	 */
+	IpFw_2_0_0 getIpFwSettings();
+
+	/**
+	 * Set the IPv4 packet filter configuration.
+	 *
+	 * @param ipFw  New packet filter settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setIpFwSettings(in IpFw_2_0_0 ipFw);
+
+	/**
+	 * Retrieve the IPv6 packet filter configuration.
+	 *
+	 * @return %IPv6 packet filter configuration
+	 */
+	IpFw_2_0_0 getIpV6FwSettings();
+
+	/**
+	 * Set the IPv6 packet filter configuration.
+	 *
+	 * @param ipV6Fw  New packet filter settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setIpV6FwSettings(in IpFw_2_0_0 ipV6Fw);
+
+	/**
+	 * Retrieve the role-base access control settings for IPv4.
+	 *
+	 * @return Role-based access control settings
+	 */
+	RoleAccessControl getRoleAccessControlSettings();
+
+	/**
+	 * Change the role-based access control settings.
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setRoleAccessControlSettings(in RoleAccessControl settings);
+
+	/**
+	 * Retrieve the role-base access control settings for IPv6.
+	 *
+	 * @return Role-based access control settings
+	 */
+	RoleAccessControl getRoleAccessControlSettingsV6();
+
+	/**
+	 * Change the role-based access control settings for IPv6.
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setRoleAccessControlSettingsV6(in RoleAccessControl settings);
+
+	/**
+	 * Retrieve the current user blocking settings
+	 *
+	 * @return blockTimeout    The block timeout in minutes
+	 * @return maxFailedLogins The maximum failure count
+	 */
+	void getBlockSettings(out int blockTimeout, out int maxFailedLogins);
+
+	/**
+	 * Change the user blocking settings.
+	 *
+	 * @param blockTimeout     User blocking timeout in minutes
+	 * @param maxFailedLogins  Maximum number of failed logins
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setBlockSettings(in int blockTimeout, in int maxFailedLogins);
+
+	/**
+	 * Retrieve the password settings.
+	 *
+	 * @return Password settings
+	 */
+	PasswordSettings getPwSettings();
+
+	/**
+	 * Change the password settings.
+	 *
+	 * @param pwSettings  New settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setPwSettings(in PasswordSettings pwSettings);
+
+	/**
+	 * Retrieve the current idle timeout.
+	 *
+	 * @return Idle timeout in minutes
+	 */
+	int getIdleTimeoutSettings();
+
+	/**
+	 * Change the session idle timeout.
+	 *
+	 * @param idleTimeout  New idle timeout in minutes
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setIdleTimeoutSettings(in int idleTimeout);
+
+	/**
+	 * Retrieve the current single-login limitation setting.
+	 *
+	 * @return \c true if single-login limitation is enabled
+	 */
+	boolean getSingleLoginLimitation();
+
+	/**
+	 * Enable or disable single login limitation.
+	 *
+	 * @param singleLogin  \c true to enable single login limitation
+	 */
+	void setSingleLoginLimitation(in boolean singleLogin);
+	
+	/**
+	 * Retrieve the current SSH settings
+	 *
+	 * @return SSH settings
+	 */
+	SSHSettings getSSHSettings();
+
+	/**
+	 * Change the SSH settings
+	 *
+	 * @param settings  New settings
+	 */
+	void setSSHSettings(in SSHSettings settings);
+
+	/**
+	 * Retrieve the host SSH keys
+	 *
+	 * @return SSH host keys
+	 */
+	vector<SSHHostKey> getSSHHostKeys();
+
+	/**
+	 * Retrieve the current Restricted Service Agreement settings
+	 *
+	 * @return Restricted Service Agreement settings
+	 */
+	RestrictedServiceAgreement getRestrictedServiceAgreement();
+
+	/**
+	 * Change the Restricted Service Agreement settings
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setRestrictedServiceAgreement(in RestrictedServiceAgreement settings);
+
+	/**
+	 * Retrieve a list of supported privileges for the front panel
+	 *
+	 * @return List of privilege names
+	 */
+	vector<string> getSupportedFrontPanelPrivileges();
+
+	/**
+	 * Retrieve the list of active front panel privileges
+	 *
+	 * @return List of privilege names
+	 */
+	vector<string> getFrontPanelPrivileges();
+
+	/**
+	 * Set the privileges for the front panel
+	 *
+	 * @return 0 on success
+	 * @return ERR_INVALID_VALUE if any argument was invalid
+	 */
+	int setFrontPanelPrivileges(in vector<string> privileges);
+
+    };
+
+}

@@ -1,0 +1,117 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2015 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_CIRCUIT_IDL__
+#define __PDUMODEL_CIRCUIT_IDL__
+
+#include <NumericSensor.idl>
+#include <Pole.idl>
+#include <UserEvent.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /**
+     * BCM circuit
+     */
+    interface Circuit_1_0_3 {
+
+	constant int ERR_INVALID_PARAM = 1;      ///< Invalid parameters
+	constant int ERR_METER_CHANNEL_BUSY = 2; ///< Meter channel already in use
+
+	/** Circuit type */
+	enumeration Type {
+	    ONE_PHASE_LN,  ///< One-phase line-neutral
+	    ONE_PHASE_LL,  ///< One-phase line-line
+	    ONE_PHASE_LLN, ///< One-phase line-line-neutral
+	    THREE_PHASE    ///< Three-phase
+	};
+
+	/** Circuit configuration */
+	structure Config {
+	    int position; ///< Circuit position of first pole
+	    Type type;    ///< Circuit type
+	};
+
+	/**
+	 * Retrieve the circuit configuration.
+	 *
+	 * @return Circuit configuration
+	 */
+	Config getConfig();
+
+	/** Circuit sensors */
+	structure Sensors {
+	    sensors.NumericSensor_4_0_3 current;                 ///< RMS current sensor
+	    sensors.NumericSensor_4_0_3 activePower;             ///< Active power sensor
+	    sensors.NumericSensor_4_0_3 reactivePower;           ///< Reactive power sensor
+	    sensors.NumericSensor_4_0_3 apparentPower;           ///< Apparent power sensor
+	    sensors.NumericSensor_4_0_3 powerFactor;             ///< Power factor sensor
+	    sensors.NumericSensor_4_0_3 phaseAngle;              ///< Phase angle sensor
+	    sensors.NumericSensor_4_0_3 displacementPowerFactor; ///< Displacement power factor
+	    sensors.NumericSensor_4_0_3 activeEnergy;            ///< Active energy sensor
+	    sensors.NumericSensor_4_0_3 unbalancedCurrent;       ///< Current unbalance sensor
+	    sensors.NumericSensor_4_0_3 crestFactor;             ///< Crest factor sensor
+	};
+
+	/**
+	 * Retrieve the circuit sensors.
+	 *
+	 * @return Circuit sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Retrieve the list of circuit poles.
+	 *
+	 * @return List of circuit poles
+	 */
+	vector<Pole_5_0_0> getPoles();
+
+	/** Circuit pole settings */
+	structure PoleSettings {
+	    pdumodel.PowerLine_2_0_0 line; ///< Power line
+	    int meterChannel;              ///< Meter channel index; -1 for unmetered poles
+	};
+
+	/** Circuit settings */
+	structure Settings {
+	    string name;                       ///< Circuit name
+	    int rating;                        ///< Circuit current rating
+	    int ctRating;                      ///< Current transformer rating
+	    vector<PoleSettings> poleSettings; ///< Pole settings (excluding Neutral)
+	};
+
+	/** Event: Circuit settings have changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings; ///< Settings before change
+	    Settings newSettings; ///< Settings after change
+	};
+
+	/**
+	 * Get the circuit settings.
+	 *
+	 * @return Circuit settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the circuit settings.
+	 *
+	 * @param settings  New circuit settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 * @return 2 if the requested meter channel is already in used
+	 */
+	int setSettings(in Settings settings);
+
+    };
+
+}
+
+#endif

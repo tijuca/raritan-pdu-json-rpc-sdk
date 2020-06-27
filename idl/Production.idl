@@ -1,0 +1,41 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+/** Methods used during production */
+module production {
+
+    /** Methods used during production */
+    interface Production {
+
+	/**
+	 * Enter factory configuration mode.
+	 *
+	 * This mode unlocks several features which should only be available
+	 * during production, e.g. the RS485 address assignment or sensor
+	 * calibration. Factory configuration mode will be enabled until
+	 * the next reboot or until #leaveFactoryConfigMode is called.
+	 *
+	 * @param password  Password required to enter factory config mdoe.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the password is wrong
+	 */
+	int enterFactoryConfigMode(in string password);
+
+	/**
+	 * Leave factory configuration mode.
+	 */
+	void leaveFactoryConfigMode();
+
+	/**
+	 * Check whether device is in factory configuration mode.
+	 *
+	 * @return \c true if factory configuration mode is enabled
+	 */
+	boolean isFactoryConfigModeEnabled();
+
+    };
+
+}

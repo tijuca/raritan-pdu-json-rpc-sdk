@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LOG_DEBUGLOG_IDL__
+#define __LOG_DEBUGLOG_IDL__
+
+#include <Log.idl>
+
+/**
+ * Device Logging
+ */
+module logging {
+
+    /** Device debug log interface */
+    interface DebugLog_2_0_0 {
+
+	/**
+	 * Clear the debug log.
+	 */
+	void clear();
+
+	/**
+	 * Get info about the debug log.
+	 *
+	 * @return log info
+	 */
+	LogInfo getInfo();
+
+	/**
+	 * Fetch a chunk from the debug log.
+	 *
+	 * @param refId      First log id to fetch
+	 * @param count      Number of entries to fetch
+	 * @param direction  Range direction
+	 *
+	 * @return log chunk
+	 */
+	LogChunk getChunk(in int refId, in int count, in RangeDirection direction);
+
+    };
+
+}
+
+#endif /* __LOG_DEBUGLOG_IDL__ */

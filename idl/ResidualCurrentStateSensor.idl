@@ -1,0 +1,37 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_RESIDUAL_CURRENT_STATE_SENSOR_IDL__
+#define __PDUMODEL_RESIDUAL_CURRENT_STATE_SENSOR_IDL__
+
+#include <StateSensor.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Residual current state sensor interface */
+    interface ResidualCurrentStateSensor_2_0_3 extends sensors.StateSensor_4_0_3 {
+
+	/** Possible sensor state values */
+	constant int STATE_NORMAL   = 0; ///< Residual current sensor is operating normally
+	constant int STATE_WARNING  = 1; ///< Residual current sensor detected overcurrent
+	constant int STATE_CRITICAL = 2; ///< Residual current sensor detected overcurrent
+	constant int STATE_SELFTEST = 3; ///< Residual current sensor currently conducts a self test
+	constant int STATE_FAILURE  = 4; ///< Residual current sensor is unavailable or self test failed
+
+	/**
+	 * Start a self test of the residual current monitor
+	 *
+	 * @return 0 if OK
+	 * @return 1 if no residual current monitor is present
+	 * @return 2 if a self test is already running
+	 */
+	int startSelfTest();
+    };
+}
+
+#endif

@@ -1,0 +1,87 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/** Bulk RPC */
+module bulkrpc {
+
+    /** JSON-RPC Request (old format) */
+    structure Request {
+	string rid;	///< JSON resource ID (URI path)
+	string json;	///< Request in JSON-RPC format
+    };
+
+    /** JSON-RPC Response (old format) */
+    structure Response {
+	string json;	///< Response in JSON-RPC format
+	int statcode;	///< HTTP Status Code
+    };
+
+    /** Plain JSON object; used without further encoding in JSON-RPC requests */
+    opaque JsonObject;
+
+    /** Bulk Request Interface */
+    interface BulkRequest_1_0_2 {
+
+	/** JSON-RPC Request */
+	structure Request {
+	    string rid;		///< JSON resource ID (URI path)
+	    JsonObject json;	///< Request in JSON-RPC format
+	};
+
+	/** JSON-RPC Response */
+	structure Response {
+	    JsonObject json;	///< Response in JSON-RPC format
+	    int statcode;	///< HTTP Status Code
+	};
+
+	/**
+	 * Performs a Bulk Request in old format (deprectated).
+	 *
+	 * Bulk requests are used to perform multiple JSON-RPC requests at
+	 * once, i.e. with a single HTTP POST request.
+	 *
+	 * @param requests   List of RPC requests
+	 * @param responses  Result: List of RPC responses
+	 */
+	void performRequest(in vector<bulkrpc.Request> requests,
+			    out vector<bulkrpc.Response> responses);
+
+	/**
+	 * Performs a Bulk Request.
+	 *
+	 * Bulk requests are used to perform multiple JSON-RPC requests at
+	 * once, i.e. with a single HTTP POST request.
+	 *
+	 * @param requests   List of RPC requests
+	 * @param responses  Result: List of RPC responses
+	 */
+	void performBulk(in vector<Request> requests,
+			 out vector<Response> responses);
+
+	/**
+	 * Performs a Bulk Request with Timeout.
+	 *
+	 * @warning This method is currently not supported!
+	 *
+	 * Bulk requests are used to perform multiple JSON-RPC requests at
+	 * once, i.e. with a single HTTP POST request. Processing will be
+	 * aborted early if the timeout is exceeded. In this case the response
+	 * list will be shorter than the requests list. Requests without
+	 * response have not been processed and must be resent.
+	 *
+	 * @param requests   List of RPC requests
+	 * @param responses  Result: List of RPC responses
+	 * @param timeoutMs  Maximum processing time in milliseconds
+	 *
+	 * @note Requests are processed atomically, and the timeout is only
+	 *       checked between requests. The total processing time may be
+	 *       slightly longer than the specified timeout.
+	 */
+	void performBulkTimeout(in vector<Request> requests,
+				out vector<Response> responses,
+				in int timeoutMs);
+
+    };
+}

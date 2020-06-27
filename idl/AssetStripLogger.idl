@@ -1,0 +1,87 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ASSETMGRMODEL_ASSETSTRIP_LOGGER_IDL__
+#define __ASSETMGRMODEL_ASSETSTRIP_LOGGER_IDL__
+
+#include <AssetStrip.idl>
+
+/**
+ * Asset Management Model
+ */
+module assetmgrmodel {
+
+    /** Asset Strip Logger interface */
+    interface AssetStripLogger_1_0_6 {
+
+	/**
+	 * Error codes
+	 */
+	constant int NO_ERROR          = 0; ///< Operation successful, no error
+	constant int ERR_INVALID_PARAM = 1; ///< Invalid parameter
+
+	/**
+	 * Log information structure
+	 */
+	structure Info {
+	    int capacity;               ///< Maximum number of entries in the record ring buffer
+	    int oldestRecord;           ///< Pointer to the oldest log entry; -1 if the log is empty
+	    int newestRecord;           ///< Pointer to the newest log entry; -1 if the log is empty
+	    int totalEventCount;        ///< Total number of events logged
+	};
+
+	/**
+	 * Log record type
+	 */
+	enumeration RecordType {
+	    EMPTY,                      ///< The log record is empty
+	    ASSET_TAG_CONNECTED,        ///< An asset tag has been connected
+	    ASSET_TAG_DISCONNECTED,     ///< An asset tag has been disconnected
+	    ASSET_STRIP_STATE_CHANGED   ///< The state of the asset strip changed
+	};
+
+	/**
+	 * Log record structure
+	 */
+	structure Record {
+	    time timestamp;               ///< Time of log entry creation
+	    RecordType type;              ///< Entry type
+	    int assetStripNumber;         ///< Asset strip number (0-based), -1 if unknown
+	    int rackUnitNumber;           ///< Rack unit number (0-based), -1 if unknown
+	    int rackUnitPosition;         ///< Rack unit position, -1 if unknown
+	    int slotNumber;               ///< Blade extension slot number, -1 if unknown, 0 is main strip, >0 is blade
+	    string tagId;                 ///< The ID of the asset management tag, empty if unknown
+	    string parentBladeId;	  ///< ID of the parent blade extension tag in case slotNumber>0, empty otherwise
+	    AssetStrip_2_0_5.State state; ///< Asset strip state
+	};
+
+	/**
+	 * Retrieve the log information.
+	 *
+	 * @return Log information
+	 */
+	Info getInfo();
+
+	/**
+	 * Retrieve records from the log ring buffer.
+	 *
+	 * This method is used to read one or more records from the log ring
+	 * buffer. It is allowed to read unused entries. The record index
+	 * will wrap to 0 when reading beyond the end of the log.
+	 *
+	 * @param records  Result: The requested log entries
+	 * @param id       Index of the first log index to read (0..capacity)
+	 * @param count    Number of records to read (1..capacity)
+	 *
+	 * @return NO_ERROR on success
+	 * @return ERR_INVALID_PARAM if any parameter is out of range
+	 */
+	int getRecords(out vector<Record> records, in int id, in int count);
+
+    };
+
+}
+
+#endif /* __ASSETMGRMODEL_ASSETSTRIP_LOGGER_IDL__ */

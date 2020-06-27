@@ -1,0 +1,30 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2016 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_TYPE_B_RESIDUAL_CURRENT_NUMERIC_SENSOR_IDL__
+#define __PDUMODEL_TYPE_B_RESIDUAL_CURRENT_NUMERIC_SENSOR_IDL__
+
+#include <NumericSensor.idl>
+
+/** PDU Model */
+module pdumodel {
+
+    /** An RCM current sensor of type B (AC/DC) which allows degaussing the sensor */
+    interface TypeBResidualCurrentNumericSensor_1_0_2 extends sensors.NumericSensor_4_0_3 {
+	/**
+	 * Trigger a degauss cycle of the residual current sensor
+	 *
+	 * In certain scenarios there's a possibility of magnetization of the residual
+	 * current sensor, in which case current will be measured even if there is
+	 * no actual current flow. When that happens, the sensor can be demagnetized
+	 * by calling this method.
+	 *
+	 * IMPORTANT: Only call this while there is no actual current flow!
+	 */
+	void degauss();
+    };
+}
+
+#endif

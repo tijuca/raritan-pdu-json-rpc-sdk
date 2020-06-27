@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <SerialPort.idl>
+
+/** Serial Ports */
+module serial {
+
+    /**
+     * Top-level interface of the serial port manager
+     */
+    interface PortDispatcher_1_2_2 {
+	/**
+	 * @brief Get serial ports
+	 *
+	 * Returns a map of serial ports that are both
+	 * - available on the device
+	 * - monitored by the system
+	 *
+	 * The mapping is 'symbolic port name' -> 'port instance'.
+	 *
+	 * @return -- A map with available port instances
+	 */
+	map<string, SerialPort_3_0_1> getPorts();
+    };
+}

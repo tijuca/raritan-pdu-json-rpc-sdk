@@ -1,0 +1,112 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+
+/**
+ * Device Date and Time Configuration
+ */
+module datetime {
+
+    /** Date and time configuration methods */
+    interface DateTime_3_0_2 {
+
+	/** Time zone information */
+	structure ZoneInfo {
+	    int    id;			///< Time zone id
+	    string name;		///< Time zone name
+	    boolean hasDSTInfo;		///< \c true if the time zone uses DST
+	};
+
+	/** Time zone configuration */
+	structure ZoneCfg {
+	    int id;			///< Selected time zone id
+	    string name;		///< Selected time zone name
+	    boolean enableAutoDST;	///< Enable automatic DST adjustment
+	};
+
+	/** Time synchronization protocol */
+	enumeration Protocol {
+	    STATIC,			///< Device time is configured locally
+	    NTP				///< Device time is synchronized via NTP
+	};
+
+	/** Static NTP server configuration */
+	structure NtpCfg {
+	    string server1;		///< Primary NTP server
+	    string server2;		///< Secondary NTP server
+	};
+
+	/** Device date and time configuration */
+	structure Cfg {
+	    ZoneCfg zoneCfg;		///< Time zone configuration
+	    Protocol protocol;		///< Time synchronization protocol
+	    time deviceTime;		///< Device date and time (local time)
+	    NtpCfg ntpCfg;		///< NTP server configuration
+	};
+
+	/** Event that is send when the configuration changes */
+	valueobject ConfigurationChangedEvent extends idl.Event {
+	};
+
+	/**
+	 * List all supported time zones.
+	 *
+	 * @param zoneInfos  Result: List of time zones
+	 * @param useOlson   Use Olson zoneinfo names
+	 */
+	void getZoneInfos(out vector<ZoneInfo> zoneInfos, in boolean useOlson);
+
+	/**
+	 * Check if a specified NTP server is usable.
+	 *
+	 * @param ntpServer  NTP server to be checked
+	 *
+	 * @return \c true if the NTP server is usable
+	 */
+	boolean checkNtpServer(in string ntpServer);
+
+	/**
+	 * Get active NTP servers.
+	 *
+	 * @return List of currently active NTP servers (IP addresses and/or hostnames)
+	 */
+	vector<string> getActiveNtpServers();
+
+	/**
+	 * Retrieve the device date and time configuration.
+	 *
+	 * @param cfg  Result: Current date and time configration
+	 */
+	void getCfg(out Cfg cfg);
+
+	/**
+	 * Set the device date and time configuration.
+	 * Depending on the value of the \e protocol field either \e deviceTime
+	 * or \e ntpCfg will be used from the \e cfg parameter.
+	 *
+	 * @param cfg  New date and time configuration.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if the configuration is invalid
+	 */
+	int setCfg(in Cfg cfg);
+
+	/**
+	 * Retrieve the current device date and time.
+	 *
+	 * @param useOlson     Use Olson zoneinfo name
+	 * @param zone         Result: Active time zone
+	 * @param dstEnabled   if false, the time zone DST flag is not used
+	 * @param utcOffset    Result: Offset (in minutes) between local time and UTC
+	 * @param currentTime  Result: Device date and time
+	 */
+	void getTime(in boolean useOlson, out ZoneInfo zone,
+		     out boolean dstEnabled, out int utcOffset,
+		     out time currentTime);
+
+    };
+
+}

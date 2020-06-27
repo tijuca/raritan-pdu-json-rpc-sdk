@@ -1,0 +1,60 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDU_TEST_UNIT_IDL__
+#define __PDU_TEST_UNIT_IDL__
+
+#include <TestDisplay.idl>
+
+/**
+ * Test Interfaces
+ */
+module test {
+
+    /** Test interface for PDU components controlled by topofw */
+    interface Unit_1_0_2 {
+
+	/**
+	 * Retrieve all Displays attached to the unit.
+	 *
+	 * @return List of displays
+	 */
+	vector<Display_1_0_1> getDisplays();
+
+	/**
+	 * Retrieve state of all buttons attached to the unit.
+	 *
+	 * Note that semantics of the buttons is not defined
+	 * by this interface, although it is garanteed that the
+	 * order in which states are returned will not change.
+	 *
+	 * @return List of button states (\c true if pressed)
+	 */
+	vector<boolean> getButtonStates();
+
+	/**
+	 * Force on the buzzer.
+	 *
+	 * @param isOn \c true to force buzzer on, \c false for normal mode
+	 */
+	void setBuzzer(in boolean isOn);
+
+        /**
+	 * Reset all slave controllers via RS485 break condition
+	 */
+	void resetAllSlaveControllers();
+
+	/**
+	 * Trigger watchdog of a selected slave controller
+	 *
+	 * @param rs485Addr RS485 address of the slave to trigger
+	 *                  the watchdog for.
+	 */
+	void triggerSlaveControllerWatchdog(in int rs485Addr);
+    };
+
+}
+
+#endif

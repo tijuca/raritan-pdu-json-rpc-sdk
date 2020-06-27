@@ -1,0 +1,39 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * %Firmware Management
+ */
+module firmware {
+
+    /**
+     * %Firmware update status
+     */
+    structure UpdateStatus {
+	string state;           ///< Current state of firmware update: NONE, INIT, PREP, SIMULATE, UPDATE, SUCCESS or FAIL
+	int elapsed;            ///< Seconds since start of update, 0 if not available
+	int estimated;          ///< Estimated total time for update, 0 if not available
+	string error_message;   ///< Error message; empty if there was no error
+    };
+
+    /**
+     * %Firmware update status interface.
+     *
+     * Unlike all other sysrpc methods this function is implemented by a
+     * CGI script which is available even during a firmware update. The
+     * URL for this interface is /cgi-bin/fwupdate_progress.cgi.
+     */
+    interface FirmwareUpdateStatus {
+
+	/**
+	 * Returns the device's firmware update status.
+	 *
+	 * @return Update status structure
+	 */
+	UpdateStatus getStatus();
+
+    };
+
+}

@@ -1,0 +1,52 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LOG_EVENTLOG_IDL__
+#define __LOG_EVENTLOG_IDL__
+
+#include <Log.idl>
+#include <UserEvent.idl>
+
+/**
+ * Device Logging
+ */
+module logging {
+
+    /**
+     * Event log cleared event
+     */
+    valueobject EventLogClearedEvent extends event.UserEvent {};
+
+    /** Device event log interface */
+    interface EventLog_2_0_0 {
+	/**
+	 * Clear the event log.
+	 */
+	void clear();
+
+	/**
+	 * Get info about the event log.
+	 *
+	 * @return log info
+	 */
+	LogInfo getInfo();
+
+	/**
+	 * Fetch a chunk from the event log.
+	 *
+	 * @param idRef      First log id to fetch
+	 * @param count      Number of entries to fetch
+	 * @param direction  Range direction
+	 * @param categories Event cartegories to filter for
+	 *
+	 * @return log chunk
+	 */
+	LogChunk getChunk(in int refId, in int count, in RangeDirection direction, in vector<string> categories);
+
+    };
+
+}
+
+#endif /* __LOG_EVENTLOG_IDL__ */

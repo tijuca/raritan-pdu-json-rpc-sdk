@@ -1,0 +1,33 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SENSORMODEL_ACCUMULATING_NUMERIC_SENSOR_IDL__
+#define __SENSORMODEL_ACCUMULATING_NUMERIC_SENSOR_IDL__
+
+#include <NumericSensor.idl>
+#include <UserEvent.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /** A sensor which accumulates numeric readings (e.g. energy counter) */
+    interface AccumulatingNumericSensor_2_0_3 extends sensors.NumericSensor_4_0_3 {
+
+	/** Event: Accumulated value has been reset */
+	valueobject ResetEvent extends event.UserEvent {
+	    NumericSensor_4_0_3.Reading oldReading;	///< Value before reset
+	    NumericSensor_4_0_3.Reading newReading;	///< Value after reset
+	};
+
+	/**
+	 * Resets the accumulated value of the sensor
+	 */
+	void resetValue();
+
+    };
+
+}
+
+#endif

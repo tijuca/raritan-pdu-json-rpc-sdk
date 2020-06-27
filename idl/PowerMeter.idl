@@ -1,0 +1,154 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2015 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_POWER_METER_IDL__
+#define __PDUMODEL_POWER_METER_IDL__
+
+#include <Controller.idl>
+#include <NumericSensor.idl>
+#include <Pole.idl>
+#include <StateSensor.idl>
+#include <UserEvent.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /**
+     * A three-phase power meter (PMC).
+     */
+    interface PowerMeter_1_1_5 {
+
+	constant int ERR_INVALID_PARAM = 1;        ///< Invalid parameters
+	constant int ERR_MODBUS_UNIT_IN_USE = 2;   ///< Modbus unit address is already in use
+
+	/** Power meter type */
+	enumeration Type {
+	    ONE_PHASE,        ///< Single-phase meter (A)
+	    SPLIT_PHASE,      ///< Split-phase meter (A, B)
+	    THREE_PHASE       ///< Three-phase meter (A, B, C)
+	};
+
+	/** Power meter configuration */
+	structure Config {
+	    int powerMeterId; ///< The meter board ID
+	    Type type;        ///< Power meter type
+	};
+
+	/**
+	 * Retrieve the power meter configuration.
+	 *
+	 * @return Power meter configuration
+	 */
+	Config getConfig();
+
+	/** Power meter sensors */
+	structure Sensors {
+	    sensors.NumericSensor_4_0_3 voltage;                    ///< RMS voltage sensor
+	    sensors.NumericSensor_4_0_3 lineFrequency;              ///< Line AC frequency sensor
+	    sensors.NumericSensor_4_0_3 current;                    ///< RMS current sensor
+	    sensors.NumericSensor_4_0_3 activePower;                ///< Active power sensor
+	    sensors.NumericSensor_4_0_3 reactivePower;              ///< Reactive power sensor
+	    sensors.NumericSensor_4_0_3 apparentPower;              ///< Apparent power sensor
+	    sensors.NumericSensor_4_0_3 powerFactor;                ///< Power factor sensor
+	    sensors.NumericSensor_4_0_3 phaseAngle;                 ///< Phase angle sensor
+	    sensors.NumericSensor_4_0_3 displacementPowerFactor;    ///< Displacement power factor sensor
+	    sensors.NumericSensor_4_0_3 activeEnergy;               ///< Active energy sensor
+	    sensors.NumericSensor_4_0_3 unbalancedCurrent;          ///< Current unbalance sensor
+	    sensors.NumericSensor_4_0_3 crestFactor;                ///< Crest factor sensor
+	    sensors.StateSensor_4_0_3 powerQuality;                 ///< Power quality sensor
+	};
+
+	/**
+	 * Get the power meter sensors.
+	 *
+	 * @return Power meter sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Get the list of power meter poles.
+	 *
+	 * @return List of power meter poles (A, B, C, N, PE)
+	 */
+	vector<Pole_5_0_0> getPoles();
+
+	/**
+	 * Get the list of slave controllers for this power meter
+	 *
+	 * @return List of controllers
+	 */
+	vector<Controller_4_0_1> getControllers();
+
+	/** Power meter settings */
+	structure Settings {
+	    string name;           ///< User-defined name
+	    int currentRating;     ///< Current rating in Amps
+	    int phaseCtRating;     ///< Phase current transformer rating in Amps (0 for none)
+	    int neutralCtRating;   ///< Neutral current transformer rating in Amps (0 for none)
+	    int earthCtRating;     ///< P.E. current transformer rating in Amps (0 for none)
+	    int modbusUnitAddress; ///< Modbus unit address (1..255, 0 to disable Modbus for this meter)
+	};
+
+	/** Event: Power meter settings have changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings; ///< Settings before change
+	    Settings newSettings; ///< Settings after change
+	};
+
+	/**
+	 * Retrieve the power meter settings.
+	 *
+	 * @return Power meter settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the power meter settings.
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 * @return 2 if the Modbus unit address is already in use
+	 */
+	int setSettings(in Settings settings);
+
+	/** Energy LED pulse settings */
+	structure EnergyPulseSettings {
+	    boolean pulseEnabled; ///< \c true to enable the energy LED pulse
+	    vector<int> poles;    ///< Emit pulses for energy counted on any of these poles
+	    int pulsesPerKWh;     ///< Number of LED pulses per kWh of energy
+	};
+
+	/** Event: Energy LED pulse settings have changed */
+	valueobject EnergyPulseSettingsChangedEvent extends event.UserEvent {
+	    EnergyPulseSettings oldSettings;
+	    EnergyPulseSettings newSettings;
+	};
+
+	/**
+	 * Retrieve the energy LED pulse settings.
+	 *
+	 * @return Energy LED pulse settings
+	 */
+	EnergyPulseSettings getEnergyPulseSettings();
+
+	/**
+	 * Change the energy LED pulse settings.
+	 *
+	 * @param settings  New settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setEnergyPulseSettings(in EnergyPulseSettings settings);
+
+    };
+
+}
+
+#endif

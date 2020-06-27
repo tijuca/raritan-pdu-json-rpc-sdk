@@ -1,0 +1,62 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+
+/**
+ * Device Settings
+ */
+module devsettings {
+
+    /** SNMP agent settings interface */
+    interface Snmp_1_0_2 {
+
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+
+	/** SNMP agent configuration */
+	structure Configuration {
+	    boolean 	v2enable;   	///< SNMP v1 / 2c enabled
+	    boolean 	v3enable;   	///< SNMP v3 enabled
+	    string  	readComm;   	///< read community string
+	    string  	writeComm;  	///< write community string
+	    string  	sysContact; 	///< system contact
+	    string  	sysName;    	///< system name
+	    string  	sysLocation;	///< system location
+	};
+
+    	valueobject ConfigurationChangedEvent extends idl.Event {
+            string userName;  ///< user who triggered event
+	    string ipAddr;    ///< ip or device on which user is logged in
+	    Configuration oldConfig; ///< old configuration
+	    Configuration newConfig; ///< new configuration
+    	};
+
+	/**
+	 * Retrieve the SNMP agent configuration.
+	 *
+	 * @return SNMP agent configuration
+	 */
+	Configuration getConfiguration();
+
+	/**
+	 * Set the SNMP agent configuration.
+	 *
+	 * @param cfg  New SNMP agent settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setConfiguration(in Configuration cfg);
+
+	/**
+	 * Retrieve the SNMP V3 Engine ID.
+	 *
+	 * @return SNMP V3 Engine ID
+	 */
+	string getV3EngineId();
+
+    };
+
+}

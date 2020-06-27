@@ -1,0 +1,193 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+#include <Event.idl>
+
+/**
+ * %Firmware Management
+ */
+module firmware {
+
+    /**
+     * %Firmware update history status
+     */
+    enumeration UpdateHistoryStatus {
+	SUCCESSFUL,                     ///< The update was successfully completed
+	FAILED,                         ///< The update failed
+	INCOMPLETE                      ///< The update was not completed
+    };
+
+    /**
+     * %Firmware update history entry
+     * TODO: implement CR# 45668 on next interface change 
+     *       add comment field based on firmware tag "char tag[64];"
+     *       to improve firmware update history entries without rootfs images
+     */
+    structure UpdateHistoryEntry {
+	time timestamp;                 ///< Timestamp when the update was started
+	string oldVersion;              ///< Previous firmware version
+	string imageVersion;            ///< Firmware version of update image
+	string imageMD5;                ///< MD5 hash of update image
+	UpdateHistoryStatus status;     ///< Update status
+    };
+
+    /**
+     * Image upload/download state
+     */
+    enumeration ImageState {
+	NONE,                           ///< No firmware image has been uploaded/downloaded
+	UPLOADING,                      ///< A firmware image is currently being uploaded
+	UPLOAD_FAILED,                  ///< There was a problem uploading an image to the device
+	DOWNLOADING,                    ///< The device is downloading a firmware image from a URL
+	DOWNLOAD_FAILED,                ///< There was a problem downloading the image from a URL
+	COMPLETE                        ///< A complete image has been successfully uploaded/downloaded
+    };
+
+    /**
+     * Image upload/download status
+     */
+    structure ImageStatus {
+	ImageState state;               ///< Image upload/download state
+	string error_message;           ///< Error message; empty if there was no error
+	time time_started;              ///< Timestamp of the last state change (if available)
+	int size_total;                 ///< Total size of the image (if available)
+	int size_done;                  ///< Progress of the running upload or download (if available)
+    };
+
+    /**
+     * %Firmware image information
+     */
+    structure ImageInfo_1_0_1 {
+	boolean valid;                  ///< The file is a valid firmware image
+
+	string version;                 ///< %Firmware image version
+	string min_required_version;    ///< Minimum running firmware version for image
+	string min_downgrade_version;   ///< Minimum image version for running firmware
+
+	string product;                 ///< Product name
+	string platform;                ///< Platform name
+	string oem;                     ///< OEM name
+	string hwid_whitelist;          ///< Hardware ID whitelist
+	string hwid_blacklist;          ///< Hardware ID blacklist
+
+	boolean compatible;             ///< \c true if the image is compatible with this device
+
+	boolean signature_present;      ///< \c true if the image is signed
+	string signed_by;               ///< Signature issuer
+	boolean signature_good;         ///< \c true if the signature is valid
+	string certified_by;            ///< Key certificate issuer
+	boolean certificate_good;       ///< \c true if the key certificate is valid
+
+	boolean model_list_present;     ///< \c true if the image includes a supported models list
+	boolean model_supported;        ///< \c true if the model is found on the support list
+    };
+
+    /**
+     * Flags for startUpdate() method
+     */
+    enumeration UpdateFlags {
+	CROSS_OEM,                      ///< Ignore version, product and OEM constraints
+	CROSS_HW,                       ///< Ignore hardware constraints
+	ALLOW_UNTRUSTED                 ///< Allow untrusted firmwares
+    };
+
+    /** Event: System startup finished */
+    valueobject SystemStartupEvent extends idl.Event {};
+    /** Event: System shutdown started */
+    valueobject SystemShutdownEvent extends event.UserEvent {};
+
+    /** Event: Firmware validation failed */
+    valueobject FirmwareValidationFailedEvent extends event.UserEvent {};
+
+    /** Event: Firmware update base event */
+    valueobject FirmwareUpdateEvent extends event.UserEvent {
+	string oldVersion;		///< Firmware version the device is being upgraded from
+	string newVersion;		///< Firmware version the device is being upgraded to
+    };
+
+    /** Event: Firmware update started */
+    valueobject FirmwareUpdateStartedEvent extends FirmwareUpdateEvent {};
+    /** Event: Firmware updated successfully */
+    valueobject FirmwareUpdateCompletedEvent extends FirmwareUpdateEvent {};
+    /** Event: Firmware update failed */
+    valueobject FirmwareUpdateFailedEvent extends FirmwareUpdateEvent {};
+
+    /**
+     * %Firmware management methods
+     */
+    interface Firmware_2_0_1 {
+
+	/**
+	 * Reboot the device.
+	 *
+	 * This function will fail if a firmware update is in progress.
+	 */
+	void reboot();
+
+	/**
+	 * Reset the device configuration to factory defaults.
+	 */
+	void factoryReset();
+
+	/**
+	 * Reset all device data to factory defaults. This includes energy
+	 * counters, firmware update history and reliability data.
+	 *
+	 * @note This command is only available during manufacturing!
+	 *
+	 * @return 0 if OK
+	 * @return 1 if not in production mode
+	 */
+	int hardFactoryReset();
+
+	/**
+	 * Returns the currently installed firmware version.
+	 *
+	 * @return %Firmware version
+	 */
+	string getVersion();
+
+	/**
+	 * Fetch the firmware update history.
+	 *
+	 * @return Vector of firmware update history entries
+	 */
+	vector<UpdateHistoryEntry> getUpdateHistory();
+
+	/**
+	 * Get the current firmware image upload/download status.
+	 *
+	 * @return Image status structure.
+	 */
+	ImageStatus getImageStatus();
+
+	/**
+	 * Discard the currently uploaded firmware image, cancel the update.
+	 */
+	void discardImage();
+
+	/**
+	 * Return information about a currently uploaded firmware image.
+	 *
+	 * @param info  %Firmware image information
+	 *
+	 * @return \c true if a firmware image is uploaded, \c false otherwise.
+	 */
+	boolean getImageInfo(out ImageInfo_1_0_1 info);
+
+	/**
+	 * Launch the firmware update process. The device will stop handling
+	 * RPC requests shortly after this method has been successfully called.
+	 * The client should poll the fwupdate_progress.cgi page to monitor the
+	 * update progress.
+	 *
+	 * @param flags  List of firmware update flags; may be empty
+	 */
+	void startUpdate(in vector<UpdateFlags> flags);
+
+    };
+
+}

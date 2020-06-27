@@ -1,0 +1,70 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <Webcam.idl>
+
+/** Webcam Management */
+module webcam {
+
+    /** The channel interface */
+    interface Channel_1_0_1 {
+	/** 
+	 * Error codes 
+	 */
+	constant int NO_ERROR			= 0; ///< Operation successful, no error
+	constant int ERR_NOT_AVAILABLE          = 2; ///< Channel is not available
+	constant int ERR_NO_SUCH_OBJECT         = 3; ///< Requested object does not exist
+
+        /**
+         * Retrieve the channel type
+         *
+         * @return                       the client type
+         */
+        string getClientType();
+
+        /**
+         * Retrieve the webcam
+         *
+         * @return                        the webcam
+         */
+        Webcam_2_0_1 getWebcam();
+
+        /**
+         * Determine whether the channel is available. A channel may become unavailable when higher prioritized viewers are active.
+         *
+         * @return                        true if the channel is available, false otherwise
+         */
+        boolean isAvailable();
+
+        /**
+         * Releases the channel to allow lower proritized clients to view an image otherwise the channel expires when
+         * it is unused (neither a image related method nor "isAvailable" is called) for 20 seconds.
+         */
+        void release();
+
+        /**
+         * Retrieve a image
+         *
+         * @param image                   Result: the image
+         *
+         * @return NO_ERROR               on success
+         * @return ERR_NOT_AVAILABLE      this channel is temporarily paused, because all view ports are currently used by higher prioritized events
+         * @return ERR_NO_SUCH_OBJECT     the viewed webcam was detached
+         */
+        int captureImage(out Image_2_0_0 image);
+
+        /**
+         * Triggers the capture process to the temporary folder and returns a capture token to view them.
+         * The capture token is valid for 9 seconds and needs to be refreshed when, or even better before the old token expires.
+         *
+         * @param captureToken            Result: a new captureToken
+         *
+         * @return NO_ERROR               on success
+         * @return ERR_NOT_AVAILABLE      this channel is temporarily paused, because all view ports are currently used by higher prioritized events
+         * @return ERR_NO_SUCH_OBJECT     the viewed webcam was detached
+         */
+        int triggerCapture(out string captureToken);
+    };
+}

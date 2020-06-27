@@ -1,0 +1,15 @@
+The API documentation is provided under the following copyright and the BSD-3-Clause license:
+
+    Copyright Raritan Inc. All rights reserved.
+
+The license text can be found in the file LICENSES/BSD-3-Clause.
+
+NOTE: The following files have a different copyright and license as declared in the file itself:
+
+    html/dynsections.js
+    html/menudata.js
+    html/menu.js
+    html/search/search.js
+    html/jquery.js
+
+Other Javascript files are generated code and have no specific copyright.

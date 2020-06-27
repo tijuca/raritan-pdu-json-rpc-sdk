@@ -1,0 +1,53 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __POWERLOGIC_CONFIG_IDL__
+#define __POWERLOGIC_CONFIG_IDL__
+
+#include <UserEvent.idl>
+
+module powerlogic {
+
+    /** Configuration Interface */
+    interface Config_1_0_1 {
+
+	constant int NO_ERROR           = 0; ///< No error
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	
+	/** PowerLogic port settings */
+	structure Settings {
+	    string name;    ///< PowerLogic port name
+	    byte slaveAddr; ///< Modbus address of slave device
+	    int baud;	    ///< Modbus slave speed
+	    byte parity;    ///< Modbus slave communication parity bit (N/E/O)
+	};
+
+	/** Event: Port settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;	///< Settings before change
+	    Settings newSettings;	///< Settings after change
+	};
+
+	/**
+	 * Retrieve the PowerLogic port settings.
+	 *
+	 * @return PowerLogic port settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the PowerLogic port settings.
+	 *
+	 * @param settings  	      New PowerLogic port settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+    };
+}
+
+#endif /* !__POWERLOGIC_CONFIG_IDL__ */
+	

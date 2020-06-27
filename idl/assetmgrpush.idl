@@ -1,0 +1,36 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2014 Raritan Inc. All rights reserved.
+ */
+
+#include "AssetStrip.idl"
+#include "AssetStripConfig.idl"
+#include "AssetStripLogger.idl"
+
+module datapush {
+
+    structure AssetStripInfo {
+	assetmgrmodel.AssetStrip_2_0_5.StripInfo stripInfo;
+	assetmgrmodel.AssetStrip_2_0_5.DeviceInfo deviceInfo;
+	assetmgrmodel.AssetStripConfig_1_0_1.StripSettings settings;
+	vector<assetmgrmodel.AssetStrip_2_0_5.TagInfo> tags;
+    };
+
+    structure AssetStripsMessage {
+	vector<AssetStripInfo> assetStrips;
+    };
+
+
+    structure AssetStrip {
+	assetmgrmodel.AssetStrip_2_0_5.StripInfo stripInfo;
+	assetmgrmodel.AssetStrip_2_0_5.DeviceInfo deviceInfo;
+	assetmgrmodel.AssetStripConfig_1_0_1.StripSettings settings;
+    };
+
+    /** Message for pushing one full log record for all sensors */
+    structure AssetLogPushMessage {
+	/// vector<AssetStrip> assetstrips;     ///< List of logged AMS strips
+	vector<assetmgrmodel.AssetStripLogger_1_0_6.Record> records;
+    };
+
+}

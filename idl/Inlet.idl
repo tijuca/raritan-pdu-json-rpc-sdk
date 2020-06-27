@@ -1,0 +1,131 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_INLET_IDL__
+#define __PDUMODEL_INLET_IDL__
+
+#include <EDevice.idl>
+#include <Nameplate.idl>
+#include <NumericSensor.idl>
+#include <StateSensor.idl>
+#include <Pole.idl>
+#include <ResidualCurrentStateSensor.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** %Inlet interface */
+    interface Inlet_2_0_4 extends EDevice {
+
+	/** %Inlet metadata */
+	structure MetaData {
+	    string label;			///< %Inlet label
+	    string plugType;			///< Plug type
+	    Nameplate_2_0_0 namePlate;		///< %Nameplate information
+	    Rating_2_0_0 rating;		///< Numerical usage ratings
+	};
+
+	/** %Inlet sensors */
+	structure Sensors {
+	    sensors.NumericSensor_4_0_3 voltage;	     ///< RMS voltage sensor
+	    sensors.NumericSensor_4_0_3 current;	     ///< RMS current sensor
+	    sensors.NumericSensor_4_0_3 peakCurrent;	     ///< Peak current sensor
+	    sensors.NumericSensor_4_0_3 residualCurrent;     ///< Residual current sensor
+	    sensors.NumericSensor_4_0_3 residualDCCurrent;   ///< DC Residual current sensor
+	    sensors.NumericSensor_4_0_3 activePower;	     ///< Active power sensor
+	    sensors.NumericSensor_4_0_3 reactivePower;	     ///< Reactive power sensor
+	    sensors.NumericSensor_4_0_3 apparentPower;     ///< Apparent power sensor
+	    sensors.NumericSensor_4_0_3 powerFactor;	     ///< Power factor sensor
+	    sensors.NumericSensor_4_0_3 displacementPowerFactor; ///< Displacement power factor sensor
+	    sensors.NumericSensor_4_0_3 activeEnergy;	     ///< Active energy sensor
+	    sensors.NumericSensor_4_0_3 apparentEnergy;    ///< Apparent energy sensor
+	    sensors.NumericSensor_4_0_3 unbalancedCurrent; ///< Current unbalance sensor
+	    sensors.NumericSensor_4_0_3 lineFrequency;	   ///< Line AC frequency sensor
+	    sensors.NumericSensor_4_0_3 phaseAngle;	   ///< Phase angle sensor
+	    sensors.NumericSensor_4_0_3 crestFactor;        ///< Crest factor sensor
+	    sensors.StateSensor_4_0_3 powerQuality;	   ///< Power quality sensor
+	    sensors.StateSensor_4_0_3 surgeProtectorStatus;  ///< Surge protector status sensor
+	    ResidualCurrentStateSensor_2_0_3 residualCurrentStatus; ///< Residual current monitor state sensor
+	};
+
+	/** %Inlet settings */
+	structure Settings {
+	    string name;			///< User-defined name
+	};
+
+	/** Event: Inlet settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;		///< Settings before change
+	    Settings newSettings;		///< Settings after change
+	};
+
+	/** Event: Inlet has been enabled or disabled */
+	valueobject EnableStateChangedEvent extends event.UserEvent {
+	    boolean enabled;			///< New enable state
+	};
+
+	/**
+	 * Retrieve the inlet metadata.
+	 *
+	 * @return %Inlet metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Get the inlet sensors.
+	 *
+	 * @return %Inlet sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Get the list of inlet poles.
+	 *
+	 * @return List of inlet poles
+	 */
+	vector<Pole_5_0_0> getPoles();
+
+	/**
+	 * Retrieve the inlet settings.
+	 *
+	 * @return %Inlet settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the inlet settings.
+	 *
+	 * @param settings  New inlet settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Enable/disable PDU operation for this inlet.
+	 *
+	 * When PDU operation is disabled the sensors for this inlet and all
+	 * children will no longer be updated, and outlet switching is no
+	 * longer allowed. This can be useful for multi-inlet units if one
+	 * inlet is temporarily expected to be powered down.
+	 *
+	 * @param enabled  \c true to enable PDU operation
+	 */
+	void setEnabled(in boolean enabled);
+
+	/**
+	 * Test whether PDU operation is enabled for this inlet.
+	 *
+	 * @return \c true if PDU operation is enabled
+	 */
+	boolean isEnabled();
+    };
+
+}
+
+#endif

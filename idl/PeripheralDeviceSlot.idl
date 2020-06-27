@@ -1,0 +1,153 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PERIPHERAL_DEVICE_SLOT_IDL__
+#define __PERIPHERAL_DEVICE_SLOT_IDL__
+
+#include <Sensor.idl>
+#include <UserEvent.idl>
+
+/** Peripheral Devices */
+module peripheral {
+
+    /** peripheral device port types */
+    enumeration PortType {
+        ONEWIRE_ONBOARD,   ///< a built in, inaccessible port
+        ONEWIRE_DEV_PORT,  ///< a 1-wire port on the device  
+        ONEWIRE_HUB_PORT,  ///< a port on a Hub
+        ONEWIRE_CHAIN_POS  ///< a chain position
+    };
+      
+    /** peripheral device position element, list forms position */
+    structure PosElement {
+        PortType portType; ///< type of the element
+	string   port;     ///< value of the element, a label
+    };
+
+    /** peripheral device identification */
+    structure DeviceID_4_0_0 {
+	string	    	    	      serial;     ///< Serial number
+        sensors.Sensor_4_0_3.TypeSpec type;	  ///< device's type spec
+	boolean     	    	      isActuator; ///< true if device is an actuator 
+	int 	    	    	      channel;    ///< Channel number
+    };
+
+    /** peripheral device position based address */
+    structure Address_4_0_0 {
+	vector<PosElement>  	      position;   ///< Position within 1-wire topo
+        sensors.Sensor_4_0_3.TypeSpec type;	  ///< device's type spec
+	boolean     	    	      isActuator; ///< true if device is an actuator 
+	int 	    	    	      channel;    ///< Channel number
+    };
+
+    /**
+     * A peripheral device is the collection of
+     *  - device identification
+     *  - device position
+     *  - a flag indicating actuator type
+     *  - device reference
+     */
+    valueobject Device_3_0_2	{
+	DeviceID_4_0_0	     deviceID;     ///< device identification
+	vector<PosElement>   position;     ///< Position within 1-wire topo
+    	string	    	     packageClass; ///< physical package identifier
+	sensors.Sensor_4_0_3 device;       ///< device reference
+    };
+
+    /** Peripheral Device Slot */
+    interface DeviceSlot_2_0_3 {
+
+	constant int ERR_INVALID_PARAMS     = 1; ///< Invalid parameters
+	constant int ERR_NOT_SUPPORTED	    = 2; ///< Operation not supported
+	
+    	constant int CHANNEL_INVALID 	    = -1;///< Device has no channels
+
+	/** user writeable location */
+	structure Location {
+	    string x;	     ///< X coordinate
+	    string y;	     ///< Y coordinate
+	    string z;	     ///< Z coordinate (semantics depends on ZCoordMode)
+	};
+
+	/** user configurable slot attributes */
+	structure Settings {
+	    string name;		///< User-defined name
+	    string description;		///< User-defined description
+	    Location location;		///< user-defined device location
+	    boolean useDefaultThresholds; ///< use default thresholds
+            map<string, string> properties; ///< sensor specific settings
+	};
+
+	/** Event: The device attached to this slot has changed */
+	valueobject DeviceChangedEvent extends idl.Event {
+	    Device_3_0_2 oldDevice;	///< Device before change
+	    Device_3_0_2 newDevice;	///< Device after change
+	};
+
+	/** Event: The slot settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;	///< Settings before change
+	    Settings newSettings;	///< Settings after change
+	};
+
+	/**
+	 * Returns the actual device reference.
+	 * The reference becomes invalid due to assign/unassign method
+	 * call. This conditions is also flagged by EVT_KEY_DEVICE_CHANGED
+	 * event
+	 */
+	Device_3_0_2 getDevice();
+
+	/**
+	 * Associate this slot with a given (old or detected new) peripheral device.
+	 *
+	 * @param devid peripheral device identification
+	 *
+	 * @return 0	    	    	if OK
+	 * @return ERR_INVALID_PARAMS	if devid is unknown or invalid
+	 */
+	int assign(in DeviceID_4_0_0 devid);
+
+	/**
+	 * Associate this slot with an addressable (new) peripheral device.
+	 *
+	 * @param address peripheral device address
+	 *
+	 * @return 0	    	    	if OK
+	 * @return ERR_INVALID_PARAMS	if address is invalid
+	 */
+	int assignAddress(in string packageClass, in Address_4_0_0 address);
+
+	/**
+	 * Break the association for this slot.
+	 * @return 0	    	    	if OK
+	 * @return ERR_NOT_SUPPORTED	if operation is not supported
+         *  	    	    	    	this is the case for sensors with
+         *  	    	    	    	complete position information
+	 */
+	int unassign();
+
+	/**
+	 * Retrieve the user-defined settings.
+	 *
+	 * @return Slot settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the slot settings.
+	 *
+	 * @param settings  New slot settings
+	 *
+	 * @return 0 	    	    	if OK
+	 * @return ERR_INVALID_PARAMS	if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+	
+    };
+
+}
+
+#endif /* !__PERIPHERAL_DEVICE_SLOT_IDL__ */

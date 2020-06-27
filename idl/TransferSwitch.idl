@@ -1,0 +1,232 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_TRANSFERSWITCH_IDL__
+#define __PDUMODEL_TRANSFERSWITCH_IDL__
+
+#include <EDevice.idl>
+#include <Nameplate.idl>
+#include <Pole.idl>
+#include <StateSensor.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Transfer switch interface */
+    interface TransferSwitch_4_0_4 extends EDevice {
+
+	constant int ERR_INVALID_PARAM    = 1; ///< Invalid parameters
+	constant int ERR_SWITCH_PREVENTED = 2; ///< Switching failed due to an alarm that may be overridden
+	constant int ERR_SWITCH_FAILED    = 3; ///< Switching failed, no override possible
+
+	/** Transfer switch type */
+	enumeration Type {
+	    STS,			///< Static transfer switch (using SCRs as switch technology)
+	    ATS,			///< Asynchronous transfer switch (using relays)
+	    HTS				///< Hybrid transfer switch (relays plus SCRs)
+	};
+
+	enumeration TransferReason {
+	    REASON_UNKNOWN,		///< Transfer reason unknown
+	    REASON_STARTUP,		///< Startup or return to normal conditions
+	    REASON_MANUAL_TRANSFER,	///< Manual transfer
+	    REASON_AUTO_RETRANSFER,	///< Automatic retransfer
+	    REASON_POWER_FAILURE,	///< Previous inlet power failed
+	    REASON_POWER_QUALITY,	///< New inlet provided better power quality
+	    REASON_OVERLOAD,		///< Switched off due to overload alarm
+	    REASON_OVERHEAT,		///< Switched off due to overheat alarm
+	    REASON_INTERNAL_FAILURE	///< Transferred because of hardware failure (e.g. switch fault)
+	};
+
+	/** Transfer switch metadata */
+	structure MetaData {
+	    string label;		///< Transfer switch label
+	    Nameplate_2_0_0 namePlate;	///< %Nameplate information
+	    Rating_2_0_0 rating;	///< Numerical usage ratings
+	    Type type;			///< Transfer switch type
+	    int sourceCount;		///< Number of sources
+	};
+
+	/* Values for operational state sensor */
+	constant int OPERATIONAL_STATE_OFF = 0;			///< Both inlets are off
+	constant int OPERATIONAL_STATE_NORMAL = 1;		///< Active inlet equals preferred inlet
+	constant int OPERATIONAL_STATE_STANDBY = 2;		///< Active inlet and preferred inlet are different
+	constant int OPERATIONAL_STATE_NON_REDUNDANT = 3;	///< Active inlet equals preferred inlet, standby power critical
+
+	/* Bitmask values for switch fault sensors */
+	constant int SWITCH_FAULT_I1_SHORT = 1;			///< Inlet 1 switch is permanently closed
+	constant int SWITCH_FAULT_I1_OPEN = 2;			///< Inlet 1 switch is permanently open
+	constant int SWITCH_FAULT_I2_SHORT = 4;			///< Inlet 2 switch is permanently closed
+	constant int SWITCH_FAULT_I2_OPEN = 8;			///< Inlet 2 switch is permanently open
+
+	/** Transfer switch sensors */
+	structure Sensors {
+	    sensors.StateSensor_4_0_3 selectedSource;		///< Selected source sensor
+	    sensors.StateSensor_4_0_3 operationalState;		///< Operational state sensor (off, normal, standby)
+	    sensors.NumericSensor_4_0_3 sourceVoltagePhaseSyncAngle;
+								///< Maximum phase difference between two sources
+	    sensors.StateSensor_4_0_3 overloadAlarm;		///< Overload alarm
+	    sensors.StateSensor_4_0_3 phaseSyncAlarm;		///< Source phases out of sync
+	    sensors.StateSensor_4_0_3 switchFault;		///< Switch fault (ok, open, short)
+	};
+
+	/** Transfer switch settings */
+	structure Settings {
+	    string name;			///< User-defined name
+
+	    int preferredSource;		///< Preferred inlet
+	    boolean autoRetransfer;		///< Enable automatic retransfer if power on active inlet is restored
+	    boolean noAutoRetransferIfPhaseFault; ///< Don't automatically retransfer if inlet phases are out of sync
+	    int autoRetransferWaitTime;		///< Time (in s) to delay retransfer after power restoration
+	    boolean manualTransferEnabled;	///< Enable state of 'manual transfer' front panel button
+	};
+
+	/** Transfer switch statistics */
+	structure Statistics {
+	    int transferCount;			///< Number of transfers since device startup
+	    int powerFailDetectTime;		///< Detection time in us for the last inlet power failure
+	    int relayOpenTime;			///< Time in us until all relays have opened during the last transfer
+	    int totalTransferTime;		///< Total time in us for last transfer
+	};
+
+	/** Sample of voltage and current waveform */
+	structure WaveformSample {
+	    double voltage;			///< Voltage sample in Volts
+	    double current;			///< Current sample in Amperes
+	};
+
+	/** Event: Transfer switch settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;		///< Settings before change
+	    Settings newSettings;		///< Settings after change
+	};
+
+	/**
+	 * Retrieve the transfer switch metadata.
+	 *
+	 * @return Transfer switch metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Get the transfer switch sensors.
+	 *
+	 * @return Transfer switch sensors
+	 */
+	Sensors getSensors();
+
+	/**
+	 * Get the list of transfer switch poles.
+	 *
+	 * @return List of poles
+	 */
+	vector<ThrowPole_2_0_0> getPoles();
+
+	/**
+	 * Retrieve the transfer switch settings.
+	 *
+	 * @return Transfer switch settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the transfer switch settings.
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Retrieve the transfer switch statistics.
+	 *
+	 * @return Transfer switch statistics
+	 */
+	Statistics getStatistics();
+
+	/**
+	 * Select the active inlet. If the new inlet is available,
+	 * it will become both active and preferred.
+	 *
+	 * @param source         New active inlet index
+	 * @param faultOverride  Force switch even if the phase sync angle
+	 *                       between the inputs is too large
+	 *
+	 * @return 0 if OK
+	 * @return ERR_INVALID_PARAM if the selected source is invalid
+	 * @return ERR_SWITCH_PREVENTED if switching failed due to an alarm that may be overridden
+	 * @return ERR_SWITCH_FAILED if switching failed and no override is possible
+	 */
+	int transferToSource(in int source, in boolean faultOverride);
+
+	/**
+	 * Get the reason for the last transfer.
+	 *
+	 * @return Last transfer reason
+	 */
+	TransferReason getLastTransferReason();
+
+	/**
+	 * Get the voltage and current waveforms during the last transfer.
+	 *
+	 * @note The interval between two samples is 1/4800 s. This is subject
+	 *       to change in future updates.
+	 *
+	 * @return Waveform samples
+	 */
+	vector<WaveformSample> getLastTransferWaveform();
+
+	/** Transfer log entry */
+	structure TransferLogEntry {
+	    time timestamp;			///< Time of the transfer
+	    int oldInlet;			///< Active inlet before transfer (0 for none)
+	    int newInlet;			///< Active inlet after transfer (0 for none)
+	    TransferReason reason;		///< Transfer reason
+	    vector<WaveformSample> waveform;	///< Voltage and current waveforms
+	    Statistics statistics;		///< Transfer statistics
+	    int switchFault;			///< Switch fault status
+	};
+
+	/**
+	 * Retrieve the transfer log.
+	 *
+	 * @return Transfer log
+	 */
+	vector<TransferLogEntry> getTransferLog();
+
+	/**
+	 * Transfer switch parameter map.
+	 *
+	 * The set of parameters, their meaning and allowed set of values are
+	 * technology-dependent and subject to change. Do not modify any values
+	 * without instruction from Raritan!
+	 */
+	typedef map<string, int> Parameters;
+
+	/**
+	 * Retrieve the transfer switch parameters.
+	 *
+	 * @return Parameters map
+	 */
+	Parameters getParameters();
+
+	/**
+	 * Update one or more transfer switch parameters.
+	 *
+	 * @param parameters  Map of transfer switch parameters. Parameters
+	 *                    which are not in the map remain unchanged.
+	 *
+	 * @return 0 if OK
+	 * @return ERR_INVALID_PARAM if any parameter is invalid
+	 */
+	int setParameters(in Parameters parameters);
+
+    };
+
+}
+
+#endif

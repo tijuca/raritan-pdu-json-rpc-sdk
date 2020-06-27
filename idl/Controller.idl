@@ -1,0 +1,107 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_CONTROLLER_IDL__
+#define __PDUMODEL_CONTROLLER_IDL__
+
+#include <Event.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Slave controller statistics */
+    structure CtrlStatistic {
+	int masterCSumErrCnt;		///< Master CRC error counter
+	int slaveCSumErrCnt;		///< Slave CRC error counter
+	int timeoutCnt;			///< Master timeout counter
+	int resetCnt;			///< Controller reset counter
+	int emResetCnt;			///< Energy meter reset counter
+    };
+
+    /** Slave controller interface */
+    interface Controller_4_0_1 {
+	constant int ERR_NOT_SUPPORTED = 1; ///< Operation not supported
+
+	/** Communication status */
+	enumeration Status {
+	    OK,				///< Communication with controller is known to be working
+	    COMMUNICATION_UNSTABLE,	///< Controller can be communicated with sporadically
+	    COMMUNICATION_FAILURE,	///< Controller can't be communicated with
+	    UNKNOWN,			///< Communication status is unknown, e.g. after startup
+	    INCOMPATIBLE,		///< The characteristics of the controller don't meet the expectations
+	    FIRMWARE_UPDATE		///< A controller firmware update is in progress
+	};
+
+	/** Slave controller type */
+	enumeration Type {
+	    OUTLET_CTRL,		///< %Outlet controller
+	    INLET_CTRL,			///< %Inlet controller
+	    METER_CTRL			///< %General metering controller
+	};
+
+	/** Slave controller metadata */
+	structure MetaData {
+	    Type type;			///< %Controller type
+	    string address;		///< Slave address
+	    int magic;			///< Magic code
+	    boolean versionAvailable;	///< \c true if version information and serial number is available
+	    int fwAppVersion;		///< Firmware application version; 0 if unavailable
+	    int fwBootVersion;		///< Firmware bootloader version; 0 if unavailable
+	    int hwVersion;		///< Hardware version; 0 if unavailable
+	    string serial;		///< Serial number; empty if unavailable
+	    boolean haveResetCnt;	///< \c true if controller reset counter is available
+	    boolean haveEmResetCnt;	///< \c true if energy meter reset counter is available
+	};
+
+	/** Event: Controller communication status has changed */
+	valueobject StatusChangedEvent extends idl.Event {
+	    Status oldStatus;		///< Status before change
+	    Status newStatus;		///< Status after change
+	};
+
+	/** Event: Controller metadata has changed */
+	valueobject MetaDataChangedEvent extends idl.Event {
+	    MetaData oldMetaData;	///< Metadata before change
+	    MetaData newMetaData;	///< Metadata after change
+	};
+
+	/**
+	 * Retrieve the current status of communication with controller
+	 *
+	 * @return communication status
+	 */
+	Status getCommunicationStatus();
+
+	/**
+	 * Retrieve statistics
+	 *
+	 * @return statistics of %Controller
+	 */
+	CtrlStatistic getStatistics();
+
+	/**
+	 * Retrieve the slave controller metadata.
+	 *
+	 * @return %Controller metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Reset this slave controller.
+	 *
+	 * Note: Depending on the hardware setup of the specific device, calling
+	 *	 this method may also cause other slave controllers to be reset.
+
+	 * @return 0 on success
+	 *         ERR_NOT_SUPPORTED if the hardware setup doesn't allow resetting the controller
+	 */
+	int reset();
+    };
+
+}
+
+#endif

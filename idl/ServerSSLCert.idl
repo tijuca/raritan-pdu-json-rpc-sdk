@@ -1,0 +1,112 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * TLS Certificate Management
+ */
+module cert {
+
+    /** TLS certificate management interface */
+    interface ServerSSLCert_2_0_0 {
+
+	/** success code */
+	constant int SUCCESS				= 0;
+
+	/** key-pair generation error codes */
+	constant int ERR_GEN_KEY_LEN_INVALID		= 100;
+	constant int ERR_GEN_CSR_OR_CERT_PENDING	= 101;
+	constant int ERR_GEN_KEY_GEN_FAILED		= 102;
+
+	/** key-pair installation error codes */
+	constant int ERR_INSTALL_KEY_MISSING		= 200;
+	constant int ERR_INSTALL_CERT_MISSING		= 201;
+	constant int ERR_INSTALL_CERT_FORMAT_INVALID	= 202;
+	constant int ERR_INSTALL_CERT_KEY_MISMATCH	= 203;
+
+	/** Certificate issuer or subject attributes */
+	structure CommonAttributes {
+	    string country;		///< Country code
+	    string stateOrProvince;	///< State or province
+	    string locality;		///< Locality or city
+	    string organization;	///< Organization
+	    string organizationalUnit;	///< Organizational Unit
+	    string commonName;		///< Common Name
+	    string emailAddress;	///< Email Address
+	};
+
+	/**
+	 * Certificate signing request information
+	 *
+	 * If names is empty then commonName from the subject is used as single entry.
+	 */
+	structure ReqInfo {
+	    CommonAttributes subject;	///< Certificate subject attributes
+	    vector<string> names;	///< DNS names and/or IP addresses
+	    int keyLength;		///< Key length in bits
+	};
+
+	/** Certificate information */
+	structure CertInfo {
+	    CommonAttributes subject;	///< Subject attributes
+	    CommonAttributes issuer;	///< Issuer attributes
+	    vector<string> names;	///< DNS names and/or IP addresses
+	    string invalidBefore;	///< Begin of validity period
+	    string invalidAfter;	///< End of validity period
+	    string serialNumber;	///< Serial number
+	    int keyLength;		///< Key length in bits
+	};
+
+	/** Certificate manager information */
+	structure Info {
+	    boolean havePendingReq;	///< \c true if a CSR is pending
+	    boolean havePendingCert;	///< \c true if an uploaded certificate is pending activation
+	    ReqInfo pendingReqInfo;	///< Information about pending CSR
+	    CertInfo pendingCertInfo;	///< Information about pending certificate
+	    CertInfo activeCertInfo;	///< Information about active certificate
+	    int maxSignDays;		///< Maximum number of days a self signed certificate will be valid.
+	};
+
+	/**
+	 * Generate an unsigned key pair.
+	 *
+	 * @param reqInfo    Certificate signing request information
+	 * @param challenge  Challenge password
+	 *
+	 * @return SUCCESS or one of the error code constants
+	 */
+	int generateUnsignedKeyPair(in ReqInfo reqInfo, in string challenge);
+
+	/**
+	 * Generate a self-signed key pair.
+	 *
+	 * @param reqInfo  Certificate signing request information
+	 * @param days     Number of days the certificate will be valid
+	 *
+	 * @return SUCCESS or one of the error code constants
+	 */
+	int generateSelfSignedKeyPair(in ReqInfo reqInfo, in int days);
+
+	/**
+	 * Remove a pending certificate signing request or certificate.
+	 */
+	void deletePending();
+
+	/**
+	 * Retrieve certificate manager information.
+	 *
+	 * @param info  Result: Certificate manager information
+	 */
+	void getInfo(out Info info);
+
+	/**
+	 * Activate a pending key pair.
+	 *
+	 * @return SUCCESS or one of the error code constants
+	 */
+	int installPendingKeyPair();
+
+    };
+
+}

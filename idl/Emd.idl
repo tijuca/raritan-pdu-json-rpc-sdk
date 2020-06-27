@@ -1,0 +1,114 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __EMDMODEL_EMD_IDL__
+#define __EMDMODEL_EMD_IDL__
+
+#include <InternalBeeper.idl>
+#include <Nameplate.idl>
+#include <PeripheralDeviceManager.idl>
+#include <Port.idl>
+#include <SensorLogger.idl>
+
+/**
+ * EMD Model interfaces
+ */
+
+module emdmodel {
+
+    interface Emd_2_2_8 {
+
+	constant int ERR_INVALID_PARAMS = 1;
+	
+	/** EMD metadata */
+	structure MetaData {
+	    pdumodel.Nameplate_2_0_0 nameplate;		///< %Nameplate information
+	    string ctrlBoardSerial;			///< Main controller serial number
+	    string hwRevision;				///< Hardware revision
+	    string fwRevision;				///< Firmware revision
+	    string macAddress;				///< MAC address
+	};
+	
+	/** EMD settings */
+	structure Settings {
+	    string name;				///< User-defined name
+	};
+
+	/** Event: EMD settings have changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;			///< Settings before change
+	    Settings newSettings;			///< Settings after change
+	};
+
+	/**
+	 * Retrieve the EMD metadata.
+	 *
+	 * @return EMD metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Get the peripheral device manager.
+	 *
+	 * @return Peripheral device manager
+	 */
+	peripheral.DeviceManager_3_0_2 getPeripheralDeviceManager();
+
+	/**
+	 * Get the built-in beeper, if there is any.
+	 *
+	 * @return Beeper interface
+	 */
+	hmi.InternalBeeper_2_0_1 getBeeper();
+
+	/**
+	 * Retrieve the EMD settings.
+	 *
+	 * @return EMD settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the EMD settings.
+	 *
+	 * @param settings  	      New EMD settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Get all feature ports of this device
+	 * 
+	 * This returns an entry for all feature ports, no matter whether
+	 * something is connected or not.
+	 * A device with n feature ports will return n entries here.
+	 * 
+	 * @return List of all Feature Ports
+	 */
+	vector<portsmodel.Port_2_0_2> getFeaturePorts();
+
+	/**
+	 * Get all auxiliary ports of this device
+	 * 
+	 * This returns an entry for all auxiliary ports, no matter whether
+	 * something is connected or not.
+	 * A device with n auxiliary ports will return n entries here.
+	 * 
+	 * @return List of all Auxiliary Ports
+	 */
+	vector<portsmodel.Port_2_0_2> getAuxiliaryPorts();
+
+	/**
+	 * Get the sensor logger.
+	 *
+	 * @return Sensor logger reference
+	 */
+	sensors.Logger_2_1_6 getSensorLogger();
+    };
+}
+
+#endif /* !__EMDMODEL_EMD_IDL__ */

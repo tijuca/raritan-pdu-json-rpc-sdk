@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_POWER_QUALITY_SENSOR_IDL__
+#define __PDUMODEL_POWER_QUALITY_SENSOR_IDL__
+
+#include <StateSensor.idl>
+
+/**
+ * PDU Model
+ */
+module pdumodel {
+
+    /** Power quality sensor interface */
+    interface PowerQualitySensor_2_0_3 extends sensors.StateSensor_4_0_3 {
+
+	constant int STATE_NORMAL   = 0; ///< Power quality is normal
+	constant int STATE_WARNING  = 1; ///< Power quality is warning
+	constant int STATE_CRITICAL = 2; ///< Power quality is critical
+
+    };
+
+}
+
+#endif

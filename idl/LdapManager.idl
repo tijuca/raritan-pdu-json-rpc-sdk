@@ -1,0 +1,53 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#include "LdapServerSettings.idl"
+
+/** Local and Remote Authentication Management */
+module auth {
+
+    /** LDAP server configuration interface */
+    interface LdapManager_2_0_0 {
+
+	/**
+	 * Get a list of LDAP server settings
+	 *
+	 * @return list of ldapsrv.ServerSettings
+	 */
+	vector<ldapsrv.ServerSettings_2_0_0> getLdapServers();
+
+	constant int ERR_CYCLIC_DEP 	    	= 1; ///< Cyclic dependency in server list
+	constant int ERR_INVALID_CFG	    	= 2; ///< The server configuration is invalid
+	/**
+	 * Sets a list of LDAP servers.
+	 * Any existing LDAP Server configuration will be cleared / overwritten.
+	 *
+	 * @return 0 				on success
+	 * @return \c ERR_CYCLIC_DEP		in case of cyclic dependency
+	 * @return \c ERR_INVALID_CFG		in case of invalid configuration
+	 */
+	int setLdapServers(in vector<ldapsrv.ServerSettings_2_0_0> serverList);
+
+	constant int ERR_SERVER_UNSPECIFIED 	= 1; ///< Unspecified error
+	constant int ERR_SERVER_UNREACHABLE 	= 3; ///< LDAP server could not be contacted
+	constant int ERR_AUTHENTICATION_FAILED	= 4; ///< User could not be authenticated
+	constant int ERR_NO_ROLES		= 5; ///< No roles are defined for the user
+	constant int ERR_NO_KNOWN_ROLES		= 6; ///< No known rules are defined for the user
+	/**
+	 * Tests an LDAP server configuration.
+	 *
+	 * @return 0 					on success
+	 * @return \c ERR_SERVER_UNSPECIFIED		an unspecified error occurred
+	 * @return \c ERR_INVALID_CFG			LDAP server configuration is invalid (reused from setLdapServers)
+	 * @return \c ERR_SERVER_UNREACHABLE		LDAP server could not be contacted
+	 * @return \c ERR_AUTHENTICATION_FAILED		user could not be authenticated
+	 * @return \c ERR_NO_ROLES			no roles are defined for the user
+	 * @return \c ERR_NO_KNOWN_ROLES		no known roles are defined for the user
+	 */
+	int testLdapServer(in string username, in string password, in ldapsrv.ServerSettings_2_0_0 settings, out string diagMsg);
+
+    };
+
+}

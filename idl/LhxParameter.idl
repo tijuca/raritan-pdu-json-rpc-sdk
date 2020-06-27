@@ -1,0 +1,123 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __LHXMODEL_PARAMETER_IDL__
+#define __LHXMODEL_PARAMETER_IDL__
+
+#include <Event.idl>
+
+/** LHX Model */
+module lhxmodel {
+
+    /** LHX Parameter Interface */
+    interface Parameter_2_0_1 {
+
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	constant int ERR_READ_ONLY      = 2; ///< Attempt to write a read-only parameter
+
+	/** Parameter Unit */
+	enumeration Unit {
+	    NONE,			///< No unit
+	    NUMBER,			///< Number
+	    BINARY,			///< Binary
+	    TEMP_ABS,			///< Absolute temperature
+	    TEMP_REL,			///< Relative temperature
+	    BAR,			///< Bar
+	    PASCAL,			///< Pascal
+	    SIEMENS,			///< Siemens
+	    METER,			///< Meter
+	    VOLT,			///< Volt
+	    AMPERE,			///< Ampere
+	    HOURS,			///< Hours
+	    MINUTES,			///< Minutes
+	    SECONDS,			///< Seconds
+	    TIME,			///< Time
+	    METERS_PER_SECOND,		///< Meters/second
+	    NEWTON,			///< Newton
+	    GRAMMS,			///< Gramms
+	    HUMIDITY_REL,		///< Relative humidity
+	    HERTZ,			///< Hertz
+	    OHM,			///< Ohm
+	    PERCENT,			///< Percent
+	    LITERS_PER_MINUTE,		///< Liters/minute
+	    LITERS_PER_HOUR		///< Liters/hour
+	};
+
+	/** Parameter Status */
+	structure Status {
+	    boolean switchedOn; 	///< LHX On / Off
+	    boolean active;		///< Active
+	    boolean overflow;		///< Overflow
+	    boolean underflow;		///< Underflow
+	    boolean valid;		///< Valid
+	};
+
+	/** Parameter Metadata */
+	structure MetaData {
+	    Unit    unit;		///< Parameter unit
+	    string  id;			///< Parameter ID
+	    double  defaultValue;	///< Default value
+	    double  min;		///< Minimum value
+	    double  max;		///< Maximum value
+	    boolean read_only;		///< \c true for read-only parameters
+	    int     decDigits;		///< Number of decimal digits
+	};
+
+	/** Parameter Value */
+	structure Value {
+	    time    timestamp;		///< Timestamp of last sample
+	    Status  status;		///< The state of the parameter
+	    double  value;		///< The value of the parameter
+	};
+
+	/** Event: Parameter metadata has been changed */
+	valueobject MetaDataChangedEvent extends idl.Event {
+	    MetaData oldMetaData;	///< Metadata before change
+	    MetaData newMetaData;	///< Metadata after change
+	};
+
+	/** Event: Parameter value has changed */
+	valueobject ValueChangedEvent extends idl.Event {
+	    Value newValue;		///< New parameter value
+	};
+
+	/**
+	 * Retrieve the parameter metadata.
+	 *
+	 * @return Parameter metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the parameter value.
+	 *
+	 * @return Parameter value
+	 */
+	Value getValue();
+
+	/**
+	 * Retrieve the parameter raw value.
+	 *
+	 * @return Raw value
+	 */
+	int getRawValue();
+
+	/**
+	 * Change the parameter value.
+	 *
+	 * @param rawValue  	      New value
+	 * @param validateRange       validate value against parameter range
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameter value is invalid
+	 * @return ERR_READ_ONLY      if attempting to write read only parameter
+	 */
+	int setRawValue(in int rawValue, in boolean validateRange);
+
+    };
+
+}
+
+#endif /* !__LHXMODEL_PARAMETER_IDL__ */

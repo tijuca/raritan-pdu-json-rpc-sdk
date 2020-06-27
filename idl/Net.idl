@@ -1,0 +1,456 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2016 Raritan Inc. All rights reserved.
+ */
+
+#include <Event.idl>
+
+/**
+ * Network Configuration
+ */
+module net {
+
+    /** IPv4/IPv6 address and prefix len */
+    structure IpAddrCidr {
+	string			addr;			// IP address
+	int			prefixLen;		// Length of network prefix in the IP address
+    };
+
+    /** IPv4/IPv6 route */
+    structure IpRoute {
+	IpAddrCidr		destNetAddrCidr;	// Destination network address (CIDR)
+	string			nextHopAddr;		// Address of the next hop (empty when ifName is set)
+	string			ifName;			// Destination interface (empty if nextHopAddr is set)
+    };
+
+    /** Role of the node when port forwarding is enabled */
+    enumeration PortForwardingRole {
+	MASTER,						///< Node is the port forwarding master
+	SLAVE						///< Node is a port forwarding slave
+    };
+    
+    /** Port forwarding settings */
+    structure PortForwardingSettings_2_0_0 {
+	boolean			enabled;		///< Controls if port forwarding is enabled
+	PortForwardingRole	role;			///< The role of the node (master or slave)
+	string			masterDownstreamIfName;	///< Master downstream interface (usb: any USB iface)
+    };
+
+    /** DNS settings */
+    structure DnsSettings_2_0_0 {
+	vector<string>		serverAddrs;		///< List of domain name servers addresses (IPv4/IPv6)
+	vector<string>		searchSuffixes;		///< List of domain search suffixes
+	boolean			resolverPrefersIPv6;	///< Resolver should prefer IPv6 addresses
+    };
+
+    /** IP protocol specific routing settings */
+    structure IpRoutingSettings_2_0_0 {
+	string			defaultGatewayAddr;	///< Default gateway address
+	vector<IpRoute>		staticRoutes;		///< List of static routes
+    };
+
+    /** Routing settings */
+    structure RoutingSettings_2_0_0 {
+	IpRoutingSettings_2_0_0	ipv4;			///< IPv4 routing settings
+	IpRoutingSettings_2_0_0	ipv6;			///< IPv6 routing settings
+    };
+
+    /** Common settings */
+    structure CommonSettings_2_0_0 {
+	DnsSettings_2_0_0		dns;		///< DNS settings
+	RoutingSettings_2_0_0		routing;	///< Routing settings
+	PortForwardingSettings_2_0_0	portForwarding;	///< Port forwarding settings
+    };
+	
+    /** Port forwarding master address info for an interface */
+    structure PortForwardingMasterAddrInfo {
+	string			ifName;			///< interface name on master
+	string			addr;			///< IPv4/IPv6 address on the interface
+    };
+
+    /** Port forwarding info */
+    structure PortForwardingInfo {
+	boolean			enabled;		///< \c true if port forwarding is enabled
+	boolean			nodeIndexValid;		///< \c true if nodeIndex is valid
+	int			nodeIndex;		///< Index of the node in the port forwarding cascade
+	boolean			slaveConnected;		///< \c true if this node has a slave connected
+	string			masterDownstreamIfName;	///< Master downstream interface (usb: any USB iface)
+	///< the first entry of each vector has the default route set (if default route is set at all)
+	vector<PortForwardingMasterAddrInfo> masterIPv4AddrInfos; ///< Master address info for IPv4
+	vector<PortForwardingMasterAddrInfo> masterIPv6AddrInfos; ///< Master address info for IPv6
+    };
+
+    /** DNS info */
+    structure DnsInfo {
+	vector<string>		serverAddrs;		///< List of active domain name server addresses
+	vector<string>		searchSuffixes;		///< List of active domain search suffixes
+	boolean			resolverPrefersIPv6;	///< Resolver should prefer IPv6 addresses
+    };
+
+    /** Routing info */
+    structure RoutingInfo {
+	vector<IpRoute>		ipv4Routes;		///< List of active IPv4 routes
+	vector<IpRoute>		ipv6Routes;		///< List of active IPv6 routes
+    };
+
+    /** Common info */
+    structure CommonInfo {
+	DnsInfo			dns;			///< DNS info
+	RoutingInfo		routing;		///< Routing info
+	PortForwardingInfo	portForwarding;		///< Port forwarding info
+    };
+
+    /** IP configuration method */
+    enumeration IpConfigMethod {
+	STATIC,						///< No automatic configuration
+	DHCP,						///< Use DHCP for automatic configuration (IPv4 only)
+	AUTO						///< Use automatic configuration (IPv6 only)
+    };
+
+    /** Interface specific IP settings */
+    structure InterfaceIpSettings_2_0_0 {
+	boolean			enabled;		///< Controls if IPv4/IPv6 is enabled
+	IpConfigMethod		configMethod;		///< Interface configuration method
+	IpAddrCidr		staticAddrCidr;		///< Statically assigned IPv4/IPv6 address (CIDR)
+	string			dhcpPreferredHostname;	///< Preferred hostname (only used with DHCP)
+    };
+
+    /** Interface specific IPv4 info */
+    structure InterfaceIPv4Info {
+	boolean			enabled;		///< \c true if IPv4 is enabled
+	IpConfigMethod		configMethod;		///< Interface configuration method
+	vector<IpAddrCidr>	addrsCidr;		///< List of active IPv4 addresses with prefix length
+	string			dhcpServerAddr;		///< IPv4 address of DHCP server or empty
+	string			dhcpPreferredHostname;	///< Preferred hostname (only used with DHCP)
+    };
+
+    /** Interface specific IPv6 info */
+    structure InterfaceIPv6Info {
+	boolean			enabled;		///< \c true if IPv6 is enabled
+	IpConfigMethod		configMethod;		///< Interface configuration method
+	vector<IpAddrCidr>	addrsCidr;		///< List of active IPv6 addresses with prefix length
+	string			dhcpServerId;		///< DHCPv6 server id or empty
+	string			dhcpPreferredHostname;	///< Preferred hostname (only used with DHCP)
+	boolean			raManaged;		///< "Managed" flag set in router announcements
+	boolean			raOtherConf;		///< "OtherConf" flag set in router announcements
+    };
+
+    /** Interface specific settings */
+    structure InterfaceSettings_2_0_0 {
+	boolean				enabled;	///< Controls if interface is enabled
+	InterfaceIpSettings_2_0_0	ipv4;		///< Interface specific IPv4 settings
+	InterfaceIpSettings_2_0_0	ipv6;		///< Interface specific IPv6 settings
+    };
+
+    /** The interface type */
+    enumeration InterfaceType {
+	ETHERNET,					///< Ethernet interface
+	WLAN,						///< WLAN interface
+	BRIDGE						///< Bride interface
+    };
+
+    /** Interface operational state */
+    enumeration InterfaceOpState {
+	NOT_PRESENT,					///< Interface is not present
+	DOWN,						///< Interface is down
+	NO_LINK,					///< Interface has no link
+	UP						///< Interface is up and running
+    };
+
+    /** Interface specific info */
+    structure InterfaceInfo {
+	string			name;			///< Internal interface name
+	string			label;			///< Interface label (used in user interfaces)
+	InterfaceType		type;			///< Interface type
+	boolean			enabled;		///< The dynamic enabled state
+	string			masterIfName;		///< Master interface (set for bridged interfaces)
+	InterfaceOpState	state;			///< Operational state of the interface
+	string			macAddr;		///< MAC address of the interface
+	InterfaceIPv4Info	ipv4;			///< Interface specific IPv4 info
+	InterfaceIPv6Info	ipv6;			///< Interface specific IPv6 info
+    };
+
+    /** EAP outer authentication method */
+    enumeration EapOuterAuthMethod_2_0_0 {
+	EAP_PEAP,					///< PEAP authentication
+	EAP_TLS						///< TLS authentication
+    };
+
+    /** EAP inner authentication method */
+    enumeration EapInnerAuthMethod_2_0_0 {
+	INNER_EAP_MSCHAPv2,				///< MSCHAPv2 authentication
+	INNER_EAP_TLS					///< TLS authentication
+    };
+
+    /** EAP authentication status */
+    enumeration EapStatus {
+	EAP_STATUS_DISABLED,				///< EAP authentication disabled
+	EAP_STATUS_PENDING,				///< EAP authentication pending
+	EAP_STATUS_FAILED,				///< EAP authentication failed
+	EAP_STATUS_SUCCESS				///< EAP authentication succeeded
+    };
+
+    /** EAP authentication settings */
+    structure EapAuthSettings_3_0_0 {
+	string			identity;		///< EAP identity
+	string			password;		///< EAP password (always empty on retrieval!)
+	boolean			clearPassword;		///< Set to \c true when password should be cleared
+	string			clientCertChain;	///< client certificate chain
+	string			clientPrivKey;		///< client private key (always empty on retrieval!)
+	boolean			clearClientPrivKey;	///< Set to \c true to clear the client private key
+	string			clientPrivKeyPassword;	///< password of client private key
+	EapOuterAuthMethod_2_0_0 outerMethod;		///< Outer authentication method
+	EapInnerAuthMethod_2_0_0 innerMethod;		///< Inner authentication method
+	string			caCertChain;		///< CA certificate chain
+	boolean			forceTrustedCert;	///< Enforce trusted certificates
+	boolean			allowOffTimeRangeCerts;	///< allow expired and not yet valid TLS certs
+	boolean			allowNotYetValidCertsIfTimeBeforeBuild; ///< allow not yet valid TLS certs if
+							///<   the system time is before the build time
+	string			authServerName;		///< Name of the RADIUS server (used to verify cert)
+    };
+
+    /** Ethernet speed */
+    enumeration EthSpeed {
+	SPEED_AUTO,					///< Use auto-negotiation to set speed
+	SPEED_MBIT_10,					///< 10 MBit/s
+	SPEED_MBIT_100,					///< 100 MBit/s
+	SPEED_MBIT_1000					///< 1000 MBit/s (1 GBit/s)
+    };
+
+    /** Ethernet duplex mode */
+    enumeration EthDuplexMode {
+	DUPLEX_MODE_AUTO,				///< Use auto-negotiation to set duplex mode
+	DUPLEX_MODE_HALF,				///< Half duplex
+	DUPLEX_MODE_FULL				///< Full duplex
+    };
+
+    /** Ethernet authentication type */
+    enumeration EthAuthType {
+	ETH_AUTH_NONE,					///< No authentication
+	ETH_AUTH_EAP					///< 802.1x (EAP) authentication
+    };
+
+    /** Ethernet link mode */
+    structure EthLinkMode {
+	EthSpeed		speed;			///< Interface speed
+	EthDuplexMode		duplexMode;		///< Interface duplex mode
+    };
+
+    /** Ethernet interface settings */
+    structure EthSettings_2_0_0 {
+	EthLinkMode		linkMode;		///< Link mode
+	EthAuthType		authType;		///< Authentication type
+	EapAuthSettings_3_0_0	eap;			///< EAP Settings for 802.1x authentication
+    };
+
+    /** Ethernet interface info */
+    structure EthInfo_1_0_1 {
+	EapStatus		eapStatus;		///< \c status of EAP authentication
+	EthLinkMode		linkMode;		///< Current link mode
+	boolean			linkModeValid;		///< \c true if linkMode is valid
+	boolean			autonegEnabled;		///< \c true if auto-negotiation is enabled
+	boolean			linkDetected;		///< \c true if a link is detected
+	vector<EthLinkMode>	supportedLinkModes;	///< Supported link modes
+    };
+
+    /** WLAN security protocol */
+    enumeration WlanSecProtocol {
+	WPA2						///< WPA2 security protocol
+    };
+
+    /** WLAN authentication type */
+    enumeration WlanAuthType_2_0_0 {
+	WLAN_AUTH_NONE,					///< No authentication
+	WLAN_AUTH_PSK,					///< Pre-shared key authentication
+	WLAN_AUTH_EAP					///< 802.1x (EAP) authentication
+    };
+
+    /** WLAN interface settings */
+    structure WlanSettings_3_0_0 {
+	boolean			enableHT;		///< Enable high throughput features (802.11n)
+	string			ssid;			///< SSID of the wireless network
+	string			bssid;			///< BSSID (empty for automatic AP selection)
+	WlanSecProtocol		secProtocol;		///< Security protocol (WPA2)
+	WlanAuthType_2_0_0	authType;		///< Authentication type
+	string			psk;			///< Pre-shared key (always empty on retrieval!)
+	boolean			clearPsk;		///< Set to \c true when PSK should be cleared
+	EapAuthSettings_3_0_0	eap;			///< EAP Settings for 802.1x authentication
+    };
+
+    /** WLAN channel width */
+    enumeration WlanChannelWidth {
+	CHANNEL_WIDTH_UNKNOWN,
+	CHANNEL_WIDTH_20_NO_HT,
+	CHANNEL_WIDTH_20,
+	CHANNEL_WIDTH_40,
+	CHANNEL_WIDTH_80,
+	CHANNEL_WIDTH_80P80,
+	CHANNEL_WIDTH_160
+    };
+
+    /** WLAN interface info */
+    structure WlanInfo {
+	boolean			associated;		///< \c true if assoiated to an access point
+	string			ssid;			///< SSID of the wireless network
+	string			bssid;			///< BSSID of associated access point
+	int			channel;		///< Channel number
+	WlanChannelWidth	channelWidth;		///< Channel width (this is an id and no frequency!)
+    };
+
+    /** Network settings */
+    structure Settings_3_0_0 {
+	CommonSettings_2_0_0			common;	///< Common network settings
+	map<string, InterfaceSettings_2_0_0>	ifMap;	///< Common interface settings
+	map<string, EthSettings_2_0_0>		ethMap;	///< Ethernet specific interface settings
+	map<string, WlanSettings_3_0_0>		wlanMap;///< WLAN specific interface settings
+    };
+
+    /** Network info */
+    structure Info_1_0_1 {
+	CommonInfo			common;		///< Common network info
+	map<string, InterfaceInfo>	ifMap;		///< Common interface info
+	map<string, EthInfo_1_0_1>	ethMap;		///< Ethernet specific interface info
+	map<string, WlanInfo>		wlanMap;	///< WLAN specific interface info
+    };
+
+    /** Mapping from application protocol id to name and transport protocol */
+    structure PortForwardingProtocolMapping {
+	int appProtoId;					///< Application protocol id
+	string appProtoName;				///< Application protocol name
+	string transportProtoName;			///< Transport protocol name
+    };
+
+    /* ---- event definitions ---- */
+
+    /** Event that is send when common network info has changed */
+    valueobject CommonInfoChangedEvent extends idl.Event {
+	CommonInfo commonInfo;				///< Current common network info
+    };
+
+    /** Event that is send when common interface specific network info has changed */
+    valueobject InterfaceInfoChangedEvent extends idl.Event {
+	InterfaceInfo ifInfo;				///< Current common interface specific info
+    };
+
+    /** Event that is send when ethernet interface specific network info has changed */
+    valueobject EthInfoChangedEvent_1_0_1 extends idl.Event {
+	string ifName;					///< Ethernet interface name
+	string ifLabel;					///< interface label
+	EthInfo_1_0_1 ethInfo;				///< Current ethernet interface specific info
+    };
+
+    /** Event that is send when WLAN interface specific network info has changed */
+    valueobject WlanInfoChangedEvent extends idl.Event {
+	string ifName;					///< WLAN interface name
+	WlanInfo wlanInfo;				///< Current WLAN interface specific info
+    };
+
+    /** Event that is send when the operational state of an interface changed */
+    valueobject LinkStateChangedEvent extends idl.Event {
+	string ifName;					///< interface name
+	string ifLabel;					///< interface label
+	InterfaceType ifType;				///< interface type
+	InterfaceOpState ifState;			///< Current operational interface state
+    };
+
+    /** Event that is send when the presence state of a downstream port forwarding slave changes */
+    valueobject PortForwardingSlavePresenceStateChangedEvent extends idl.Event {
+	boolean slavePresent;				///< \c true when a slave is present
+    };
+
+    /** Network configuration interface */
+    interface Net_5_0_0 {
+
+	/** Success code */
+	constant int SUCCESS					= 0;
+	
+	/** DNS parameter errors */
+	constant int ERR_DNS_TOO_MANY_SERVERS			= 100;
+	constant int ERR_DNS_INVALID_SERVER			= 101;
+	constant int ERR_DNS_TOO_MANY_SEARCH_SUFFIXES		= 102;
+	constant int ERR_DNS_INVALID_SEARCH_SUFFIX		= 103;
+
+	/** routing parameter errors */
+	constant int ERR_ROUTING_IPV4_INVALID_DFLT_GATEWAY_ADDR	= 200;
+	constant int ERR_ROUTING_IPV6_INVALID_DFLT_GATEWAY_ADDR	= 201;
+	constant int ERR_ROUTING_IPV4_INVALID_DEST_ADDR		= 202;
+	constant int ERR_ROUTING_IPV6_INVALID_DEST_ADDR		= 203;
+	constant int ERR_ROUTING_IPV4_INVALID_DEST_PREFIX_LEN	= 204;
+	constant int ERR_ROUTING_IPV6_INVALID_DEST_PREFIX_LEN	= 205;
+	constant int ERR_ROUTING_IPV4_INVALID_NEXTHOP_ADDR	= 206;
+	constant int ERR_ROUTING_IPV6_INVALID_NEXTHOP_ADDR	= 207;
+	constant int ERR_ROUTING_IPV4_INVALID_INTERFACE		= 208;
+	constant int ERR_ROUTING_IPV6_INVALID_INTERFACE		= 209;
+	constant int ERR_ROUTING_IPV4_DEST_IS_NO_NETWORK_ADDR	= 210;
+	constant int ERR_ROUTING_IPV6_DEST_IS_NO_NETWORK_ADDR	= 211;
+	constant int ERR_ROUTING_IPV4_DEST_IS_DUPLICATE		= 212;
+	constant int ERR_ROUTING_IPV6_DEST_IS_DUPLICATE		= 213;
+	constant int ERR_ROUTING_IPV4_NO_NEXTHOP_OR_INTERFACE	= 214;
+	constant int ERR_ROUTING_IPV6_NO_NEXTHOP_OR_INTERFACE	= 215;
+	constant int ERR_ROUTING_IPV4_NEXTHOP_AND_INTERFACE_SET	= 216;
+	constant int ERR_ROUTING_IPV6_NEXTHOP_AND_INTERFACE_SET	= 217;
+
+	/** port forwarding parameter errors */
+	constant int ERR_PF_INVALID_MASTER_DOWNSTREAM_INTERFACE	= 300;
+	constant int ERR_PF_NO_WORKING_MASTER_UPSTREAM_INTERFACE= 301;
+
+	/** interface common parameter errors */
+	constant int ERR_IF_IPV4_INVALID_CONFIG_METHOD		= 400;
+	constant int ERR_IF_IPV6_INVALID_CONFIG_METHOD		= 401;
+	constant int ERR_IF_IPV4_INVALID_STATIC_ADDR		= 402;
+	constant int ERR_IF_IPV6_INVALID_STATIC_ADDR		= 403;
+	constant int ERR_IF_IPV4_INVALID_STATIC_PREFIX_LEN	= 404;
+	constant int ERR_IF_IPV6_INVALID_STATIC_PREFIX_LEN	= 405;
+	constant int ERR_IF_IPV4_INVALID_DHCP_PREF_HOSTNAME	= 406;
+	constant int ERR_IF_IPV6_INVALID_DHCP_PREF_HOSTNAME	= 407;
+	constant int ERR_IF_EAP_INVALID_IDENTITY		= 408;
+	constant int ERR_IF_EAP_INVALID_PASSWORD		= 409;
+	constant int ERR_IF_EAP_INVALID_CLIENT_CERT		= 410;
+	constant int ERR_IF_EAP_INVALID_CLIENT_PRIV_KEY_OR_PWD	= 411;
+	constant int ERR_IF_EAP_CLIENT_CERT_PRIV_KEY_MISMATCH	= 412;
+	constant int ERR_IF_EAP_INVALID_CA_CERT			= 413;
+	constant int ERR_IF_EAP_CA_CERT_VERIFY_FAILED		= 414; /* not used anymore */
+	constant int ERR_IF_EAP_INVALID_AUTH_SERVER_NAME	= 415;
+
+	/** Ethernet interface parameter errors */
+	constant int ERR_ETH_IF_UNSUPPORTED_LINKMODE		= 500;
+
+	/** WLAN interface parameter errors */
+	constant int ERR_WLAN_IF_INVALID_SSID			= 600;
+	constant int ERR_WLAN_IF_INVALID_BSSID			= 601;
+	constant int ERR_WLAN_IF_INVALID_PSK			= 602;
+
+	/**
+	 * Retrieve information about all network interfaces.
+	 *
+	 * @return Current network information
+	 */
+	Info_1_0_1 getInfo();
+
+	/**
+	 * Retrieve the current network interface settings.
+	 *
+	 * @return Settings for all supported network interfaces
+	 */
+	Settings_3_0_0 getSettings();
+
+	/**
+	 * Update the network interface settings.
+	 *
+	 * @param settings  New network settings
+	 *
+	 * @return 0 if OK
+	 * @return non-zero in case of error (see error constants above)
+	 */
+	int setSettings(in Settings_3_0_0 settings);
+
+	/**
+	 * Retrieve the list of port forwarding protocol mappings.
+	 *
+	 * @return Port forwarding protocol mappings
+	 */
+	vector<PortForwardingProtocolMapping> getPortForwardingProtocolMappings();
+
+    };
+
+}

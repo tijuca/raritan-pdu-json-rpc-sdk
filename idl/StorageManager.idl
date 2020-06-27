@@ -1,0 +1,234 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+#include <Webcam.idl>
+
+/** Webcam Management */
+module webcam {
+
+    /** The storage manager interface */
+    interface StorageManager_1_0_2 {
+	/**
+	 * Error codes
+	 */
+	constant int NO_ERROR			  = 0; ///< Operation successful, no error
+	constant int ERR_INVALID_PARAM            = 1; ///< Invalid parameter for an operation
+	constant int ERR_INIT_IN_PROGRESS         = 2; ///< Storage information is going to be initialized
+	constant int ERR_ALREADY_RUNNING          = 3; ///< The activity is already running
+	constant int ERR_TOO_LARGE                = 4; ///< The requested result is too large
+	constant int ERR_OPERATION_NOT_SUPPORTED  = 5; ///< The requested operation is not supported on the current storage type
+
+        /** StorageType */
+        enumeration StorageType {
+            LOCAL,    ///< Local
+            FTP,      ///< FTP
+            CIFS,     ///< CIFS
+            NFS       ///< NFS
+        };
+
+        /** Direction */
+        enumeration Direction {
+            ASCENDING,            ///< ascending
+            DESCENDING            ///< descending
+        };
+
+        /** StorageStatus */
+        enumeration StorageStatus {
+            INITIALIZING,         ///< Initializing is in progress,
+            READY                 ///< Storage is ready for usage
+        };
+
+        /** Webcam Storage Info */
+        structure WebcamStorageInfo {
+            Webcam_2_0_1 webcam;   ///< webcam object
+            long newestIndex;      ///< newest know index
+            long oldestIndex;      ///< oldest know index
+            int count;             ///< nr of stored images from this webcam
+        };
+
+        /** Information */
+        structure StorageInformation {
+            StorageStatus status;  ///< storage status
+            int capacity;          ///< over-all nr of storable images
+            int used;              ///< nr of stored images (local storage only)
+            vector<WebcamStorageInfo> webcamStorageInfo; ///< List of storage information for each webcam (local storage only)
+        };
+
+        /** Settings */
+        structure StorageSettings {
+            StorageType type;      ///< storage type
+            int capacity;          ///< maximum number of stored images; obsolete, no longer used
+            string server;         ///< server ip, share and path (empty/ignored for LOCAL storage type)
+            string username;       ///< username  (empty/ignored for LOCAL storage type)
+            string password;       ///< password  (empty/ignored for LOCAL storage type)
+        };
+
+        /** StorageMetaData */
+        structure StorageMetaData {
+            long index;            ///< current image index
+            Webcam_2_0_1 webcam;   ///< source webcam
+        };
+
+        /** StorageMetaData */
+        structure ImageStorageMetaData {
+            ImageMetaData imageMeta;    ///< image related meta data
+	    int fileSize;               ///< image file size in bytes
+            StorageMetaData storageMeta;///< store related meta data
+        };
+
+        /** StorageImage */
+        structure StorageImage {
+            Image_2_0_0 image;          ///< image object
+            StorageMetaData metaData;   ///< meta data
+        };
+
+        /** Activity */
+	structure Activity {
+            Webcam_2_0_1 webcam;   ///< webcam object
+            int interval;          ///< capture interval
+            int count;             ///< nr of images to take
+            int done;              ///< nr of images taken
+	};
+
+	/** Event: image upload to storage started */
+	valueobject ImageUploadStartedEvent extends event.UserEvent {
+            Webcam_2_0_1 webcam;   ///< webcam object
+	    string folderUrl;      ///< URL under which the containing folder can be accessed
+	};
+
+        /**
+	 * Get supported storage types
+         *
+         * @return a list of supported storage types
+	 */
+        vector<StorageType> getSupportedStorageTypes();
+
+	/**
+	 * get storage information
+	 *
+         * @return StorageInformation
+	 */
+	StorageInformation getInformation();
+
+	/**
+	 * get storage settings
+	 *
+         * @return StorageSettings
+	 */
+	StorageSettings getSettings();
+
+	/**
+	 * set storage settings
+	 *
+	 * @param  settings	        settings structure
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    invalid settings
+	 */
+	int setSettings(in StorageSettings settings);
+
+	/**
+	 * add an image to the storage
+	 *
+	 * @param  webcam	        image source webcam
+	 * @param  image	        image
+	 * @param  index	        index of the added image
+         *
+         * @return NO_ERROR             on success
+	 */
+	int addImage(in Webcam_2_0_1 webcam, in Image_2_0_0 image, out long index);
+
+	/**
+	 * remove an image of the storage
+	 *
+	 * @note not supported for remote storage (CIFS and FTP)
+	 *
+	 * @param  webcam	        image source webcam
+	 * @param  start	        start index
+	 * @param  count	        number of images
+	 * @param  direction	        index counting direction
+         *
+         * @return NO_ERROR             on success
+	 */
+	int removeImages(in Webcam_2_0_1 webcam, in long start, in int count, in Direction direction);
+
+	/**
+	 * get meta data of images from storage
+	 *
+	 * @note not supported for remote storage (CIFS and FTP)
+	 *
+	 * @param  webcam	        image source webcam
+	 * @param  start	        start index
+	 * @param  count	        number of images
+	 * @param  direction	        index counting direction
+	 * @param  meta	                result: list of storage meta data
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_TOO_LARGE        too many information requested
+	 */
+	int getMetaData(in Webcam_2_0_1 webcam, in long start, in int count,
+                        in Direction direction, out vector<ImageStorageMetaData> meta);
+
+	/**
+	 * retrieve images from the storage
+	 *
+	 * @note not supported for remote storage (CIFS and FTP)
+	 *
+	 * @param  webcam	        image source webcam
+	 * @param  start	        start index
+	 * @param  count	        number of images
+	 * @param  direction	        index counting direction
+	 * @param  image	        result: list of storage images
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_TOO_LARGE        too many images requested
+	 */
+	int getImages(in Webcam_2_0_1 webcam, in long start, in int count,
+                      in Direction direction, out vector<StorageImage> image);
+
+	/**
+	 * get all running activities
+         *
+         * @return list of running activities
+	 */
+	vector<Activity> getActivities();
+
+	/**
+	 * start a capture activity
+	 *
+	 * @param  webcam	        webcam
+	 * @param  count                number of images to store, zero is interpreted as infinite
+	 * @param  interval             interval in ms
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    webcam not found
+	 */
+	int startActivity(in Webcam_2_0_1 webcam, in int count, in int interval);
+
+	/**
+	 * Start a capture activity, storing the images to a specific storage folder
+	 *
+	 * @param  webcam	        webcam
+	 * @param  count                number of images to store, zero is interpreted as infinite
+	 * @param  interval             interval in ms
+	 * @param  folder               folder path to store the images into
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    webcam not found
+	 */
+	int startActivityWithFolder(in Webcam_2_0_1 webcam, in int count, in int interval, in string folder);
+
+	/**
+	 * stop a capture activity
+	 *
+	 * @param  webcam	        webcam
+         *
+         * @return NO_ERROR             on success
+         * @return ERR_INVALID_PARAM    no matching activity found
+	 */
+	int stopActivity(in Webcam_2_0_1 webcam);
+    };
+}

@@ -1,0 +1,47 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2016 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Network services configuration
+ */
+module net {
+
+    /** Network service settings */
+    structure ServiceSettings {
+	string service;			///< Service name
+	boolean enable;			///< \c true if the service is enabled
+	int port;			///< Service TCP port
+    };
+
+    /** Network services configuration interface */
+    interface Services {
+
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+
+	/**
+	 * Retrieve the network services settings.
+	 *
+	 * @param servicesSettings  List of all network services settings
+	 */
+	void getSettings(out vector<ServiceSettings> servicesSettings);
+
+	/**
+	 * Change the network services settings.
+	 *
+	 * This call changes the settings of one or more network services
+	 * identified by name. Other services are not affected. The resulting
+	 * configuration of all enabled services must be consistent, i.e.
+	 * there must be not port collisions.
+	 *
+	 * @param servicesSettings  List of network services settings to be changed
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters were invalid
+	 */
+	int setSettings(in vector<ServiceSettings> servicesSettings);
+
+    };
+
+}

@@ -1,0 +1,193 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __TFW_SENSOR_IDL__
+#define __TFW_SENSOR_IDL__
+
+#include <Event.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /** %Sensor interface */
+    interface Sensor_4_0_3 {
+
+	constant int ERR_NOT_SUPPORTED = 1; ///< The operation is not supported
+
+	/** %Sensor reading type */
+	constant int NUMERIC = 0;			//< %Sensor has numeric readings
+	constant int DISCRETE_ON_OFF = 1;		//< %Sensor has two discrete readings: 0 (off) and 1 (on), see OnOffState
+	constant int DISCRETE_MULTI = 2;		//< %Sensor has multiple discrete readings
+
+	/** Sensor states for DISCRETE_ON_OFF sensors */
+	enumeration OnOffState {
+	    OFF,			///< off
+	    ON				///< on
+	};
+
+        enumeration OpenClosedState {
+            OPEN,			///< open
+            CLOSED			///< closed
+        };
+
+	enumeration NormalAlarmedState {
+	    NORMAL,			///< normal (not alarmed)
+	    ALARMED			///< alarmed
+	};
+
+	enumeration OkFaultState {
+	    OK,				///< OK
+	    FAULT			///< fault
+	};
+
+	/** %Sensor type */
+	constant int UNSPECIFIED = 0;			//< Unspecified
+
+	constant int VOLTAGE = 1;			//< Voltage
+	constant int CURRENT = 2;			//< Current
+	constant int UNBALANCE_CURRENT = 3;		//< Current unbalance
+	constant int POWER = 4;				//< Power
+	constant int POWER_FACTOR = 5;			//< Power factor
+	constant int ENERGY = 6;			//< Energy
+	constant int FREQUENCY = 7;			//< Frequency
+	constant int TEMPERATURE = 8;			//< Temperature
+	constant int HUMIDITY = 9;			//< Relative humidity
+	constant int AIR_FLOW = 10;			//< Air flow
+	constant int AIR_PRESSURE = 11;			//< Air pressure
+	constant int CONTACT_CLOSURE = 12;		//< Contact Closure [uses %NormalAlarmedState mapping]
+	constant int ON_OFF_SENSOR = 13;		//< Switch state [uses %OnOffState mapping]
+	constant int TRIP_SENSOR = 14;			//< Circuit breaker tripped [uses %OpenClosedState mapping]
+	constant int VIBRATION = 15;			//< Vibration [uses %NormalAlarmedState mapping]
+	constant int WATER_LEAK = 16;			//< Water leak [uses %NormalAlarmedState mapping]
+	constant int SMOKE_DETECTOR = 17;		//< Smoke detector [uses %NormalAlarmedState mapping]
+
+	constant int TOTAL_HARMONIC_DISTORTION = 18;	//< Total harmonic distortion
+
+	constant int MASS = 19;				//< Mass
+	constant int ELECTRICAL_RESISTANCE = 20;	//< Electrical resistance
+	constant int FLUX = 21;				//< Flux (mass per time, e.g. water flow)
+
+	constant int LUMINOUS_INTENSITY = 22;		//< Luminous intensity
+	constant int ACCELERATION = 23;			//< Acceleration
+	constant int MAGNETIC_FLUX_DENSITY = 24;	//< Magnetic flux density
+	constant int ELECTRIC_FIELD_STRENGTH = 25;	//< Electric field strength
+	constant int MAGNETIC_FIELD_STRENGTH = 26;	//< Magnetic field strength [uses %NormelAlarmedState mapping if of %DISCRETE_ON_OFF type]
+	constant int ANGLE = 27;			//< Angle (e.g. phase angle)
+
+	constant int SELECTION = 28;			//< Selected index (one of n)
+	constant int FAULT_STATE = 29;			//< Fault state [uses %NormalAlarmedState mapping if of %DISCRETE_ON_OFF type]
+	constant int POWER_QUALITY = 30;		//< Power quality
+	constant int ROTATIONAL_SPEED = 31;		//< Rotational speed (e.g. fan speed)
+
+	constant int LUMINOUS_ENERGY = 32;		//< Luminous energy
+	constant int LUMINOUS_FLUX = 33;		//< Luminous flux
+	constant int ILLUMINANCE = 34;			//< Illuminance used for light incident on a surface
+	constant int LUMINOUS_EMITTANCE = 35;		//< Luminous emittance used for light emitted from a surface
+
+	constant int MOTION = 36;			//< Motion detection
+	constant int OCCUPANCY = 37;			//< Occupancy detection [uses %NormalAlarmedState mapping]
+	constant int TAMPER = 38;			//< Tamper detection [uses %NormalAlarmedState mapping]
+	constant int DRY_CONTACT = 39;			//< Dry contact (actuator) [uses %OnOffState mapping]
+	constant int POWERED_DRY_CONTACT = 40;		//< Powered dry contact (actuator) [uses %OnOffState mapping]
+
+	constant int ABSOLUTE_HUMIDITY = 41;		//< Absolute humidity
+	constant int DOOR_STATE = 42;			//< Door state [uses %OpenClosedState mapping]
+	constant int DOOR_LOCK_STATE = 43;		//< Door lock state [uses %OpenClosedState mapping]
+	constant int DOOR_HANDLE_LOCK = 44;		//< Door handle switch [uses %OpenClosedState mapping]
+
+	constant int CREST_FACTOR = 45;			//< Crest factor
+
+	/** %Sensor unit */
+	constant int NONE = 0;				//< No unit
+	constant int VOLT = 1;				//< Volts
+	constant int AMPERE = 2;			//< Amperes
+	constant int WATT = 3;				//< Watts
+	constant int VOLT_AMP = 4;			//< Voltamperes
+	constant int WATT_HOUR = 5;			//< Watthours
+	constant int VOLT_AMP_HOUR = 6;			//< Voltamperehours
+	constant int DEGREE_CELSIUS = 7;		//< Degrees Celsius
+	constant int HZ = 8;				//< Hertz
+	constant int PERCENT = 9;			//< Percent
+	constant int METER_PER_SEC = 10;		//< Meters per second
+	constant int PASCAL = 11;			//< Pascal
+	constant int G = 12;				//< G-force
+	constant int RPM = 13;				//< Revolutions per minute
+	constant int METER = 14;			//< Meters
+	constant int HOUR = 15;				//< Hours
+	constant int MINUTE = 16;			//< Minutes
+	constant int SECOND = 17;			//< Seconds
+
+	constant int VOLT_AMP_REACTIVE = 18;		//< Voltamperesreactive (var)
+	constant int VOLT_AMP_REACTIVE_HOUR = 19;	//< Voltamperesreactivehours (varh)
+
+	constant int GRAM = 20;				//< Gram (g)
+	constant int OHM = 21;				//< Ohm (omega, R)
+	constant int LITERS_PER_HOUR = 22;		//< Liters per hour (l/h)
+
+	constant int CANDELA = 23;			//< Candela (cd)
+	constant int METER_PER_SQARE_SEC = 24;		//< Meter per square second (m/s^2)
+	constant int TESLA = 25;			//< Tesla (T)
+	constant int VOLT_PER_METER = 26;		//< Volt per meter (V/m)
+	constant int VOLT_PER_AMPERE = 27;		//< Volt per ampere (V/A)
+	constant int DEGREE = 28;			//< Degree (angle)
+
+	constant int DEGREE_FAHRENHEIT = 29;		//< Degrees Fahrenheit (deg F)
+	constant int KELVIN = 30;			//< Kelvin (deg K)
+	constant int JOULE = 31;			//< Joules (J)
+	constant int COULOMB = 32;			//< Coulombs (C)
+	constant int NIT = 33;				//< Nits (cd/m^2)
+	constant int LUMEN = 34;			//< Lumen (lm)
+	constant int LUMEN_SECOND = 35;			//< Lumen second (lh s)
+	constant int LUX = 36;				//< Lux (lx)
+	constant int PSI = 37;				//< Pounds per square inch (psi)
+	constant int NEWTON = 38;			//< Newtons (N, J/m)
+	constant int FOOT = 39;				//< Feet (ft)
+	constant int FOOT_PER_SEC = 40;			//< Feet per second (ft/s)
+	constant int CUBIC_METER = 41;			//< Cubic meters (m^3)
+	constant int RADIANT = 42;			//< Radiants (rad)
+	constant int STERADIANT = 43;			//< Steradiants (sr)
+	constant int HENRY = 44;			//< Henries (H, Vs/A, Ohm s)
+	constant int FARAD = 45;			//< Farads (f)
+	constant int MOL = 46;				//< Moles (mol)
+	constant int BECQUEREL = 47;			//< Becquerels (Bq)
+	constant int GRAY = 48;				//< Grays (Gy, J/kg)
+	constant int SIEVERT = 49;			//< Sieverts (Sv = J/kg)
+	constant int G_PER_CUBIC_METER = 50;	    	//< Gram per cubic meter (g/m^3)
+
+	/** Complete sensor type specification */
+	structure TypeSpec {
+	    int readingtype;		///< %Sensor reading type
+	    int type;			///< %Sensor type
+	    int unit;			///< %Sensor unit
+	};
+
+	/** Event: The type specification of the sensor changed */
+	valueobject TypeSpecChangedEvent extends idl.Event {
+	    TypeSpec oldTypeSpec;	///< Type specification before change
+	    TypeSpec newTypeSpec;	///< Type specification after change
+	};
+
+	/**
+	 * Retrieve the sensor type specification.
+	 *
+	 * @return Type specification
+	 */
+	TypeSpec getTypeSpec();
+	
+	/**
+	 * Set sensor type and unit
+	 *
+	 * @param type	the sensor type to set
+	 * @param unit	the sensor unit to set
+	 *
+	 * @return ERR_NOT_SUPPORTED or 0
+	 */
+	int setType(in int type, in int unit);
+	
+    };
+
+}
+
+#endif

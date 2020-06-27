@@ -1,0 +1,25 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet_json_rpc", "dotnet_json_rpc.csproj", "{3BC85E8B-8A37-4015-B4A8-2D973F8622F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet_json_rpc_examples", "..\examples\src\dotnet_json_rpc_examples.csproj", "{4E3D96BD-F91F-41EA-BBAB-6983058775F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3BC85E8B-8A37-4015-B4A8-2D973F8622F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BC85E8B-8A37-4015-B4A8-2D973F8622F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BC85E8B-8A37-4015-B4A8-2D973F8622F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BC85E8B-8A37-4015-B4A8-2D973F8622F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3D96BD-F91F-41EA-BBAB-6983058775F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3D96BD-F91F-41EA-BBAB-6983058775F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3D96BD-F91F-41EA-BBAB-6983058775F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3D96BD-F91F-41EA-BBAB-6983058775F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,23 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PERIPHERAL_G2_PRODUCTION_IDL__
+#define __PERIPHERAL_G2_PRODUCTION_IDL__
+
+#include <PeripheralDeviceSlot.idl>
+
+module peripheral {
+    interface G2Production_4_0_0 {
+	constant int SUCCESS                    = 0;
+	constant int ERR_INVALID_PARAMS     	= 1;
+    	constant int ERR_NO_CONFIG_MODE     	= 2;
+	constant int ERR_NO_DEVICE  	    	= 3;
+	constant int ERR_OPERATION_FAILED       = 4;
+	
+	int programSerialNumber(in string romcode, in string serial);
+    };	
+}
+
+#endif /* !__PERIPHERAL_G2_PRODUCTION_IDL__ */

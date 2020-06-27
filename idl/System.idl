@@ -1,0 +1,32 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Low-Level system access methods
+ */
+module sys {
+
+    /** System access methods */
+    interface System {
+
+	/**
+	 * Check whether a daemon process is running.
+	 *
+	 * @param name  Daemon name
+	 *
+	 * @return \c true if the daemon process is running
+	 */
+	boolean isDaemonRunning(in string name);
+
+	/**
+	 * Restart a daemon process.
+	 *
+	 * @param name  Daemon name
+	 */
+	void restartDaemon(in string name);
+
+    };
+
+}

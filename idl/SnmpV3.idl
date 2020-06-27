@@ -1,0 +1,31 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+/** User Management */
+module um {
+
+    /** SNMPv3 interface */
+    interface SnmpV3 {
+        
+        /** SNMP v3 security level */
+	enumeration SecurityLevel {
+	    NO_AUTH_NO_PRIV,        ///< No authentication and no privacy protocol
+	    AUTH_NO_PRIV,           ///< Use authentication but no privacy protocol
+	    AUTH_PRIV               ///< Use both, authentication and privacy protocol
+	};
+
+        /** SNMP v3 authentication protocol */
+	enumeration AuthProtocol {
+	    MD5,                    ///< Use MD5 for authentication
+	    SHA1                    ///< Use SHA1 for authentication
+	};
+
+        /** SNMP v3 privacy protocol */
+	enumeration PrivProtocol {
+	    DES,                    ///< Use DES encryption for privacy
+	    AES128                  ///< Use AES encryption for privacy
+        };
+    };
+}

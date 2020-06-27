@@ -1,0 +1,86 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2010 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __DIAGLOGSETTINGS_IDL__
+#define __DIAGLOGSETTINGS_IDL__
+
+/** 
+ * Diagnostics
+ */
+module diag {
+
+    /** Diagnostic log settings */
+    interface DiagLogSettings {
+
+	/** Log levels */
+	enumeration LogLevel {
+	    LOG_LEVEL_NONE,	///< no log messages
+	    LOG_LEVEL_ERR,	///< errors
+	    LOG_LEVEL_WARN,	///< warnings + errors
+	    LOG_LEVEL_INFO,	///< info + warnings + errors
+	    LOG_LEVEL_DEBUG,	///< debug + info + warnings + errors
+	    LOG_LEVEL_TRACE	///< trace + debug + info + warnings + errors
+	};
+
+	/** An entry containing a context name and its associated context. */
+	structure LogLevelEntry {
+	    string ctxName;	///< log context name
+	    LogLevel logLevel;	///< log level
+	};
+
+	constant int ERR_NONE = 0;			///< no error
+	constant int ERR_UNKNOWN_LOG_CONTEXT_NAME = 1;	///< unknown log context
+	constant int ERR_UNKNOWN_LOG_LEVEL = 2;		///< unknown log level
+
+	/** 
+	 * Reset log levels of all contexts to default.
+	 */
+	void resetLogLevelsForAllCtxNames();
+
+	/** 
+	 * Get log levels of all contexts.
+	 * 
+	 * @return vector of LogLevelEntry structures
+	 */
+	vector<LogLevelEntry> getLogLevelsForAllCtxNames();
+	
+	/** 
+	 * Set the log level for all contexts at once.
+	 * 
+	 * @param logLevel - log level
+	 * 
+	 * @return ERR_NONE on success
+	 * @return ERR_UNKNOWN_LOG_LEVEL if log level is unknown
+	 */
+	int setLogLevelForAllCtxNames(in LogLevel logLevel);
+	
+	/** 
+	 * Get the log level for a specific context.
+	 * 
+	 * @param ctxName - context name
+	 * @param logLevel - result: log level
+	 * 
+	 * @return ERR_NONE on success
+	 * @return ERR_UNKNOWN_LOG_CONTEXT_NAME if the context is unknown
+	 * @return ERR_UNKNOWN_LOG_LEVEL if log level cannot be mapped to JSON
+	 */
+	int getLogLevelByCtxName(in string ctxName, out LogLevel logLevel);
+	
+	/** 
+	 * Set the log level for a specific context.
+	 * 
+	 * @param ctxName - context name
+	 * @param logLevel - log level
+	 * 
+	 * @return ERR_NONE on success
+	 * @return ERR_UNKNOWN_LOG_CONTEXT_NAME if the context is unknown
+	 * @return ERR_UNKNOWN_LOG_LEVEL if log level is unknown
+	 */
+	int setLogLevelByCtxName(in string ctxName, in LogLevel logLevel);
+    };
+
+}
+
+#endif /* __DIAGLOGSETTINGS_IDL__ */

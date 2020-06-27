@@ -1,0 +1,296 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2015 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * Lua-Service
+ *
+ * Lua-Service is a service that you can use to upload and execute a Lua script.
+ *
+ * When the service is starting, a cleanup will be happend at first. That means
+ * still running scripts will be killed and it will be tested for which script is
+ * an option given. Does here something not match, then the script or the option
+ * will be deleted.
+ *
+ * After the service is launched, the option 'autoRestart' will be for any script
+ * evaluated. If the flag is 'true', the script is going to be executed with a
+ * short delay (Environment->autoStartDelay).
+ *
+ * You can download and upload a script with the commands getScript() and setScript().
+ * When on uploading the script name is not present a new script will be created.
+ * If the name is already taken, then the old script will be overwritten.
+ *
+ * Use startScript() to execute a lua script and terminateScript() to stop a script.
+ * If the option 'autoRestart' is set to 'true', then the script starts automatically
+ * after it has exited.
+ *
+ * To get the output for a script use the command getScriptOutput(). The output
+ * is limited to 'Environment->outputBufferSize' bytes and mapped to a virtual
+ * address. On the first query call the method with starting address zero. After
+ * that use the returned address 'nAddr' for the next request.
+ *
+ * A script can be called with arguments (see options and startWithArgs).
+ */
+module luaservice {
+
+    /**
+     * A structure that descripts the state of a script.
+     *
+     * When a script is uploaded the new execState is STAT_NEW. exitCode and
+     * signal is not valid.
+     *
+     * When the execState is changing to STAT_TERMINATED then exitCode and signal
+     * will be set.
+     */
+    structure ScriptState {
+
+	/** execution state for a scripts */
+	enumeration ExecState {
+	    STAT_NEW,          ///< the script never ran (after uploading or system (re)start)
+	    STAT_RUNNING,      ///< script state is running
+	    STAT_TERMINATED,   ///< script state is terminated
+	    STAT_RESTARTING    ///< script is terminated and restarts after 'restart interval'
+	};
+
+	/** Descripts the type of exitStatus */
+	enumeration ExitType {
+	    EXIT_CODE,     ///< exitStatus is an exit code
+	    SIGNAL         ///< exitStatus is a signal
+	};
+
+	ExecState execState;   ///< execution state of the script
+	ExitType  exitType;    ///< type of exit code
+	int       exitStatus;  ///< exit status or signal
+    };
+
+    /** some script options */
+    structure ScriptOptions_2_0_0 {
+	map <string, string> defaultArgs;   ///< default arguments are passed to the lua script
+	boolean autoStart;		    ///< starts a script after system booting
+	boolean autoRestart;                ///< restarts a script after termination or crash
+    };
+
+    /**
+     * The struct represents two kinds of information:
+     * - limit (l)
+     * - current status (cs)
+     * Is a limit set to zero then there is no limit set. The unit of size
+     * is byte. The unit of interval is millisecond.
+     */
+    structure Environment_2_0_0 {
+	int maxScriptMemoryGrowth;///< maximum virtual memory growth per script  (l)
+	int maxAmountOfScripts;   ///< number of scripts that can be stored  (l)
+	int amountOfScripts;      ///< number of scripts that are stored  (cs)
+	int maxScriptSize;        ///< maximum size of a script file  (l)
+	int maxAllScriptSize;     ///< maximum size of all script files  (l)
+	int allScriptSize;        ///< size of all script files  (cs)
+	int outputBufferSize;     ///< output buffer size per script  (l)
+	int restartInterval;      ///< minimum delay to next (re)start (cs)
+	int autoStartDelay;       ///< minimum delay to 'autoStart' a script
+    };
+
+    /**
+     * There is a single manager instance.
+     */
+    interface Manager_2_0_1 {
+
+	/** Error codes */
+	constant int NO_ERROR                          =  0; ///< no Error
+	constant int ERR_INVALID_NAME                  =  1; ///< script name is invalid
+	constant int ERR_NO_SUCH_SCRIPT                =  2; ///< script name not found
+	constant int ERR_MAX_SCRIPT_NUMBERS_EXCEEDED   =  3; ///< maximum amount of stored script files is reached
+	constant int ERR_MAX_SCRIPT_SIZE_EXCEEDED      =  4; ///< maximum size of a script file is reached
+	constant int ERR_MAX_ALL_SCRIPT_SIZE_EXCEEDED  =  5; ///< maximum size of all script files is reached
+	constant int ERR_NOT_TERMINATED                =  6; ///< script is not terminated
+	constant int ERR_NOT_RUNNING                   =  7; ///< script is not running
+	constant int ERR_INVALID_ADDR                  =  8; ///< address parameter is wrong
+	constant int ERR_TOO_MANY_ARGUMENTS            = 10; ///< too many arguments
+	constant int ERR_ARGUMENT_NOT_VALID            = 11; ///< the argument has one or more invalid characters
+
+	/**
+	 * Upload a script to instance
+	 *
+	 * If there is a script with the same name the new script will replace
+	 * the existing script (script must be in STAT_NEW or STAT_TERMINATED).
+	 *
+	 * @param name The name of the script file
+	 * @param script The script file packed in a string
+	 * @param options Options that can be set or not
+	 *
+	 * @return NO_ERROR                           if OK
+	 * @return ERR_INVALID_NAME                   if script name is invalid
+	 * @return ERR_MAX_SCRIPT_SIZE_EXCEEDED       if the size of the new script is greater then the maximum file size
+	 * @return ERR_MAX_ALL_SCRIPT_SIZE_EXCEEDED   if maximum size of all script files is reached
+	 * @return ERR_MAX_SCRIPT_NUMBERS_EXCEEDED    if maximum amount of script files is reached
+	 * @return ERR_NOT_TERMINATED                 if try to replace a running script
+	 */
+	int setScript(in string name, in string script, in ScriptOptions_2_0_0 options);
+
+	/**
+	 * To download a script file to user.
+	 *
+	 * @param name The name of an existing script
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if script name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 */
+	int getScript(in string name, out string script);
+
+	/**
+	 * Returns all script names in a string vector.
+	 *
+	 * If there are no scripts the vector is empty.
+	 *
+	 * @return A vector with all script names.
+	 */
+	vector<string> getScriptNames();
+
+	/**
+	 * Deletes a script.
+	 *
+	 * @param name The name of the script
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if script name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 * @return ERR_NOT_TERMINATED   if try to delete a running script
+	 */
+	int deleteScript(in string name);
+
+	/**
+	 * Sets new options for a script.
+	 *
+	 * @param name The name of the script
+	 * @param options The new options
+	 *
+	 * @return NO_ERROR                      if OK
+	 * @return ERR_INVALID_NAME              if script name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT            if there is no script with the name
+	 * @return ERR_TOO_MANY_ARGUMENTS        if the size of the map is to big
+	 * @return ERR_ARGUMENT_NOT_VALID        if a string in the arguments is not 
+	 */
+	int setScriptOptions(in string name, in ScriptOptions_2_0_0 options);
+
+	/**
+	 * Returns the options for a script.
+	 *
+	 * @param name The name of the script
+	 * @param options The return value
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if script name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 */
+	int getScriptOptions(in string name, out ScriptOptions_2_0_0 options);
+
+	/**
+	 * To query the environment information.
+	 *
+	 * @return a struct with the environment information
+	 */
+	Environment_2_0_0 getEnvironment();
+
+	/**
+	 * To get output from a script as a string
+	 *
+	 * The output is stored in a string buffer with a defined size. The buffer is addressable with an
+	 * (virtual) address. The address will be increased ervery time when the buffer will be filled.
+	 *
+	 * To get the output for the first time just call with address zero and then use the returned nAddr
+	 * argument.
+	 *
+	 * If iAddr is negative then the last n bytes will be returned, e.g. -9 returns the last 9 characters.
+	 * If iAddr is zero then the whole available buffer will be returned.
+	 * If iAddr is positive then the returned buffer starts at this address.
+	 * If iAddr is equal to nAddr then there is no data available
+	 * If iAddr and oAddr is not equal then there were data lost (execption: first call with zero).
+	 *
+	 * @param name The name of the script
+	 * @param iAddr The virtual start address where the returned output should begin.
+	 * @param oAddr The virtual address from where the string starts.
+	 * @param nAddr The virtual address for the next query.
+	 * @param more A boolean whitch indicates if there is more data available.
+	 *
+	 * @return NO_ERROR                      if OK
+	 * @return ERR_INVALID_NAME              if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT            if there is no script with the name
+	 * @return ERR_INVALID_ADDR              if iAddr is negative and the absolute value of parameter iAddr is greater as the limit
+	 */
+	int getScriptOutput(in string name, in long iAddr, out long oAddr, out long nAddr, out string oString, out boolean more);
+
+	/**
+	 * Clear the output buffer of a script.
+	 *
+	 * @param name The name of the script
+	 *
+	 * @return NO_ERROR                      if OK
+	 * @return ERR_INVALID_NAME              if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT            if there is no script with the name
+	 */
+	int clearScriptOutput(in string name);
+
+	/**
+	 * To start a script
+	 *
+	 * The function starts a lua script.
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 * @return ERR_NOT_TERMINATED   if the script is running or restarting
+	 */
+	int startScript(in string name);
+
+	/**
+	 * To start a script with arguments
+	 *
+	 * The function starts a lua script. Additionally you can add arguments which are available from the
+	 * lua script. This args will override the default arguments. All args are stored in a global table
+	 * called ARGS in lua.
+	 *
+	 * @return NO_ERROR                      if OK
+	 * @return ERR_INVALID_NAME              if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT            if there is no script with the name
+	 * @return ERR_NOT_TERMINATED            if the script is running or restarting
+	 * @return ERR_TOO_MANY_ARGUMENTS        if the size of the map is to big
+	 * @return ERR_ARGUMENT_NOT_VALID        if a string in the arguments is not valid
+	 */
+	int startScriptWithArgs(in string name, in map<string, string> arguments);
+
+	/**
+	 * To stop a script
+	 *
+	 * This command stops a running or restarting script. After terminating the option autorestart will
+	 * not be evaluated.
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 * @return ERR_NOT_RUNNING      if the script is not running or restarting
+	 */
+	int terminateScript(in string name);
+
+	/**
+	 * Returns the state for a single script.
+	 *
+	 * @param name The script name
+	 * @param state The state of the script
+	 *
+	 * @return NO_ERROR             if OK
+	 * @return ERR_INVALID_NAME     if file name is invalid
+	 * @return ERR_NO_SUCH_SCRIPT   if there is no script with the name
+	 */
+	int getScriptState(in string name, out ScriptState state);
+
+
+	/**
+	 * Returns the state for all scripts. If the map is empty then there are no scripts on the machine.
+	 *
+	 * @return A map<string name, ScriptState state> with name and state for all available scripts.
+	 */
+	map<string, ScriptState> getScriptStates();
+    };
+
+}

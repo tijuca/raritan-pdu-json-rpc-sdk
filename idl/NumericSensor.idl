@@ -1,0 +1,207 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2009 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SENSORMODEL_NUMERICSENSOR_IDL__
+#define __SENSORMODEL_NUMERICSENSOR_IDL__
+
+#include <Event.idl>
+#include <Sensor.idl>
+#include <UserEvent.idl>
+
+/** Sensors Model */
+module sensors {
+
+    /** A sensor with numeric readings */
+    interface NumericSensor_4_0_3 extends Sensor_4_0_3 {
+
+	constant int THRESHOLD_OUT_OF_RANGE = 1;  ///< The threshold exceedes the sensor range
+	constant int THRESHOLD_INVALID = 2; 	  ///< The threshold constraints are not met
+	constant int THRESHOLD_NOT_SUPPORTED = 3; ///< The sensor does not support setting this threshold
+	
+	/** Range of possible sensor readings */
+	structure Range {
+	    double lower;		///< Minimum reading
+	    double upper;		///< Maximum reading
+	};
+
+	/**
+	 * Threshold capabilities
+	 */
+	structure ThresholdCapabilities {
+	    boolean hasUpperCritical;	   ///< Sensor has upper critical threshold
+	    boolean hasUpperWarning;	   ///< Sensor has upper warning threshold
+	    boolean hasLowerWarning;	   ///< Sensor has lower warning threshold
+	    boolean hasLowerCritical;	   ///< Sensor has lower critical threshold
+	};
+	
+	/** Numeric sensor metadata */
+	structure MetaData {
+	    /**
+	     * Sensor type, reading type and unit
+	     */
+	    Sensor_4_0_3.TypeSpec type;
+
+	    /**
+	     * Number of significant decimal digits.
+	     *
+	     * Indicates how many digits should be displayed
+	     * to the right of the decimal point. I.e. double
+	     * values must be rounded with this precision.
+	     */
+	    int decdigits;
+
+	    /**
+	     * Sensor accuracy in percent.
+	     *
+	     * How close in percent measurement is to actual value.
+	     * This value has an implicit precision of 2, i.e. the double
+	     * value must be rounded for 2 decimal digits before use.
+	     * For example a reading of 10.0 and an accuracy of 0.2
+	     * means the actual reading value is 10.0 +/- 0.2%.
+	     *
+	     * A value of 0 means unused.
+	     */
+	    float accuracy;
+
+	    /**
+	     * Sensor resolution.
+	     *
+	     * Minimum difference between any two measured values.
+	     * Must be rounded with decimal digits.
+	     */
+	    float resolution;
+
+	    /**
+	     * Sensor tolerance.
+	     *
+	     * Tolerance is given in +/- counts of the reading value.
+	     * It indicates a constant magnitude possible error in the
+	     * quantization of an analog input to the sensor.
+	     * Rounded with decimal digits + 1.
+	     *
+	     * A value of 0 means unused.
+	     */
+	    float tolerance;
+
+	    /**
+	     * Sensor noise threshold.
+	     *
+	     * Threshold under which sensor measurements will be ignored.
+	     * Sensor measurements below that value will be reported at
+	     * the lower bound of the sensor range.
+	     */
+	    float noiseThreshold;
+
+	    /**
+	     * Range of possible sensor readings.
+	     *
+	     * Range values are rounded with with decimal digits.
+	     */
+	    Range range;
+	    
+	    /**
+	     * Threshold capabilities
+	     */
+	    ThresholdCapabilities thresholdCaps;
+	};
+
+	/** Numeric sensor thresholds */
+	structure Thresholds {
+	    boolean upperCriticalActive;	///< \c true if the upper critical threshold is enabled
+	    double  upperCritical;		///< Upper critical threshold
+	    boolean upperWarningActive;		///< \c true if the upper warning threshold is enabled
+	    double  upperWarning;		///< Upper warning threshold
+	    boolean lowerWarningActive;		///< \c true if the lower warning threshold is enabled
+	    double  lowerWarning;		///< Lower warning threshold
+	    boolean lowerCriticalActive;	///< \c true if the lower critical threshold is enabled
+	    double  lowerCritical;		///< Lower critical threshold
+	    int     assertionTimeout;		///< Assertion timeout in samples
+	    float   deassertionHysteresis;	///< Deassertion hysteresis
+	};
+
+	/** Numeric sensor reading */
+	structure Reading {
+	    /** Numeric sensor status */
+	    structure Status {
+		boolean aboveUpperCritical;	///< Reading is above upper critical threshold
+		boolean aboveUpperWarning;	///< Reading is above upper warning threshold
+		boolean belowLowerWarning;	///< Reading is below lower warning threshold
+		boolean belowLowerCritical;	///< Reading is below lower critical threshold
+	    };
+	    time timestamp;			///< Timestamp of last sample
+	    boolean available;			///< \c true if the sensor is available
+	    Status status;			///< Numeric sensor status
+	    boolean valid;			///< \c true if the sensor reading is valid
+	    double value;			///< Numeric sensor reading
+	};
+
+        /** Event: Numeric sensor reading has changed */
+	valueobject ReadingChangedEvent extends idl.Event {
+	    Reading newReading;                 ///< New numeric sensor reading
+	};
+
+        /** Event: Sensor state has changed */
+	valueobject StateChangedEvent extends idl.Event {
+	    Reading oldReading;			///< Reading before state change
+	    Reading newReading;			///< Reading after state change
+	};
+
+        /** Event: Sensor metadata has changed */
+	valueobject MetaDataChangedEvent extends idl.Event {
+	    MetaData oldMetaData;		///< Metadata before change
+	    MetaData newMetaData;		///< Metadata after change
+	};
+
+	/** Event: Sensor thresholds have changed */
+	valueobject ThresholdsChangedEvent extends event.UserEvent {
+	    Thresholds oldThresholds;		///< Threshold set before change
+	    Thresholds newThresholds;		///< Threshold set after change
+	};
+
+	/**
+	 * Retrieve the sensor metadata.
+	 *
+	 * @return Sensor metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the sensor default thresholds.
+	 *
+	 * @return Set of default thresholds
+	 */
+	Thresholds getDefaultThresholds();
+
+	/**
+	 * Retrieve the active thresholds.
+	 *
+	 * @return Set of active thresholds
+	 */
+	Thresholds getThresholds();
+
+	/**
+	 * Change the active thresholds.
+	 *
+	 * @param thresh  New set of thresholds
+	 *
+	 * @return 0	    	    	    if OK
+	 * @return THRESHOLD_OUT_OF_RANGE   if any threshold is out of range
+	 * @return THRESHOLD_INVALID	    if thresholds don't meet the requirements
+	 * @return THRESHOLD_NOT_SUPPORTED  if threshold is not supported
+	 */
+	int setThresholds(in Thresholds thresh);
+
+	/**
+	 * Get the sensor reading.
+	 *
+	 * @return Sensor reading
+	 */
+	Reading getReading();
+
+    };
+
+}
+
+#endif

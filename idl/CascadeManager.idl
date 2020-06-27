@@ -1,0 +1,178 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/** Raritan JSON-RPC */
+module cascading {
+
+    /** JSON-RPC Cascade Manager */
+    interface CascadeManager {
+
+	constant int NO_ERROR = 0;                        ///< Operation successful, no error
+	constant int ERR_INVALID_PARAM = 1;               ///< A parameter was invalid
+	constant int ERR_UNSUPPORTED_ON_MASTER = 2;       ///< Operation not allowed for a master unit
+	constant int ERR_UNSUPPORTED_ON_LINK_UNIT = 3;    ///< Operation not allowed for a link unit
+	constant int ERR_LINK_ID_IN_USE = 4;              ///< The specified link ID is already used
+	constant int ERR_HOST_IN_USE = 5;                 ///< The specified host is already in use
+	constant int ERR_LINK_UNIT_UNREACHABLE = 6;       ///< Could not connect to the link device
+	constant int ERR_LINK_UNIT_ACCESS_DENIED = 7;     ///< Login to link device failed
+	constant int ERR_LINK_UNIT_REFUSED = 8;           ///< Remote device refused to become a link unit
+	constant int ERR_UNIT_BUSY = 9;                   ///< The unit could not respond because it was busy
+	constant int ERR_NOT_SUPPORTED = 10;              ///< Operation not supported on this device
+	constant int ERR_PASSWORD_CHANGE_REQUIRED = 11;   ///< The unit requires a password change
+	constant int ERR_PASSWORD_POLICY = 12;            ///< The given password did not meet the requirements
+
+	/** JSON-RPC Cascade Role */
+	enumeration Role {
+	    STANDALONE,                           ///< Standalone unit, not in cascade
+	    MASTER,                               ///< Master unit controlling other devices
+	    LINK_UNIT                             ///< link unit under master control
+	};
+
+	/** Link Unit Communication Status */
+	[unknown_fallback("UNKNOWN")]
+	enumeration LinkUnitStatus {
+	    UNKNOWN,                              ///< The status of the link unit is unknown
+	    OK,                                   ///< The link unit operates normally
+	    UNREACHABLE,                          ///< The link unit is unreachable
+	    ACCESS_DENIED,                        ///< The link unit denies access
+	    FIRMWARE_UPDATE                       ///< Ths link unit is performing a firmware update
+	};
+
+	/** Link Unit Status */
+	structure LinkUnit {
+	    string host;                          ///< Link unit host name or IP address
+	    LinkUnitStatus status;                ///< Communication status
+	};
+
+	/** Full Cascading Status */
+	structure Status {
+	    Role role;                            ///< This unit's role in the JSON-RPC cascade
+	    string master;                        ///< The master IP address (if role is link unit)
+	    map<int, LinkUnit> linkUnits;         ///< The list of link units (if role is master)
+	};
+
+	/** Event: This unit's role in the cascade has changed */
+	valueobject RoleChangedEvent extends idl.Event {
+	    Role oldRole;                         ///< Previous role before the change
+	    Role newRole;                         ///< New role after the change
+	    string master;                        ///< Master IP address (if new role is link unit)
+	};
+
+	/** Event: A new link unit has been added */
+	valueobject LinkUnitAddedEvent extends event.UserEvent {
+	    int linkId;                           ///< Link ID
+	    string host;                          ///< Host name or IP address
+	};
+
+	/** Event: A link unit has been released */
+	valueobject LinkUnitReleasedEvent extends event.UserEvent {
+	    int linkId;                           ///< Link ID
+	    string host;                          ///< Host name or IP address
+	};
+
+	/** Event: A link unit's communication status has changed */
+	valueobject LinkUnitStatusChangedEvent extends idl.Event {
+	    int linkId;                           ///< Link ID
+	    string host;                          ///< Host name or IP address
+	    LinkUnitStatus oldStatus;             ///< Previous communication status
+	    LinkUnitStatus newStatus;             ///< New communication status
+	};
+
+	/**
+	 * Retrieve the full cascading status for this unit.
+	 *
+	 * @return Full cascading status
+	 */
+	Status getStatus();
+
+	/**
+	 * Put a new link unit under this master's control.
+	 *
+         * The login credentials must have administrator privileges on the link
+	 * unit. They are only used to establish a trust relationship between
+	 * master and link unit and not stored.
+	 *
+	 * This method can also be used to re-authenticate a link unit that
+	 * denies access. In that case the linkId and host parameter must
+	 * exactly match the existing values.
+	 *
+	 * @param linkId       The ID for the new link unit
+	 * @param host         The link unit's host name or IP address
+	 * @param login        The administrator login for the link unit
+	 * @param password     The administrator password for the link unit
+	 * @param newPassword  The new administrator password for the unit.
+	 *                     This is needed for adding a link unit that still has default
+	 *                     settings and requires a password change. Otherwise it can be
+	 *                     left empty.
+	 *
+	 * @return NO_ERROR                      The operation was successful
+	 * @return ERR_INVALID_PARAM             One of the parameters had an invalid value
+	 * @return ERR_UNSUPPORTED_ON_LINK_UNIT  This unit is currently a link unit and can't have link units of its own
+	 * @return ERR_LINK_ID_IN_USE            The specified link ID is already in use
+	 * @return ERR_HOST_IN_USE               The specified host is already in use
+	 * @return ERR_LINK_UNIT_UNREACHABLE     Connection to the link unit failed
+	 * @return ERR_LINK_UNIT_ACCESS_DENIED   The credentials for the link unit were invalid
+	 * @return ERR_LINK_UNIT_REFUSED         The remote unit refused to become our link unit, e.g. because it's a master itself
+	 * @return ERR_UNIT_BUSY                 This unit is currently busy with handling another request
+	 * @return ERR_NOT_SUPPORTED             This device does not support PDU linking
+	 * @return ERR_PASSWORD_CHANGE_REQUIRED  The specified link unit requires a password change
+	 * @return ERR_PASSWORD_POLICY           The new password did not meet the requirements
+	 */
+	int addLinkUnit(in int linkId, in string host, in string login, in string password, in string newPassword);
+
+	/**
+	 * Release a link unit from this master's control.
+	 *
+	 * @param linkId   The ID of the link unit
+	 *
+	 * @return NO_ERROR           The operation was successful
+	 * @return ERR_INVALID_PARAM  The specified link ID is invalid
+	 */
+	int releaseLinkUnit(in int linkId);
+
+	/**
+	 * Request to make this unit a link unit and put it under the remote
+	 * master's control.
+	 *
+	 * This method is usually called by the master unit when adding a new
+	 * link unit. The link will only be established once finalizeLink() is
+	 * successfully called.
+	 *
+	 * @param token  Authorization token for future requests
+	 *
+	 * @return NO_ERROR                   The operation was successful
+	 * @return ERR_UNSUPPORTED_ON_MASTER  This unit is a master and can't become a link unit
+	 * @return ERR_NOT_SUPPORTED          This device does not support PDU linking
+	 */
+	int requestLink(in string token);
+
+	/**
+	 * Finalize the link with this link unit.
+	 *
+	 * @param token  same authorization token as used for requestLink()
+	 *
+	 * This method should only be called by the master unit in order to
+	 * acknowledge the establishment of the link to the link unit and
+	 * finalize the link build-up. The linking will only take effect once
+	 * the link unit received this acknowledgement.
+	 *
+	 * If this method fails, you will get the ACCESS_DENIED status for this
+	 * link unit and you will have to re-authenticate it.
+	 */
+	void finalizeLink(in string token);
+
+	/**
+	 * Release this link unit from the remote master's control.
+	 *
+	 * This method is usually called by the master unit when releasing a
+	 * link unit. This unit will become a standalone unit.
+	 */
+	void unlink();
+
+    };
+
+}

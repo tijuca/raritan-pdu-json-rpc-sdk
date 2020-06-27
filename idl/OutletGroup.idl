@@ -1,0 +1,97 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_OUTLETGROUP_IDL__
+#define __PDUMODEL_OUTLETGROUP_IDL__
+
+#include <AccumulatingNumericSensor.idl>
+#include <Outlet.idl>
+
+module pdumodel {
+
+    /** Main PDU interface */
+    interface OutletGroup_1_0_1 {
+	constant int ERR_INVALID_ARGUMENT = 1;
+
+	structure Sensors {
+	    sensors.NumericSensor_4_0_3 activePower;		    ///< Active power sensor
+	    sensors.AccumulatingNumericSensor_2_0_3 activeEnergy;   ///< Active energy sensor
+	};
+
+	structure Settings {
+	    string name;
+	    vector<Outlet_2_1_5> members;
+	};
+
+	structure MetaData {
+	    int groupId;		///< (ID) Value under which OutletGroupManager references this group,
+					///< unique only for a given point in time
+	    int uniqueId;		///< (Random) ID value uniquely identifying this group,
+					///< even after group deletions and creations of new groups
+	};
+
+        /** Event: Group sensors have changed */
+        valueobject SensorsChangedEvent extends idl.Event {
+            Sensors oldSensors;                         ///< Sensors before change
+            Sensors newSensors;                         ///< Sensors after change
+        };
+
+	/** Event: Group settings have been changed */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+	    Settings oldSettings;			///< Settings before change
+	    Settings newSettings;			///< Settings after change
+	};
+
+	/** Event: Group switch operation has been invoked */
+	valueobject PowerControlEvent extends event.UserEvent {
+	    Outlet_2_1_5.PowerState state;		///< Target power state, only valid if not cycling
+	    boolean cycle;				///< Whether a power cycle operation was invoked
+	};
+
+	/**
+	 * Retrieve the PDU sensors.
+	 *
+	 * @return PDU sensors
+	 */
+	Sensors getSensors();
+
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve the PDU settings.
+	 *
+	 * @return PDU settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * Change the PDU settings.
+	 *
+	 * @param settings  New PDU settings
+	 *
+	 * @return 0 if OK
+	 * @return 1 if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * Switch all outlets.
+	 *
+	 * @param pstate  New power state for all outlets
+	 *
+	 * @return 0 if OK
+	 */
+	int setAllOutletPowerStates(in Outlet_2_1_5.PowerState pstate);
+
+	/**
+	 * Power-cycle all outlets.
+	 *
+	 * @return 0 if OK
+	 */
+	int cycleAllOutletPowerStates();
+    };
+}
+
+#endif

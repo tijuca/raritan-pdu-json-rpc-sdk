@@ -1,0 +1,38 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2017 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_OCP_TRIP_SENSOR_IDL__
+#define __PDUMODEL_OCP_TRIP_SENSOR_IDL__
+
+#include <Outlet.idl>
+#include <StateSensor.idl>
+
+/** PDU Model */
+module pdumodel {
+
+    /** Overcurrent protector trip sensor interface */
+    interface OverCurrentProtectorTripSensor_1_0_5 extends sensors.StateSensor_4_0_3 {
+	/** Event: Overcurrent protector trip state has changed */
+	valueobject TripStateChangedEvent extends sensors.StateSensor_4_0_3.StateChangedEvent {
+	    /**
+	     * Outlet that is most likely to have caused the OCP to trip.
+	     * If no outlet can be determined to have caused the trip, this field is left unset.
+	     */
+	    Outlet_2_1_5 tripCause;
+	};
+
+	/**
+	 * Get the outlet that is most likely to have caused the last OCP trip.
+	 *
+	 * @return The outlet that most likely caused the OCP to trip. If either
+	 *         the OCP is not currently tripped or no outlet can be determined
+	 *         to have caused the trip, null is returned.
+	 */
+	Outlet_2_1_5 getTripCause();
+    };
+
+}
+
+#endif

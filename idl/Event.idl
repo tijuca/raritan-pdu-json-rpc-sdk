@@ -1,0 +1,21 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __IDL_EVENT_IDL__
+#define __IDL_EVENT_IDL__
+
+/** Basic IDL definitions */
+module idl {
+
+    /** Common base for all events */
+    valueobject Event {
+
+	Object source; ///< IDL object that originated the event
+
+    };
+
+}
+
+#endif

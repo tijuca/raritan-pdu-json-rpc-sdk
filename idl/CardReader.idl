@@ -1,0 +1,78 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __SMARTCARD_CARD_READER_IDL__
+#define __SMARTCARD_CARD_READER_IDL__
+
+#include <Event.idl>
+
+/** Card Reader */
+module smartcard {
+
+    /** Card Reader Interface */
+    interface CardReader_1_0_2 {
+
+	/** Error codes */
+	constant int NO_ERROR		= 0;	///< operation successful, no error
+	constant int ERR_SLOT_EMPTY	= 1;	///< no card present in reader
+
+	/**
+	 * Reader Metadata
+	 */
+	structure MetaData {
+	    string id;				///< Card reader ID used in events and traps
+	    string manufacturer;		///< manufacturer
+	    string product;			///< product
+	    string serialNumber;		///< serial number (S/N)
+	    int channel;			///< one device (S/N) can provide multiple readers
+	};
+
+	/**
+	 * Card Information
+	 */
+	structure CardInformation {
+	    string type;			///< card type
+	    string uid;				///< card id
+	};
+
+	/**
+	 * Card base event
+	 */
+    	valueobject CardEvent extends idl.Event {
+    	    CardInformation cardInfo;		///< card info of affected card
+    	};
+
+	/**
+	 * Card inserted event
+	 */
+    	valueobject CardInsertedEvent extends CardEvent {};
+
+	/**
+	 * Card removed event
+	 */
+    	valueobject CardRemovedEvent extends CardEvent {};
+
+	/**
+	 * Retrieve reader metadata.
+	 *
+	 * @return metadata
+	 */
+	MetaData getMetaData();
+
+	/**
+	 * Retrieve card information from reader.
+	 *
+	 * @param cardInfo    Card Information
+	 *
+	 * @return NO_ERROR			if OK
+	 * @return ERR_SLOT_EMPTY		if reader sees no card
+	 */
+	int getCardInformation(out CardInformation cardInfo);
+
+    };
+
+}
+
+#endif /* __SMARTCARD_CARD_READER_IDL__ */

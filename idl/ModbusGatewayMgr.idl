@@ -1,0 +1,45 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __MODBUS_GATEWAY_MGR_IDL__
+#define __MODBUS_GATEWAY_MGR_IDL__
+
+module modbus {
+    interface GatewayMgr {
+	constant int NO_ERROR           = 0; ///< No error
+	constant int ERR_INVALID_PARAMS = 1; ///< Invalid parameters
+	
+	/** Modbus RTU settings */
+	structure RtuSettings {
+	    byte defaultAddr;	///< Modbus serial device default address
+	    int speed;     	///< Modbus serial line speed
+	    byte parity;    	///< Modbus serial line parity (N/E/O)
+	};
+	
+	/** Modbus gateway settings (extending modb PortMux service) */
+	structure Settings {
+	    RtuSettings     rtu;    	///< Modbus RTU settings
+	};
+	
+	/**
+	 * Get the modbus gateway settings
+	 *
+	 * @return settings
+	 */
+	Settings getSettings();
+	
+	/**
+	 * Set the modbus gateway settings
+	 *
+	 * @param   settings
+	 *
+	 * @return 0	    	      if OK
+	 * @return ERR_INVALID_PARAMS if any parameters are invalid
+	 */
+	int setSettings(in Settings settings);
+    };
+}
+
+#endif /* !__MODBUS_GATEWAY_MGR_IDL__ */

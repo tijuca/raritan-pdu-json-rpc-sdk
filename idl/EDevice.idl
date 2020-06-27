@@ -1,0 +1,44 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PDUMODEL_EDEVICE_IDL__
+#define __PDUMODEL_EDEVICE_IDL__
+
+/** PDU Model */
+module pdumodel {
+
+    /**
+     * Common base interface for any kind of electrical device that is used
+     * in the PDU model, such as inlets, OCPs and outlets.
+     *
+     * EDevices form a hierarchy of parent-child relationships. An EDevice is
+     * defined to be the parent of another if it "provides energy" to the
+     * latter. E.g. an inlet could be the parent of a number of OCPs,
+     * wires or outlets.
+     *
+     * An EDevice can have multiple parents, e.g. in case of transfer switches
+     * which select power from multiple sources.
+     */
+    interface EDevice {
+
+	/**
+	 * Get the list of devices that provide energy to this device.
+	 *
+	 * @return List of parent devices
+	 */
+	vector<EDevice> getParents();
+
+	/**
+	 * Get the list of devices that are directly fed by this device.
+	 *
+	 * @return List of child devices
+	 */
+	vector<EDevice> getChildren();
+
+    };
+
+}
+
+#endif

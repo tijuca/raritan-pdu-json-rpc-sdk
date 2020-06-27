@@ -1,0 +1,74 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+#include "NumericSensor.idl"
+#include "SensorLogger.idl"
+
+/** The datapush module contains the definition of the JSON-encoded datapush messages. The standard rules for enconding apply.
+
+  \ref datapush_example
+*/
+module datapush {
+    enumeration PowerLine {
+	L1,				///< Line 1
+	L2,				///< Line 2
+	L3,				///< Line 3
+	NEUTRAL,			///< Neutral
+	EARTH				///< Earth
+    };
+
+    /** Device type */
+    enumeration DeviceType {
+	INLET,                      ///< Inlet
+	INLET_POLE,                 ///< Inlet Pole
+	OCP,                        ///< Overcurrent Protector
+	OCP_POLE,                   ///< Overcurrent Protector Pole
+	OUTLET,                     ///< Outlet
+	OUTLET_POLE,                ///< Outlet Pole
+	WIRE,                       ///< Wire
+	WIRE_POLE,                  ///< Wire Pole
+	TRANSFER_SWITCH,            ///< Transfer Switch
+	TRANSFER_SWITCH_POLE,       ///< Transfer Switch Pole
+	EXTERNAL_SENSOR,            ///< External Sensor
+	POWER_METER,		    ///< Power Meter
+	POWER_METER_POLE,	    ///< Power Meter Pole
+	PANEL_CIRCUIT,		    ///< Circuit in a PMC Panel
+	PANEL_CIRCUIT_POLE,	    ///< Circuit Pole in a PMC Panel
+	PDU,			    ///< PDU global
+	OUTLET_GROUP		    ///< Outlet group
+    };
+
+    /** Device information */
+    structure Device {
+	DeviceType type;            ///< Device type
+	string label;               ///< Device label
+	PowerLine line;             ///< Power line (pole sensors only)
+    };
+
+    /** Sensor information */
+    structure Sensor {
+	Device device;              ///< Device information
+	string id;                  ///< Sensor identification
+	int readingtype;
+	                            ///< Reading type (numeric or discrete)
+	sensors.NumericSensor_4_0_3.MetaData metadata;
+	                            ///< Metadata (if readingType is NUMERIC)
+    };
+
+    /** One full log row (one timestamp, mulitple sensors) */
+    structure LogRow {
+	time timestamp;             ///< Timestamp
+	vector<sensors.Logger_2_1_6.Record> records;
+	                            ///< Log records (one per sensor, same order
+	                            ///< as in the sensor list)
+    };
+
+    /** Message for pushing one full log record for all sensors */
+    structure SensorLogPushMessage {
+	vector<Sensor> sensors;     ///< List of logged sensors
+	vector<LogRow> rows;        ///< List of log rows
+    };
+
+}

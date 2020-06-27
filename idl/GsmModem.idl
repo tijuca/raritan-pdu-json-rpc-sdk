@@ -1,0 +1,186 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __GSMMODEM_IDL__
+#define __GSMMODEM_IDL__
+
+#include <Event.idl>
+
+/** Serial Ports */
+module serial {
+
+    /**
+     * Interface for communication with a GSM modem attached
+     * to a serial port
+     */
+    interface GsmModem_1_0_2 {
+	/**
+	 * Error codes
+	 */
+	constant int SUCCESS                   = 0; ///< No error
+	constant int ERR_INVALID_VALUE         = 1; ///< Invalid argument
+	constant int ERR_WRONG_PIN             = 2; ///< The PIN is incorrect or missing
+	constant int ERR_SMS_SEND_FAILED       = 3; ///< SMS delivery failed
+	constant int ERR_COMMUNICATION_FAILURE = 4; ///< Communication with the modem failed
+	constant int ERR_SIM_LOCKED            = 5; ///< The SIM card is locked and waits for the PUK
+	constant int ERR_WRONG_SIM_STATUS      = 6; ///< The SIM card doesn't wait for the PUK
+	constant int ERR_WRONG_PUK             = 7; ///< The PUK is incorrect or missing
+	constant int ERR_SIM_PROBLEM           = 8; ///< There is a problem with the SIM or service subscription
+
+	/**
+	 * Possible security states the sim card can be in at a given time
+	 */
+	enumeration SimSecurityStatus {
+	    UNLOCKED,		///< SIM card is unlocked
+	    WAITFORPIN,		///< PIN must be entered to unlock the SIM card
+	    WAITFORPUK,		///< PUK and new PIN must be entered to unlock the SIM card
+	    UNKNOWN		///< Unkown security status
+	};
+
+	/**
+	 * Structure for holding settings of the GSM modem
+	 * and its SIM card
+	 */
+	structure Settings {
+	    string pin;		///< PIN of the SIM card
+	    string smsc;	///< Custom SMS center number (in ITU-T E.164 format),
+				///< leave empty to use number stored on SIM card
+	};
+
+	/**
+	 * Structure holding information about the modem and the SIM card.
+	 * Any of the fields may be empty if the information can not be retrieved.
+	 */
+	structure Information {
+	    string imei;		///< IMEI of the modem
+	    string imsi;		///< IMSI of the SIM card
+
+	    string manufacturer;	///< modem manufacturer string
+	    string model;		///< modem model string
+	    string revision;		///< modem revision string
+
+	    string ownNumber;		///< own phone number in ITU-T E.164 format
+	    string simSmsc;		///< SMS center number stored on SIM card
+	    string networkName;		///< Name of the currently used network (PLMN)
+	    string serviceProviderName;	///< Name of the service provider (SPN)
+	    int receptionLevel;		///< reception level in dBm
+					///< 0 means unknown, -1 means no reception
+	};
+
+	/**
+	 * Sim card security status changed event
+	 */
+    	valueobject SimSecurityStatusChangedEvent extends idl.Event {
+	    SimSecurityStatus newSimStatus; ///< new SIM card security status
+    	};
+
+	/**
+	 * Sim pin updated event
+	 */
+    	valueobject SimPinUpdatedEvent extends idl.Event {
+	    string newPin; ///< new PIN for SIM card after Unlock
+    	};
+
+    	/**
+	 * @brief Get modem settings
+	 *
+	 * @return -- Current modem settings
+	 */
+	Settings getSettings();
+
+	/**
+	 * @brief Set modem settings
+	 *
+	 * @param settings -- New settings
+	 *
+	 * @return SUCCESS           -- on success
+	 * @return ERR_INVALID_VALUE -- if any passed value was invalid
+	 */
+	int setSettings(in Settings settings);
+
+	/**
+	 * @brief Send out a SMS message
+	 *
+	 * @param recipient -- Phone number of the message recipient in ITU-T E.164 format
+	 * @param text      -- Message text (will be sent in multiple messages if longer than 160 characters)
+	 *
+         * @return SUCCESS                   -- on success
+         * @return ERR_WRONG_PIN             -- if the PIN currently stored in the settings is incorrect or missing
+         * @return ERR_SMS_SEND_FAILED       -- if the delivery of the SMS to the network failed
+         * @return ERR_SIM_LOCKED            -- if the SIM card is locked and waits for the PUK
+         * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+	 */
+	int sendSms(in string recipient, in string text);
+
+	/**
+	 * @brief Send out a test SMS message
+	 *
+	 * The message will be sent to the selected recipient with the text 'SMS Test'.
+	 *
+	 * @param recipient    -- Phone number of the message recipient in ITU-T E.164 format
+	 * @param testSettings -- Modem settings to be used temporarily during testing
+	 *
+         * @return SUCCESS                   -- on success
+         * @return ERR_WRONG_PIN             -- if the PIN currently stored in the settings is incorrect or missing
+         * @return ERR_SMS_SEND_FAILED       -- if the delivery of the SMS to the network failed
+         * @return ERR_SIM_LOCKED            -- if the SIM card is locked and waits for the PUK
+         * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+	 */
+	int sendTestSms(in string recipient, in Settings testSettings);
+
+	/**
+	 * @brief Retrieve low-level information about the modem and the SIM card.
+	 *
+	 * @param info         -- structure holding the returned information
+	 *
+	 * @return SUCCESS                   -- on success
+	 * @return ERR_WRONG_PIN             -- if the used PIN is incorrect or missing
+         * @return ERR_SIM_LOCKED            -- if the SIM card is locked and waits for the PUK
+	 * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+	 */
+	int getInformation(out Information info);
+
+        /**
+         * @brief Retrieve low-level information about the modem and the SIM card.
+         *        Like #getInformation, but allows providing a PIN not stored in the settings
+         *
+         * @param pin   -- PIN to use for authentication
+         * @param info  -- structure holding the returned information
+         *
+         * @return SUCCESS                   -- on success
+         * @return ERR_WRONG_PIN             -- if the used PIN is incorrect or missing
+         * @return ERR_SIM_LOCKED            -- if the SIM card is locked and waits for the PUK
+         * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+         */
+        int getInformationWithPin(in string pin, out Information info);
+
+	/**
+         * @brief Retrieve security status of the SIM card.
+         *
+         * @param simStatus -- SIM card security status
+         *
+         * @return SUCCESS                   -- on success
+         * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+         */
+        int getSimSecurityStatus(out SimSecurityStatus simStatus);
+        
+        /**
+         * @brief Unlock SIM card with PUK and set new PIN if the SIM card is in security status WAITFORPUK.
+         *        The new PIN is automatically saved in the settings.
+         *
+         * @param puk    -- PUK to use for authentication
+         * @param newPin -- new PIN to use for future authentication
+         *
+         * @return SUCCESS                   -- on success
+         * @return ERR_WRONG_SIM_STATUS      -- if the SIM card doesn't wait for the PUK
+         * @return ERR_WRONG_PUK             -- if the used PUK is incorrect or missing
+         * @return ERR_COMMUNICATION_FAILURE -- if communication with the modem failed
+         */
+        int unlockSimCard(in string puk, in string newPin);
+    };
+ 
+}
+
+#endif /* __GSMMODEM_IDL__ */

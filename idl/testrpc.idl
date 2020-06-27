@@ -1,0 +1,205 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2012 Raritan Inc. All rights reserved.
+ */
+
+/**
+ * system test interfaces
+ *
+ */
+
+module test {
+
+    /**
+     * Convenience structure to return test or operation results.
+     * - There is a result code
+     *   Typically 0 means OK
+     *             1 means Test Error
+     *             2 means Invalid Parameter
+     *   However indivdual test may redefine or extend this definition
+     * - There is a descriptive error string,
+     *   which is empty in case test went OK
+     *
+     * This structure is not neccessarily used for all operations
+     * but only for those where it comes in handy
+     */
+    structure Result {
+	int code;	///< Result code
+	string errtext;	///< Descriptive error string
+    };
+
+    /**
+     * Interface to enter and exit special test modes.
+     * Some of the port tests require the unit to be set in 
+     * dedicated test modes because special equipment is plugged into the
+     * ports which would confuse ordinary services observing those ports.
+     */
+    interface Control {
+
+	/**
+	 * returns actual state of test mode
+	 */
+	boolean isTestMode();
+	
+	/**
+	 * sets the unit in test mode which pulls away services
+	 * dealing with feature ports, aux ports, 1wire ports
+	 */
+	void setTestMode(in boolean isTestModeOn);
+
+    };
+
+    
+    /**
+     * Test routines for full RS232 Serial Interface
+     */
+    interface RS232Serial {
+
+	/**
+	 * returns list of valid device files for the test
+	 */
+	vector<string> getDeviceFiles();
+
+	/**
+	 * loop test with adapter 1
+	 * DTR->DSR, RTS->CTS
+	 */
+	Result testLoop1(in string devfile);
+
+	/**
+	 * loop test with adapter 2
+	 * DTR->DCD, RTS->RI
+	 */
+	Result testLoop2(in string devfile);
+	
+    };
+
+
+    /**
+     * test routines for Raritan Feature Serial interface
+     * (RS232 with some control lines and switched power)
+     * Require TestMode to be ON.
+     */
+    interface FeatSerial {
+
+	constant int OK                 = 0; ///< No error
+	constant int ERR_NO_TEST_MODE   = 1; ///< Not in test mode
+	constant int ERR_INVAL_PORT_NUM = 2; ///< Invalid port number
+	constant int ERR_TEST_FAILED    = 3; ///< Test failed
+	
+	/**
+	 * returns number of ports
+	 *
+	 * @return 0 if OK
+	 * @return 1 if not in test mode
+	 */
+	int getNumberOfPorts(out int numPorts);
+
+	/**
+	 * Switches Power supplied to the port
+	 * Observable with special test adapter
+	 * Power->LED
+	 *
+	 * @return OK                 if OK
+	 * @return ERR_NO_TEST_MODE   if not in test mode
+	 * @return ERR_INVAL_PORT_NUM if invalid port number
+	 */
+	int setPower(in int portNum, in boolean hasPower);
+
+	/**
+	 * Performs a loop test with special test adapter
+	 * TX->RX
+	 *
+	 * @return OK                 if OK
+	 * @return ERR_NO_TEST_MODE   if not in test mode
+	 * @return ERR_INVAL_PORT_NUM if invalid port number
+	 * @return ERR_TEST_FAILED    if test failed, errstr may be set
+	 */
+	int testLoopTxRx(in int portNum, out string errstr);
+
+	/**
+	 * Performs a loop test with special test adapter
+	 * DTR->DCD
+	 *
+	 * @return OK                 if OK
+	 * @return ERR_NO_TEST_MODE   if not in test mode
+	 * @return ERR_INVAL_PORT_NUM if invalid port number
+	 * @return ERR_TEST_FAILED    if test failed, errstr may be set
+	 */
+	int testLoopDtrDcd(in int portNum, out string errstr);
+
+    };
+
+
+    /**
+     * test routines for Raritan Aux Serial interface
+     * (RS485 on pins 3 and 6 of RJ45)
+     * Require TestMode to be ON.
+     */
+    interface AuxSerial {
+
+	constant int OK                 = 0; ///< No error
+	constant int ERR_NO_TEST_MODE   = 1; ///< Not in test mode
+	constant int ERR_INVAL_PORT_NUM = 2; ///< Invalid port number
+	constant int ERR_TEST_FAILED    = 3; ///< Test failed
+
+        /**
+         * returns number of ports
+         *
+         * @return 0 if OK
+         * @return 1 if not in test mode
+         */
+        int getNumberOfPorts(out int numPorts);
+
+        /**
+         * Performs a loop test with special test adapter
+         *
+         * @return OK                 if OK
+         * @return ERR_NO_TEST_MODE   if not in test mode
+         * @return ERR_INVAL_PORT_NUM if invalid port number
+         * @return ERR_TEST_FAILED    if test failed, errstr may be set
+         */
+        int testLoop(in int portNum, out string errstr);
+    };
+
+
+    /**
+     * test routines for RJ45 Ethernet port
+     * This is low level interface using ethtool
+     * that does not persist any of the settings made
+     * (TODO: this interface may be combined with a 'decent'
+     * network interface. Currently the network interface is
+     * dedicated to special use cases)
+     */
+    interface Ethernet {
+
+	/**
+	 * returns a a list of valid network interface devices
+	 */
+	vector<string> getDevices();
+
+	/** Ethernet Speed */
+	enumeration Speed {
+	    SPD_10,	///< 10 Mbit/s
+	    SPD_100,	///< 100 Mbit/s
+	    SPD_1000	///< 1 Gbit/s
+	};
+
+	/** Ethernet Duplex Mode */
+	enumeration Duplex {
+	    DPX_HALF,	///< Half Duplex
+	    DPX_FULL	///< Full Duplex
+	};
+
+	/**
+	 * transiently sets the interface to the desired parameters
+	 * @return 0 if OK
+	 * @return 1 if invalid param
+	 * @return 2 if system error executing operation
+	 */
+	int setParameters(in string device, in Speed speed, in Duplex duplex,
+			  in boolean isAutoNeg);
+	
+    };
+
+}

@@ -1,0 +1,134 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2011 Raritan Inc. All rights reserved.
+ */
+
+#include <UserEvent.idl>
+
+/** Webcam Management */
+module webcam {
+
+    /** PixelFormat */
+    enumeration PixelFormat {
+        MJPEG,    ///< Motion JPEG
+        JPEG,     ///< JPEG
+        RGB,      ///< RGB encoded
+        YUV       ///< YUV encoded
+    };
+
+    /** PowerLineFrequency */
+    enumeration PowerLineFrequency {
+        NOT_SUPPORTED,
+        HZ50,
+        HZ60,     
+        DISABLED
+    };
+    
+    /** Format */
+    structure Format_2_0_0 {
+        int width;		  ///< image width
+        int height;		  ///< image height
+	PixelFormat pixelFormat;  ///< pixel format
+    };
+
+    /** Controls 
+     *
+     * All int values are normed to a range of 1 to 1000
+     * 0 means "auto" if available, -1 means not supported by the webcam
+     */
+    structure Controls {
+        int brightness;		  ///< brightness
+        int contrast;		  ///< contrast
+        int saturation;		  ///< saturation
+        int gain;		  ///< gain
+        int gamma;		  ///< gamma
+        PowerLineFrequency powerLineFrequency; ///< power line frequency (50Hz, 60Hz or disabled)
+    };
+
+    /** Location */
+    structure Location {
+        string name;              ///< location name
+        string x;                 ///< x
+        string y;                 ///< y
+        string z;                 ///< z
+    };
+
+    /** Image meta data */
+    structure ImageMetaData {
+        Format_2_0_0 format;	  ///< image format information
+	long timestamp;    	  ///< image timestamp
+	Location location;  	  ///< source webcam location
+    };
+
+    /** Image */
+    structure Image_2_0_0 {
+        ImageMetaData meta;       ///< image meta data
+        string data;    	  ///< base64 encoded image data
+    };
+
+    /** Webcam settings */
+    structure Settings_2_0_0 {
+	Format_2_0_0 format;        ///< currently selected image format
+        Controls controls;        ///< image settings like brightness, contrast, gain, ...
+        string name;              ///< webcam name
+        Location location;        ///< webcam location
+        int refreshInterval;      ///< in ms, toggle "video" and "static image" mode
+    };
+
+    /** Webcam information */
+    structure Information_3_0_0 {
+        string id;	          ///< port and camera specific ID string
+	string model;             ///< camera model
+	vector<Format_2_0_0> supportedFormats; ///< supported image formats
+    };
+
+    /** The webcam interface */
+    interface Webcam_2_0_1 {
+	/**
+	 * This event is emitted after the settings of a webcam were changed
+	 */
+	valueobject SettingsChangedEvent extends event.UserEvent {
+            Settings_2_0_0 oldSettings;  ///< the old settings
+            Settings_2_0_0 newSettings;  ///< the new settings
+        };
+
+        /**
+         * Retrieve information of a specific webcam.
+         *
+         * @return Information
+         */
+        Information_3_0_0 getInformation();
+
+        /**
+         * Retrieve settings of a specific webcam.
+         *
+         * @return Settings
+         */
+        Settings_2_0_0 getSettings();
+
+        /**
+         * Change settings of a specific webcam.
+         *
+         * @param settings  New webcam settings
+         *
+         * @return 0 if success
+         */
+        int setSettings(in Settings_2_0_0 settings);
+
+        /**
+         * Apply webcam control settings without storing them
+         *
+         * @param controls  Control settings
+         *
+         * @return 0 if success
+         */
+        int setControls(in Controls controls) ;
+
+        /**
+         * Retrieve the default value of the controls.
+         *
+         * @return Controls
+         */
+        Controls getControlDefaults() ;
+    };
+}

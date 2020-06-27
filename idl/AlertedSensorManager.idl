@@ -1,0 +1,97 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2018 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __ALERTED_SENSOR_MANAGER_IDL__
+#define __ALERTED_SENSOR_MANAGER_IDL__
+
+#include <Sensor.idl>
+
+/** Sensors model */
+module sensors {
+
+    /** A global instance keeping track of sensors in alerted state */
+    interface AlertedSensorManager_1_0_1 {
+
+	/** Sensor alert state */
+	enumeration AlertState {
+	    UNAVAILABLE,		///< Sensor is unavailable
+	    NORMAL,			///< Sensor is not alerted
+	    CRITICAL,			///< Sensor is in critical state
+	    WARNED			///< Sensor is in warned state
+	};
+
+	/** Statistics about monitored sensors */
+	structure SensorCounts {
+	    int total;			///< Total number of monitored sensors
+	    int unavailable;		///< Number of unavailable sensors
+	    int critical;		///< Number of critical sensors
+	    int warned;			///< Number of warned sensors
+	};
+
+	/**
+	 * Data about a monitored sensor.
+	 *
+	 * All entries include a reference to the sensor's parent object (e.g.
+	 * an inlet or a peripheral device slot), allowing a client to identify
+	 * an unknown alerted sensor with just a few RPC calls.
+	 */
+	structure SensorData {
+	    Sensor_4_0_3 sensor;	///< Reference to the sensor object
+	    Object parent;		///< Reference to the sensor's parent object
+	    AlertState alertState;	///< Current alert state of the sensor
+	};
+
+	/**
+	 * Event: A change in the list of monitored sensors occurred.
+	 *
+	 * This event is fired when sensors are added to or removed from the
+	 * list of monitored sensors. It is not fired when a monitored sensor's
+	 * alert state changes.
+	 */
+	valueobject MonitoredSensorsChangedEvent extends idl.Event {
+	    SensorCounts counts;	///< Sensor statistics after the change
+	};
+
+	/**
+	 * Event: One or more sensors' alert states have changed.
+	 *
+	 * This event is fired whenever the result of getAlertedSensors()
+	 * changes, i.e. in the following cases:
+	 *  - An existing sensor's alert state changes
+	 *  - A newly added sensor is alerted
+	 *  - A sensor that was alerted is removed
+	 */
+	valueobject AlertedSensorsChangedEvent extends idl.Event {
+	    SensorCounts counts;		    ///< Sensor statistics after the change
+	    vector<SensorData> changedSensors;	    ///< Changed or added sensors
+	    vector<Sensor_4_0_3> removedSensors;    ///< Removed sensors
+	};
+
+	/**
+	 * Retrieve the current sensor counts.
+	 *
+	 * @return  Current sensor counts
+	 */
+	SensorCounts getSensorCounts();
+
+	/**
+	 * Retrieve a list of all monitored sensors.
+	 *
+	 * @return  List of monitored sensors including alert state
+	 */
+	vector<SensorData> getAllSensors();
+
+	/**
+	 * Retrieve a list of currently alerted sensors.
+	 *
+	 * @return  List of alerted sensors
+	 */
+	vector<SensorData> getAlertedSensors();
+
+    };
+
+}
+
+#endif

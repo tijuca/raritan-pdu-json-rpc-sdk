@@ -1,0 +1,843 @@
+PX2 3.6.0 - January 2020
+
+  Backward-compatible interface changes:
+    * bulkcfg.BulkConfiguration_1_0_1 => bulkcfg.BulkConfiguration_1_0_2:
+        - New events: SettingsChangedEvent, SavedEvent, RestoredEvent
+        - New methods: getSettings, setSettings
+    * datetime.DateTime_3_0_1 => datetime.DateTime_3_0_2:
+        - New event: ConfigurationChangedEvent
+    * display.DisplayControl => display.DisplayControl_1_0_1:
+        - New event: DefaultViewChangedEvent
+        - New methods: getInfo, showSmiley
+    * fitness.HardwareHealth => fitness.HardwareHealth_1_0_1:
+        - New field in structure Failure: creationOrderId
+    * pdumodel.Circuit_1_0_2 => pdumodel.Circuit_1_0_3:
+        - New sensor: crestFactor
+    * pdumodel.Inlet_2_0_3 => pdumodel.Inlet_2_0_4:
+        - New field in structure Nameplate: brand
+        - New sensor: crestFactor
+    * pdumodel.Outlet_2_1_4 => pdumodel.Outlet_2_1_5:
+        - New field in structure Nameplate: brand
+        - New sensor: crestFactor
+    * pdumodel.OverCurrentProtector_3_0_3 => pdumodel.OverCurrentProtector_3_0_4:
+        - New field in structure Nameplate: brand
+        - New sensor: crestFactor
+    * pdumodel.Pdu_4_1_5 => pdumodel.Pdu_4_1_6:
+        - New field in structure Nameplate: brand
+        - New field in structure OutletSequenceState: cancelableOutletsRemaining
+    * pdumodel.PowerMeter_1_1_4 => pdumodel.PowerMeter_1_1_5:
+        - New sensor: crestFactor
+    * pdumodel.TransferSwitch_4_0_3 => pdumodel.TransferSwitch_4_0_4:
+        - New field in structure Nameplate: brand
+    * security.Security_3_0_1 => security.Security_3_0_2:
+        - New methods: isHstsEnabled, setHstsEnabled, getSSHHostKeys
+    * sensors.Sensor_4_0_2 => sensors.Sensor_4_0_3:
+        - New constant: CREST_FACTOR
+    * usb.Usb_1_0_1 => usb.Usb_1_0_2:
+        - New event: SettingsChangedEvent
+    * usermgmt.UserManager_1_0_3 => usermgmt.UserManager_1_0_4:
+        - New error code: ERR_USERNAME_INVALID
+
+  Version updates due to changes in referenced interfaces:
+    * lhxmodel.Lhx_3_2_3 => lhxmodel.Lhx_3_2_4
+    * lhxmodel.Sensor_4_0_2 => lhxmodel.Sensor_4_0_3
+    * pdumodel.OutletGroup => pdumodel.OutletGroup_1_0_1
+    * pdumodel.OutletGroupManager => pdumodel.OutletGroupManager_1_0_1
+    * pdumodel.OverCurrentProtectorTripSensor_1_0_3 => pdumodel.OverCurrentProtectorTripSensor_1_0_5
+    * pdumodel.Panel_1_1_4 => pdumodel.Panel_1_1_5
+    * pdumodel.PowerMeterController_1_1_4 => pdumodel.PowerMeterController_1_1_5
+    * pdumodel.PowerQualitySensor_2_0_2 => pdumodel.PowerQualitySensor_2_0_3
+    * pdumodel.ResidualCurrentStateSensor_2_0_2 => pdumodel.ResidualCurrentStateSensor_2_0_3
+    * pdumodel.TypeBResidualCurrentNumericSensor_1_0_1 => pdumodel.TypeBResidualCurrentNumericSensor_1_0_2
+    * peripheral.DeviceManager_3_0_1 => peripheral.DeviceManager_3_0_2
+    * peripheral.DeviceSlot_2_0_2 => peripheral.DeviceSlot_2_0_3
+    * sensors.AccumulatingNumericSensor_2_0_2 => sensors.AccumulatingNumericSensor_2_0_3
+    * sensors.AlertedSensorManager => sensors.AlertedSensorManager_1_0_1
+    * sensors.Logger_2_1_5 => sensors.Logger_2_1_6
+    * sensors.NumericSensor_4_0_2 => sensors.NumericSensor_4_0_3
+    * sensors.StateSensor_4_0_2 => sensors.StateSensor_4_0_3
+    * sensors.Switch_2_0_4 => sensors.Switch_2_0_5
+
+  Newly introduced interfaces:
+    * cascading.CascadeManager
+    * module firmware:
+        - New events: SystemStartupEvent, SystemShutdownEvent,
+          FirmwareValidationFailedEvent, FirmwareUpdateEvent,
+          FirmwareUpdateStartedEvent, FirmwareUpdateCompletedEvent,
+          FirmwareUpdateFailedEvent
+    * module security:
+        - New event: FrontPanelPrivilegesChanged
+
+
+PX2 3.5.10 - May 2019
+
+  Incompatible interface changes:
+    * net.Net_4_0_1 => net.Net_5_0_0:
+        - Support for 802.1x network authentication over Ethernet
+        - Added prefixes to identifiers in enumerations EapOuterAuthMethod,
+          EapInnerAuthMethod, EapStatus and WlanAuthType
+        - New fields in structure EapAuthSettings: clientCertChain,
+          clientPrivKey, clearClientPrivKey, clientPrivKeyPassword
+        - New fields in structure EthSettings: authType, eap
+        - New field in structure EthInfo: eapStatus
+        - New field in event EthInfoChangedEvent: ifLabel
+        - Changed some error codes
+        - Removed 'sparse_in' from settings structures
+
+  Backward-compatible interface changes:
+    * webcam.StorageManager_1_0_1 => webcam.StorageManager_1_0_2:
+        - New error code: ERR_OPERATION_NOT_SUPPORTED
+        - New event: ImageUploadStartedEvent
+        - New method: startActivityWithFolder
+    * webcam.Webcam_2_0_0 => webcam.Webcam_2_0_1:
+        - New field in structure Information: model
+        - New event: SettingsChangedEvent
+    * webcam.WebcamManager_2_0_0 => webcam.WebcamManager_2_0_1:
+        - New fields in event WebcamEvent: information, name
+        - Removed event: WebcamSettingsChangedEvent
+
+  Version updates due to changes in referenced interfaces:
+    * webcam.Channel => webcam.Channel_1_0_1
+
+
+PX2 3.5.0 - January 2019
+
+  Backward-compatible interface changes:
+    * event.DataPushService => event.DataPushService_1_0_1:
+        - New structure: EntryStatus
+        - New method: getEntryStatus
+        - New events: EntryAddedEvent, EntryModifiedEvent, EntryDeletedEvent,
+                      EntryStatusChangedEvent
+    * firmware.Firmware_2_0_0 => firmware.Firmware_2_0_1:
+        - New method: hardFactoryReset
+    * net.Net_4_0_0 => net.Net_4_0_1:
+        - Marked settings structures as 'sparse_in'
+        - New field in structure net.EapAuthSettings_2_0_0: authServerName
+        - New constant: ERR_WLAN_IF_INVALID_EAP_AUTH_SERVER_NAME
+    * pdumodel.Inlet_2_0_2 => pdumodel.Inlet_2_0_3:
+        - New field in structure pdumodel.Rating: decimalCurrent
+    * pdumodel.Outlet_2_1_3 => pdumodel.Outlet_2_1_4:
+        - New field in structure pdumodel.Rating: decimalCurrent
+    * pdumodel.OverCurrentProtector_3_0_2 => pdumodel.OverCurrentProtector_3_0_3:
+        - New field in structure pdumodel.Rating: decimalCurrent
+    * pdumodel.TransferSwitch_4_0_2 => pdumodel.TransferSwitch_4_0_3:
+        - New field in structure pdumodel.Rating: decimalCurrent
+    * peripheral.DeviceManager_3_0_0 => peripheral.DeviceManager_3_0_1:
+        - New method: getPortFuse
+    * peripheral.Package => peripheral.Package_1_0_1:
+        - New field in structure PackageInfo_2_0_1.FirmwareInfo.Version:
+          bootloaderVersion
+    * portsmodel.Port_2_0_1 => portsmodel.Port_2_0_2:
+        - New method: getFuse
+    * sensors.Switch_2_0_3 => sensors.Switch_2_0_4:
+        - New event: SwitchEvent
+    * servermon.ServerMonitor_2_0_0 => servermon.ServerMonitor_2_0_1:
+        - New enumerations: ServerPowerState, ServerPowerControlResult,
+                            ServerPowerCheckMethod
+        - New structure: ServerPowerSettings
+        - Marked structure ServerSettings as 'sparse_in'
+        - New field in structure ServerSettings: powerSettings
+        - New fields in structure ServerStatus: powerState,
+                                                lastPowerControlResult
+        - New events: ServerPowerStateEvent, ServerPowerControlInitiatedEvent,
+                      ServerPowerControlCompletedEvent, ServerReachabilityEvent,
+                      ServerAddedEvent, ServerSettingsChangedEvent,
+                      ServerDeletedEvent
+        - New method: powerControl
+    * smartcard.CardReader_1_0_1 => smartcard.CardReader_1_0_2:
+        - New field in structure MetaData: id
+    * usb.Usb => usb.Usb_1_0_1:
+        - New structure: Settings
+        - New methods: getSettings, setSettings
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.OverCurrentProtectorTripSensor_1_0_2 => pdumodel.OverCurrentProtectorTripSensor_1_0_3
+    * pdumodel.Pdu_4_1_4 => pdumodel.Pdu_4_1_5
+    * smartcard.CardReaderManager_1_0_1 => smartcard.CardReaderManager_1_0_2
+
+  Newly introduced interfaces:
+    * fitness.HardwareHealth
+    * pdumodel.OutletGroup
+    * pdumodel.OutletGroupManager
+    * portsmodel.PortFuse
+    * rawcfg.RawConfiguration
+    * sensors.AlertedSensorManager
+
+
+PX2 3.4.20 - July 2018
+
+  Backward-compatible interface changes:
+    * hmi.InternalBeeper_2_0_0 => hmi.InternalBeeper_2_0_1:
+        - New field in StateChangedEvent: mutedTemporarily
+        - New out parameter in method getState: mutedTemporarily
+        - New method: muteCurrentActivation
+
+    * pdumodel.Controller_4_0_0 => pdumodel.Controller_4_0_1:
+        - New method: reset
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.MemoryMapController_4_0_0 => pdumodel.MemoryMapController_4_0_1
+    * pdumodel.Outlet_2_1_2 => pdumodel.Outlet_2_1_3
+    * pdumodel.OverCurrentProtectorTripSensor_1_0_1 => pdumodel.OverCurrentProtectorTripSensor_1_0_2
+    * pdumodel.Panel_1_1_3 => pdumodel.Panel_1_1_4
+    * pdumodel.Pdu_4_1_3 => pdumodel.Pdu_4_1_4
+    * pdumodel.PowerMeter_1_1_3 => pdumodel.PowerMeter_1_1_4
+    * pdumodel.PowerMeterController_1_1_3 => pdumodel.PowerMeterController_1_1_4
+
+
+PX2 3.4.10 - April 2018
+
+  Backward-compatible interface changes:
+    * pdumodel.Inlet_2_0_1 => pdumodel.Inlet_2_0_2:
+        - New sensor: residualDCCurrent
+        - New fields in structure pdumodel.Pole_4_0_2: residualDCCurrent
+    * pdumodel.Outlet_2_1_1 => pdumodel.Outlet_2_1_2
+        - New fields in structure pdumodel.Pole_4_0_2: residualDCCurrent
+    * pdumodel.PowerMeter_1_1_2 => pdumodel.PowerMeter_1_1_3
+        - New fields in structure pdumodel.Pole_4_0_2: residualDCCurrent
+    * pdumodel.Circuit_1_0_1 => pdumodel.Circuit_1_0_2
+        - New fields in structure pdumodel.Pole_4_0_2: residualDCCurrent
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.OverCurrentProtector_3_0_1 => pdumodel.OverCurrentProtector_3_0_2
+    * pdumodel.OverCurrentProtectorTripSensor => pdumodel.OverCurrentProtectorTripSensor_1_0_1
+    * pdumodel.Panel_1_1_2 => pdumodel.Panel_1_1_3
+    * pdumodel.Pdu_4_1_2 => pdumodel.Pdu_4_1_3
+    * pdumodel.PowerMeterController_1_1_2 => pdumodel.PowerMeterController_1_1_3
+
+
+PX2 3.4.0 - February 2018
+
+  Incompatible interface changes:
+    * auth.RadiusManager => auth.RadiusManager_2_0_0:
+        - New value in enumeration radius.AuthType_2_0_0: MSCHAPv2
+    * cert.ServerSSLCert => cert.ServerSSLCert_2_0_0:
+        - New constants: SUCCESS, ERR_*
+        - New field in structure ReqInfo: names
+        - New field in structure CertInfo: names
+    * pdumodel.Controller_3_0_0 => pdumodel.Controller_4_0_0:
+        - New value in enumeration Status: FIRMWARE_UPDATE
+    * peripheral.DeviceManager_2_0_2 => peripheral.DeviceManager_3_0_0:
+        - New field in structure Settings: maxActivePoweredDryContacts
+        - New method: getDiscoveredPackages
+    * peripheral.G2Production_3_0_0 => peripheral.G2Production_4_0_0:
+        - Removed constants: ERR_NO_FIRMWARE_FILE, ERR_FIRMWARE_INVALID,
+                             ERR_PROTECTED, ERR_UPDATE_IN_PROGRESS
+        - Removed enumerations: ConfigurationSpace, ResetMethod
+        - Removed structure: FirmwareInfo
+        - Removed methods: eraseConfigurationSpace, eraseConfigurationSpacePos,
+                           getFirmwareInfo, getFirmwareInfoPos,
+                           readConfigurationSpace, readConfigurationSpacePos,
+                           readRegisters, readRegistersPos,
+                           reset, resetPos,
+                           updateFirmware, updateFirmwarePos,
+                           writeConfigurationSpace, writeConfigurationSpacePos,
+                           writeRegisterBits, writeRegisterBitsPos,
+                           writeRegisters, writeRegistersPos
+        - New constants: SUCCESS, ERR_OPERATION_FAILED
+        - New method: programSerialNumber
+
+  Backward-compatible interface changes:
+    * assetmgrmodel.AssetStrip_2_0_4 => assetmgrmodel.AssetStrip_2_0_5:
+        - New method: getFirmwareUpdateState
+    * bulkcfg.BulkConfiguration => bulkcfg.BulkConfiguration_1_0_1:
+        - New enumeration: FilterType
+        - New structures: Filter, FilterProfile
+        - New constants: SUCCESS, ERR_*
+        - New methods: getFilters, getFilterProfiles, addFilterProfile,
+                       modifyFilterProfile, deleteFilterProfile,
+                       getDefaultFilterProfileName, selectDefaultFilterProfile
+    * datetime.DateTime_3_0_0 => datetime.DateTime_3_0_1:
+        - New method: getActiveNtpServers
+    * pdumodel.Circuit => pdumodel.Circuit_1_0_1:
+        - New fields in structure pdumodel.Pole_4_0_1: residualCurrent, residualCurrentStatus
+    * pdumodel.Inlet_2_0_0 => pdumodel.Inlet_2_0_1:
+        - New fields in structure pdumodel.Pole_4_0_1: residualCurrent, residualCurrentStatus
+    * pdumodel.OverCurrentProtector_3_0_0 => pdumodel.OverCurrentProtector_3_0_1:
+        - New fields in structure pdumodel.Pole_4_0_1: residualCurrent, residualCurrentStatus
+    * pdumodel.Outlet_2_0_0 => pdumodel.Outlet_2_1_1:
+        - New field in structure State: isLoadShed
+        - New fields in structure pdumodel.Pole_4_0_1: residualCurrent, residualCurrentStatus
+    * pdumodel.PowerMeter_1_0_1 => pdumodel.PowerMeter_1_1_2:
+        - New fields in structure pdumodel.Pole_4_0_1: residualCurrent, residualCurrentStatus
+    * sensors.Sensor_4_0_1 => sensors.Sensor_4_0_2:
+        - New enumerations: OpenClosedState, NormalAlarmedState, OkFaultState
+        - New constants: DOOR_STATE, DOOR_LOCK_STATE, DOOR_HANDLE_LOCK
+    * serial.SerialPort_3_0_0 => serial.SerialPort_3_0_1:
+        - New method: getMetaData
+    * smartcard.CardReader => smartcard.CardReader_1_0_1:
+        - New field in structure MetaData: channel
+
+  Version updates due to changes in referenced interfaces:
+    * assetmgrmodel.AssetStripLogger_1_0_5 => assetmgrmodel.AssetStripLogger_1_0_6
+    * lhxmodel.Lhx_3_2_2 => lhxmodel.Lhx_3_2_3
+    * lhxmodel.Sensor_4_0_1 => lhxmodel.Sensor_4_0_2
+    * pdumodel.Circuit => pdumodel.Circuit_1_0_1
+    * pdumodel.Inlet_2_0_0 => pdumodel.Inlet_2_0_1
+    * pdumodel.OverCurrentProtector_3_0_0 => pdumodel.OverCurrentProtector_3_0_1
+    * pdumodel.Outlet_2_0_0 => pdumodel.Outlet_2_1_1
+    * pdumodel.MemoryMapController_3_0_0 => pdumodel.MemoryMapController_4_0_0
+    * pdumodel.Pdu_4_0_1 => pdumodel.Pdu_4_1_2
+    * pdumodel.Panel_1_0_1 => pdumodel.Panel_1_1_2
+    * pdumodel.PowerMeter_1_0_1 => pdumodel.PowerMeter_1_1_2
+    * pdumodel.PowerMeterController_1_0_1 => pdumodel.PowerMeterController_1_1_2
+    * pdumodel.PowerQualitySensor_2_0_1 => pdumodel.PowerQualitySensor_2_0_2
+    * pdumodel.ResidualCurrentStateSensor_2_0_1 => pdumodel.ResidualCurrentStateSensor_2_0_2
+    * pdumodel.TransferSwitch_4_0_1 => pdumodel.TransferSwitch_4_0_2
+    * pdumodel.TypeBResidualCurrentNumericSensor => pdumodel.TypeBResidualCurrentNumericSensor_1_0_1
+    * peripheral.DeviceSlot_2_0_1 => peripheral.DeviceSlot_2_0_2
+    * sensors.AccumulatingNumericSensor_2_0_1 => sensors.AccumulatingNumericSensor_2_0_2
+    * sensors.Logger_2_1_4 => sensors.Logger_2_1_5
+    * sensors.NumericSensor_4_0_1 => sensors.NumericSensor_4_0_2
+    * sensors.StateSensor_4_0_1 => sensors.StateSensor_4_0_2
+    * sensors.Switch_2_0_2 => sensors.Switch_2_0_3
+    * serial.PortDispatcher_1_2_1 => serial.PortDispatcher_1_2_2
+    * smartcard.CardReaderManager => smartcard.CardReaderManager_1_0_1
+
+  Newly introduced interfaces:
+    * pdumodel.OverCurrentProtectorTripSensor
+    * peripheral.DoorHandleControllerPackage
+    * peripheral.Package
+
+
+PX2 3.3.10 - March 2017
+
+  Incompatible interface changes:
+    * datetime.DateTime_2_0_0 => datetime.DateTime_3_0_0:
+        - Remove forceStatic field from NtpCfg structure
+    * net.Net_3_0_0 => net.Net_4_0_0:
+        - Complete redesign, supports models with dual Ethernet
+        - Removed methods: getBridgeSlaveCount, getMACs,
+                           getNetworkConfigInterface, getNetworkConfigIP,
+                           getNetworkConfigIPv4, getNetworkConfigIPv6,
+                           getNetworkConfigRoutesIPv4,
+                           getNetworkConfigRoutesIPv6, getNetworkConfigServices,
+                           setNetworkConfigIP, setNetworkConfigIPv4,
+                           setNetworkConfigIPv6, setNetworkConfigLan,
+                           setNetworkConfigRoutesIPv4,
+                           setNetworkConfigRoutesIPv6, setNetworkConfigServices,
+                           setNetworkConfigWLan
+        - See net.Net and net.Services for the new API
+
+  Backward-compatible interface changes:
+    * luaservice.Manager_2_0_0 => luaservice.Manager_2_0_1:
+        - New method: clearScriptOutput
+    * sensors.Switch_2_0_1 => sensors.Switch_2_0_2:
+        - New constant: ERR_PDC_POWER_LIMIT
+    * serial.GsmModem_1_0_1 => serial.GsmModem_1_0_2:
+        - New constant: ERR_SIM_PROBLEM
+
+  Newly introduced interfaces:
+    * net.Services
+
+  Removed interfaces:
+    * cascading.Cascading_1_0_1
+
+
+PX2 3.3.0 - November 2016
+
+  Incompatible interface changes:
+    * luaservice.Manager => luaservice.Manager_2_0_0:
+        - New field in structure ScriptOptions: defaultArgs
+        - Changed structure Environment: Replaced maxMemoryPerScript with
+          maxScriptMemoryGrowth
+        - New constants: ERR_TOO_MANY_ARGUMENTS, ERR_ARGUMENT_NOT_VALID
+        - New method: startScriptWithArgs
+
+  Backward-compatible interface changes:
+    * pdumodel.PowerMeter => pdumodel.PowerMeter_1_0_1:
+        - New structure: EnergyPulseSettings
+        - New event: EnergyPulseSettingsChangedEvent
+        - New methods: getEnergyPulseSettings, setEnergyPulseSettings
+    * security.Security_3_0_0 => security.Security_3_0_1:
+        - New methods: getIpFwSettings, getIpV6FwSettings,
+                       getRoleAccessControlSettings,
+                       getRoleAccessControlSettingsV6, getPwSettings,
+                       getSingleLoginLimitation
+    * usermgmt.User_1_0_1 => usermgmt.User_1_0_2:
+        - New constants for return value of updateAccountFull
+    * usermgmt.UserManager_1_0_2 => usermgmt.UserManager_1_0_3:
+        - New constants for return value of createAccountFull
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Panel => pdumodel.Panel_1_0_1
+    * pdumodel.PowerMeterController => pdumodel.PowerMeterController_1_0_1
+
+  Newly introduced interfaces:
+    * pdumodel.TypeBResidualCurrentNumericSensor
+
+
+PX2 3.2.40 - August 2016
+
+  Backward-compatible interface changes:
+    * assetmgrmodel.AssetStrip_2_0_3 => assetmgrmodel.AssetStrip_2_0_4:
+        - New constants: ERR_NOT_SUPPORTED, ERR_OPERATION_FAILED
+        - New field in structure TagInfo: programmable
+        - New method: programTagIDs
+
+  Version updates due to changes in referenced interfaces:
+    * assetmgrmodel.AssetStripLogger_1_0_4 => assetmgrmodel.AssetStripLogger_1_0_5
+
+
+PX2 3.2.10 - February 2016
+
+  Backward-compatible interface changes:
+    * bulkrpc.BulkRequest_1_0_1 => bulkrpc.BulkRequest_1_0_2:
+        - New method: performBulkTimeout
+    * pdumodel.TransferSwitch_4_0_0 => pdumodel.TransferSwitch_4_0_1:
+        - New methods: getTransferLog, getParameters, setParameters
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Pdu_4_0_0 => pdumodel.Pdu_4_0_1
+
+
+PX2 3.2.1 - October 2015
+
+  Incompatible interface changes:
+    * devsettings.Modbus => devsettings.Modbus_2_0_0:
+        - New fields in structure Settings: serial, primaryUnitId
+        - New method: getCapabilities
+        - Return type for setSettings() changed from void to int
+    * devsettings.Zeroconf => devsettings.Zeroconf_2_0_0:
+        - New field in structure Settings: llmnrEnabled
+    * pdumodel.Inlet_1_2_7 => pdumodel.Inlet_2_0_0:
+        - New sensors: reactivePower, displacementPowerFactor
+        - New pole sensors: reactivePower, phaseAngle, displacementPowerFactor
+        - New value in enumeration pdumodel.PowerLine: EARTH
+    * pdumodel.Outlet_1_5_7 => pdumodel.Outlet_2_0_0:
+        - New sensors: reactivePower, displacementPowerFactor
+        - New pole sensors: reactivePower, phaseAngle, displacementPowerFactor
+        - New value in enumeration pdumodel.PowerLine: EARTH
+    * pdumodel.OverCurrentProtector_2_1_3 => pdumodel.OverCurrentProtector_3_0_0:
+        - New sensors: voltage, maximumCurrent, activePower, reactivePower,
+                       apparentPower, powerFactor, displacementPowerFactor,
+                       activeEnergy, apparentEnergy, phaseAngle, lineFrequency
+        - New value in enumeration pdumodel.PowerLine: EARTH
+    * pdumodel.Pdu_3_1_1 => pdumodel.Pdu_4_0_0:
+        - New field in structure MetaData: isEnergyPulseSupported
+        - New fields in structure Settings: energyPulseEnabled, energyPulsesPerKWh
+    * pdumodel.TransferSwitch_3_1_2 => pdumodel.TransferSwitch_4_0_0:
+        - New value in enumeration pdumodel.PowerLine: EARTH
+    * serial.SerialPort_2_0_0 => serial.SerialPort_3_0_0:
+        - New value in enumeration PortState: DISCONNECTED
+        - New field in structure Settings: detectType
+    * session.SessionManager => session.SessionManager_2_0_0:
+        - Changed layout of Session structure: Replaced token with sessionId
+        - newSession() returns the session token as an out parameter
+        - closeSession() takes a sesson id instead of a token
+        - Removed methods: getSession, touchSession
+
+  Backward-compatible interface changes:
+    * event.Engine => event.Engine_1_0_1:
+        - New method: testAction
+    * peripheral.DeviceManager_2_0_1 => peripheral.DeviceManager_2_0_2:
+        - DeviceEvent: Changed affected device field to vector
+        - PackageEvent: Changed affected package field to vector
+        - New event: FirmwareUpdateStateChangedEvent
+        - New method: getFirmwareUpdateState
+    * sensors.Logger_2_1_3 => sensors.Logger_2_1_4:
+        - New methods: enableSensors, disableSensors, isSensorEnabled,
+                       isSlotEnabled
+
+  Version updates due to changes in referenced interfaces:
+    * serial.PortDispatcher_1_1_1 => serial.PortDispatcher_1_2_1
+
+  Newly introduced interfaces:
+    * luaservice.Manager
+    * pdumodel.Circuit
+    * pdumodel.Panel
+    * pdumodel.PowerMeter
+    * pdumodel.PowerMeterController
+
+
+PX2 3.1.0 - February 2015
+
+  Incompatible interface changes:
+    * auth.LdapManager_1_0_1 => auth.LdapManager_2_0_0:
+        - Changed layout of ServerSettings structure
+    * devsettings.Smtp_1_0_1 => devsettings.Smtp_2_0_0:
+        - Changed layout of Configuration structure
+    * firmware.Firmware_1_0_1 => firmware.Firmware_2_0_0:
+        - Removed methods: updateAvailable, enableOnlineCheck,
+          onlineCheckEnabled, performOnlineCheck, downloadImage, cancelDownload
+    * hmi.InternalBeeper => hmi.InternalBeeper_2_0_0:
+        - Unit for timeout parameter of activate() changed from seconds to
+          milliseconds
+    * logging.DebugLog => logging.DebugLog_2_0_0:
+        - Removed methods: getFirstId, getLastId, getEntries
+        - New methods: getInfo, getChunk
+    * logging.EventLog_1_0_1 => logging.EventLog_2_0_0:
+        - Removed methods: getFirstId, getLastId, getEntries, getFilteredEntries
+        - New methods: getInfo, getChunk
+    * net.Net_2_0_2 => net.Net_3_0_0:
+        - Changed layout of EapSettings structure
+
+  Backward-compatible interface changes:
+    * assetmgrmodel.AssetStrip_2_0_2 => assetmgrmodel.AssetStrip_2_0_3:
+        - Added assetStripNumberOfRackUnits to RackUnitInfo structure
+    * bulkrpc.BulkRequest => bulkrpc.BulkRequest_1_0_1:
+        - Alternative bulk request method that transmits the sub-requests as
+          raw JSON objects instead of quoted strings
+        - New structures: Request and Response
+        - New method: performBulk
+    * pdumodel.TransferSwitch_3_1_1 => pdumodel.TransferSwitch_3_1_2:
+        - New constant: OPERATIONAL_STATE_NON_REDUNDANT
+    * sensors.Logger_2_1_2 => sensors.Logger_2_1_3:
+        - New constant: STATE_NON_REDUNDANT
+    * sensors.Sensor_4_0_0 => sensors.Sensor_4_0_1:
+        - New constant: ABSOLUTE_HUMIDITY
+
+  Version updates due to changes in referenced interfaces:
+    * assetmgrmodel.AssetStripLogger_1_0_3 => assetmgrmodel.AssetStripLogger_1_0_4
+    * lhxmodel.Lhx_3_2_1 => lhxmodel.Lhx_3_2_2
+    * lhxmodel.Sensor_4_0_0 => lhxmodel.Sensor_4_0_1
+    * pdumodel.Inlet_1_2_6 => pdumodel.Inlet_1_2_7
+    * pdumodel.Outlet_1_5_6 => pdumodel.Outlet_1_5_7
+    * pdumodel.OverCurrentProtector_2_1_2 => pdumodel.OverCurrentProtector_2_1_3
+    * pdumodel.Pdu_3_0_0 => pdumodel.Pdu_3_1_1
+    * pdumodel.PowerQualitySensor_2_0_0 => pdumodel.PowerQualitySensor_2_0_1
+    * pdumodel.ResidualCurrentStateSensor_2_0_0 => pdumodel.ResidualCurrentStateSensor_2_0_1
+    * peripheral.DeviceManager_2_0_0 => peripheral.DeviceManager_2_0_1
+    * peripheral.DeviceSlot_2_0_0 => peripheral.DeviceSlot_2_0_1
+    * sensors.AccumulatingNumericSensor_2_0_0 => sensors.AccumulatingNumericSensor_2_0_1
+    * sensors.NumericSensor_4_0_0 => sensors.NumericSensor_4_0_1
+    * sensors.StateSensor_4_0_0 => sensors.StateSensor_4_0_1
+    * sensors.Switch_2_0_0 => sensors.Switch_2_0_1
+
+  Newly introduced interfaces:
+    * display.DisplayControl
+    * event.DataPushService
+    * logging.WlanLog
+
+  Removed interfaces:
+    * modelpush.ModelPush
+
+
+PX2 3.0.20 - November 2014
+
+  Backward-compatible interface changes:
+    * assetmgrmodel.AssetStrip_2_0_1 => assetmgrmodel.AssetStrip_2_0_2:
+        - Added assetStripCascadePosition and rackUnitRelativePosition
+          to RackUnitInfo structure
+
+  Version updates due to changes in referenced interfaces:
+    * assetmgrmodel.AssetStripLogger_1_0_2 => assetmgrmodel.AssetStripLogger_1_0_3
+
+
+PX2 3.0.0 - June 2014
+
+  Note: A large portion of the interface changes in this release is due to a
+        redesign of the eventing system. Applications using eventing must be
+        adapted to work with this release. The existing "Events" enumeration
+        has been removed from all interfaces and replaced with one or more
+        valueobject declarations extending idl.Event. Since the enumeration
+        was never directly referenced by the interface the removal was
+        considered a backward-compatible change.
+
+  Incompatible interface changes:
+    * lhxmodel.Sensor_3_0_0 => lhxmodel.Sensor_4_0_0:
+        - Base class version (sensors.Sensor_4_0_0) changed
+        - Removed enumeration Events
+        - New events: ThresholdsChangedEvent, StateChangedEvent,
+          ReadingChangedEvent
+        - Incompatible change in structure MetaData due to change of
+          contained sensors.Sensor.TypeSpec
+    * pdumodel.Controller_2_0_1 => pdumodel.Controller_3_0_0:
+        - New value in enumeration Status: INCOMPATIBLE
+        - Removed enumeration Events
+        - New events: StatusChangedEvent, MetaDataChangedEvent
+    * pdumodel.MemoryMapController_2_0_1 => pdumodel.MemoryMapController_3_0_0:
+        - Base class version (Controller_3_0_0) changed
+    * pdumodel.Pdu_2_3_4 => pdumodel.Pdu_3_0_0:
+        - Removed enumeration Events
+        - New events: SettingsChangedEvent, LoadSheddingModeChangedEvent,
+          OutletSequenceStateChangedEvent
+        - New sensors: activePower, activeEnergy
+        - New method: getBeeper
+        - Removed method: getWires
+    * pdumodel.PowerQualitySensor => pdumodel.PowerQualitySensor_2_0_0:
+        - Base class version (StateSensor_4_0_0) changed
+    * pdumodel.ResidualCurrentStateSensor => pdumodel.ResidualCurrentStateSensor_2_0_0:
+        - Base class version (StateSensor_4_0_0) changed
+        - Removed enumeration Events
+    * peripheral.DeviceManager_1_0_3 => peripheral.DeviceManager_2_0_0:
+        - Removed enumeration Events
+        - New enumeration: DeviceFirmwareUpdateState
+        - New events: SettingsChangedEvent, DeviceEvent, DeviceAddedEvent,
+          DeviceRemovedEvent, UnknownDeviceAttachedEvent,
+          DeviceFirmwareUpdateStateChangedEvent, PackageEvent,
+          PackageAddedEvent, PackageRemovedEvent
+        - Incompatible change in structure DeviceTypeInfo due to change of
+          contained sensors.Sensor.TypeSpec
+        - New field in structure peripheral.PackageInfo.HardwareInfo: revision
+    * peripheral.DeviceSlot => peripheral.DeviceSlot_2_0_0:
+        - Removed enumeration Events
+        - New events: DeviceChangedEvent, SettingsChangedEvent
+        - Incompatible changes in structure DeviceID, structure Address and
+          valueobject Device due to change of contained sensors.Sensor.TypeSpec
+    * security.Security_2_0_1 => security.Security_3_0_0:
+        - Replaced defaultPolicy and ruleSet with defaultPolicyIn,
+          defaultPolicyOut, ruleSetIn and ruleSetOut in structure IpFw
+        - New methods: getSupportedFrontPanelPrivileges, setFrontPanelPrivileges
+          and getFrontPanelPrivileges
+    * sensors.AccumulatingNumericSensor => sensors.AccumulatingNumericSensor_2_0_0:
+        - Base class version (NumericSensor_4_0_0) changed
+        - Removed enumeration Events
+        - New event: ResetEvent
+    * sensors.NumericSensor_3_0_1 => sensors.NumericSensor_4_0_0:
+        - Base class version (Sensor_4_0_0) changed
+        - Removed enumeration Events
+        - New events: ReadingChangedEvent, StateChangedEvent,
+          MetaDataChangedEvent, ThresholdsChangedEvent
+        - Incompatible change in structure MetaData due to change of
+          contained sensors.Sensor.TypeSpec
+    * sensors.Sensor_3_0_0 => sensors.Sensor_4_0_0:
+        - Replaced enumerations ReadingType, Type and Unit with integer
+          constants to simplify future additions
+        - Removed enumeration Events
+        - New event: TypeSpecChangedEvent
+    * sensors.StateSensor_3_0_1 => sensors.StateSensor_4_0_0:
+        - Base class version (Sensor_4_0_0) changed
+        - Removed enumeration Events
+    * sensors.Switch => sensors.Switch_2_0_0:
+        - Base class version (StateSensor_4_0_0) changed
+
+  Backward-compatible interface changes:
+    * assetmgrmodel.AssetStrip_2_0_0 => assetmgrmodel.AssetStrip_2_0_1:
+        - Removed enumeration Events
+        - New structure: TagChangeInfo
+        - New enumeration: FirmwareUpdateState
+        - New events: StripInfoChangedEvent, StateChangedEvent,
+          RackUnitChangedEvent, TagEvent, TagAddedEvent, TagRemovedEvent,
+          FirmwareUpdateStateChangedEvent, BladeOverflowChangedEvent,
+          OrientationChangedEvent, CompositionChangedEvent
+    * assetmgrmodel.AssetStripConfig => assetmgrmodel.AssetStripConfig_1_0_1:
+        - Removed enumeration Events
+        - New events: StripSettingsChangedEvent, RackUnitSettingsChangedEvent
+    * cascading.Cascading => cascading.Cascading_1_0_1:
+        - New method: getMasterIpV6Address
+    * hmi.ExternalBeeper => hmi.ExternalBeeper_1_0_1:
+        - New enumeration: State
+        - New event: StateChangedEvent
+        - New method: getState
+    * lhxmodel.Config => lhxmodel.Config_1_0_1:
+        - Removed enumeration Events
+        - New events: ComSettingsChangedEvent, PortNameChangedEvent
+    * lhxmodel.Lhx_3_1_0 => lhxmodel.Lhx_3_2_1:
+        - Removed enumeration Events
+        - New events: OpStateChangedEvent, SettingsChangedEvent
+    * lhxmodel.Parameter_2_0_0 => lhxmodel.Parameter_2_0_1:
+        - Removed enumeration Events
+        - New events: MetaDataChangedEvent, ValueChangedEvent
+    * pdumodel.Inlet_1_1_5 => pdumodel.Inlet_1_2_6:
+        - Removed enumeration Events
+        - New events: SettingsChangedEvent, EnableStateChangedEvent
+    * pdumodel.Outlet_1_4_5 => pdumodel.Outlet_1_5_6:
+        - Removed enumeration Events
+        - New events: PowerControlEvent, StateChangedEvent, SettingsChangedEvent
+    * pdumodel.OverCurrentProtector_2_0_1 => pdumodel.OverCurrentProtector_2_1_2:
+        - Removed enumeration Events
+        - New event: SettingsChangedEvent
+    * pdumodel.TransferSwitch_3_0_0 => pdumodel.TransferSwitch_3_1_1:
+        - Removed enumeration Events
+        - New event: SettingsChangedEvent
+    * pdumodel.Unit_2_0_0 => pdumodel.Unit_2_0_1:
+        - New event: IdentificationStartedEvent
+    * portsmodel.Port_2_0_0 => portsmodel.Port_2_0_1:
+        - Removed enumeration Events
+        - New events: PropertiesChangedEvent, DeviceChangedEvent
+    * sensors.Logger_2_0_1 => sensors.Logger_2_1_2:
+        - Removed enumeration Events
+        - New events: SettingsChangedEvent, LoggedSensorsChangedEvent
+    * test.Display => test.Display_1_0_1:
+        - New enumeration: TestStatus
+        - New methods: enterTestMode, getTestStatus
+    * usermgmt.UserManager_1_0_1 => usermgmt.UserManager_1_0_2:
+        - New constants for return values of createAccount and
+          createAccountFull
+
+  Version updates due to changes in referenced interfaces:
+    * assetmgrmodel.AssetStripLogger_1_0_1 => assetmgrmodel.AssetStripLogger_1_0_2
+    * lhxmodel.Lhx_3_1_0 => lhxmodel.Lhx_3_2_1
+    * pdumodel.Inlet_1_1_5 => pdumodel.Inlet_1_2_6
+    * pdumodel.Outlet_1_4_5 => pdumodel.Outlet_1_5_6
+    * pdumodel.OverCurrentProtector_2_0_1 => pdumodel.OverCurrentProtector_2_1_2
+    * pdumodel.TransferSwitch_3_0_0 => pdumodel.TransferSwitch_3_1_1
+    * sensors.Logger_2_0_1 => sensors.Logger_2_1_2
+    * test.Unit_1_0_1 => test.Unit_1_0_2
+
+  Newly introduced interfaces:
+    * hmi.InternalBeeper
+
+  Removed interfaces:
+    * pdumodel.Wire
+    * tfw.EventChannel
+    * tfw.EventService
+
+
+PX2 2.6.0 - February 2014
+
+  Incompatible interface changes:
+    * pdumodel.TransferSwitch_2_0_0 => pdumodel.TransferSwitch_3_0_0:
+        - Added new constants for switch fault sensor states
+        - Removed PowerQualitySettings from Settings
+        - Added methods: getStatistics(), getLastTransferWaveform()
+
+  Backward-compatible interface changes:
+    * pdumodel.Pdu_2_2_3 => pdumodel.Pdu_2_3_4:
+        - Added method: getSensors()
+    * sensors.Logger_2_0_0 => sensors.Logger_2_0_1:
+        - Addded new constants for switch fault sensor states
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Pdu_2_2_3 => pdumodel.Pdu_2_3_4
+
+  Newly introduced interfaces:
+    * pdumodel.PowerQualitySensor
+
+
+PX2 2.5.30 - January 2014
+
+  Incompatible interface changes:
+    * event.TimerEventManager => event.TimerEventManager_2_0_0:
+        - New schedule settings field: enabled
+
+  Backward-compatible interface changes:
+    * peripheral.DeviceManager_1_0_2 => peripheral.DeviceManager_1_0_3:
+        - New method: getStatistics
+    * pdumodel.Pdu_2_2_2 => pdumodel.Pdu_2_2_3:
+        - New Statistic field: peripheralStats
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Pdu_2_2_2 => pdumodel.Pdu_2_2_3
+
+  Newly introduced interfaces:
+    * sensors.AccumulatingNumericSensor
+
+
+PX2 2.5.20 - December 2013
+
+  Incompatible interface changes:
+    * lhxmodel.Lhx_2_1_0 => lhxmodel.Lhx_3_0_0:
+        - Introduced configuration parameters for water valves and fans
+        - Replaced custom sensor interface with generic sensors.Sensor_3_0_0
+        - Removed alarm flags: parameterDataLoss, collectiveFault
+        - New alarm flags: condenserPumpFailure, baseElectronicsFailure,
+          voltageLow
+        - New method: getCapabilities
+        - Added return values for methods: acknowledgeAlertStatus,
+          setPowerState and setMaximumCoolingRequest
+    * sensors.Logger => sensors.Logger_2_0_0:
+        - Replaced SensorState enumeration with integer constants
+        - New state values: FAULT, SELF_TEST, WARNING, CRITICAL
+
+  Backward-compatible interface changes:
+    * event.Channel => event.Channel_1_0_1:
+        - New method: pollEventsNb
+    * net.Net_2_0_1 => net.Net_2_0_2:
+        - New methods: getNetworkConfigRoutesIPv4, setNetworkConfigRoutesIPv4
+        - New methods: getNetworkConfigRoutesIPv6, setNetworkConfigRoutesIPv6
+    * pdumodel.Inlet_1_1_4 => pdumodel.Inlet_1_1_5:
+        - New sensors: residualCurrent, residualCurrentStatus
+    * peripheral.DeviceManager_1_0_1 => peripheral.DeviceManager_1_0_2:
+        - New event type: EVT_KEY_PACKAGE_INFO_CHANGED
+        - New method: getDiscoveredPackageInfos
+    * peripheral.G2Production => peripheral.G2Production_2_0_0
+
+  Version updates due to changes in referenced interfaces:
+    * event.Service => event.Service_1_0_1
+    * pdumodel.Outlet_1_4_4 => pdumodel.Outlet_1_4_5
+    * pdumodel.OverCurrentProtector_2_0_0 => pdumodel.OverCurrentProtector_2_0_1
+
+  Newly introduced interfaces:
+    * cascading.Cascading
+    * pdumodel.ResidualCurrentStateSensor
+
+
+PX2 2.5.10 - November 2013
+
+  Incompatible interface changes:
+    * pdumodel.OverCurrentProtector_1_2_2 => pdumodel.OverCurrentProtector_2_0_0
+        - New OCP types: RCBO_2POLE, RCBO_3POLE, RCBO_4POLE
+    * pdumodel.TransferSwitch_1_0_2 => pdumodel.TransferSwitch_2_0_0:
+        - New transfer switch types: ATS, HTS
+        - Removed temperature and fan sensors
+        - Removed MOV and SCR sensors
+        - Removed output sensors
+        - New sensor: switchFault
+    * servermon.ServerMonitor => servermon.ServerMonitor_2_0_0:
+        - New server settings field: resumeCount
+        - New server status field: resumes
+        - Removed constant: MAX_SERVERS
+
+  Backward-compatible interface changes:
+    * pdumodel.Inlet_1_1_3 => pdumodel.Inlet_1_1_4:
+        - New event type: EVT_KEY_ENABLE_STATE_CHANGED
+        - New methods: setEnabled, isEnabled
+    * pdumodel.Outlet_1_3_3 => pdumodel.Outlet_1_4_4:
+        - New metadata field: isLatching
+    * sensors.NumericSensor_3_0_0 => sensors.NumericSensor_3_0_1:
+        - New metadata field: noiseThreshold
+    * test.Unit => test.Unit_1_0_1
+        - New method: resetAllSlaveControllers
+        - New method: triggerSlaveControllerWatchdog
+    * webcam.StorageManager => webcam.StorageManager_1_0_1:
+        - New image storage metadata field: fileSize
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Pdu_2_0_0 => pdumodel.Pdu_2_1_1
+    * pdumodel.Wire => pdumodel.Wire_1_0_1
+    * peripheral.DeviceManager => peripheral.DeviceManager_1_0_1
+
+
+PX2 2.4.11 - June 2013
+
+  Incompatible interface changes:
+    * pdumodel.Pdu_1_5_3 => pdumodel.Pdu_2_0_0:
+        - New metadata field: hasLatchingOutletRelays
+        - New settings field: latchingRelays
+    * pdumodel.SensorLogger_2_0_0 => sensors.Logger:
+    * sensors.ExternalSensorManager_3_0_0 => peripheral.DeviceManager:
+    * sensors.ExternalSensorSlot_3_0_0 => peripheral.DeviceSlot:
+        - Complete reimplementation of peripheral device interface; replaces
+          external sensor interfaces
+    * serial.SerialPort_1_0_1 => serial.SerialPort_2_0_0:
+        - Removed methods: getConsoleSettings, setConsoleSettings, getGsmModem
+        - Added methods: getSettings, setSettings, getModem
+        - New events: ModemEvent, ModemAddedEvent, ModemRemovedEvent
+
+  Backward-compatible interface changes:
+    * pdumodel.Controller_2_0_0 => pdumodel.Controller_2_0_1:
+        - New event type: EVT_KEY_STATUS_CHANGED
+        - New method: getCommunicationStatus
+        - New method: getStatistics
+    * sensors.StateSensor_3_0_0 => sensors.StateSensor_3_0_1:
+        - New event type: EVT_KEY_STATE
+        - New event: StateChangedEvent
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Inlet_1_1_2 => pdumodel.Inlet_1_1_3
+    * pdumodel.MemoryMapController_2_0_0 => pdumodel.MemoryMapController_2_0_1
+    * pdumodel.Outlet_1_3_2 => pdumodel.Outlet_1_3_3
+    * pdumodel.OverCurrentProtector_1_2_1 => pdumodel.OverCurrentProtector_1_2_2
+    * pdumodel.TransferSwitch_1_0_1 => pdumodel.TransferSwitch_1_0_2
+    * serial.PortDispatcher_1_0_1 => serial.PortDispatcher_1_1_1
+
+  Newly introduced interfaces:
+    * event.AlarmManager
+    * hmi.ExternalBeeper
+    * peripheral.G2Production
+    * serial.AnalogModem
+    * smartcard.CardReader
+    * smartcard.CardReaderManager
+
+
+PX2 2.4.0 - February 2013
+
+  Backward-compatible interface changes:
+    * pdumodel.TransferSwitch => pdumodel.TransferSwitch_1_0_1:
+        - New method: getLastTransferReason
+
+  Version updates due to changes in referenced interfaces:
+    * pdumodel.Outlet_1_3_1 => pdumodel.Outlet_1_3_2
+    * pdumodel.Pdu_1_4_2 => pdumodel.Pdu_1_5_3

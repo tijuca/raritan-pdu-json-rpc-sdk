@@ -1,0 +1,69 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright 2013 Raritan Inc. All rights reserved.
+ */
+
+#ifndef __PERIPHERAL_DEVICE_PACKAGE_IDL__
+#define __PERIPHERAL_DEVICE_PACKAGE_IDL__
+
+#include <PeripheralDeviceSlot.idl>
+
+/** Peripheral Devices */
+module peripheral {
+    /** Peripheral device package information */
+    structure PackageInfo_2_0_1 {
+	enumeration State {
+	    NORMAL, 	    ///< Device package is in normal operation
+	    FW_UPDATE,	    ///< Device package's firmware is being updated
+	    INTERNAL_ERROR, ///< Device package's internal error flag is set
+	    CONFIG_ERROR    ///< Device package's internal configuration is invalid
+	};
+	
+	structure HardwareInfo {
+	    string  serial; 	    	    ///< serial number
+	    string  packageClass;   	    ///< serial number prefix for current packages
+	    string  model;  	    	    ///< like 'DPX-CC2' or 'DX-D2C6'
+	    int     minDowngradeVersion;    ///< minimum downgrade version (or -1)
+	    string  revision;	    	    ///< hardware revision
+	};
+	
+	structure FirmwareInfo {
+	    structure Version {
+		int majorNumber;
+		int minorNumber;
+		int bootloaderVersion;
+	    };
+	    
+	    time    compileDate;    ///< Date of firmware compilation (Deprecated: always returns 0)
+	    Version version;	    ///< Firmware version (0.0 if not applicable)
+	    time    updateDate;	    ///< Date of device firmware update (Deprecated: always returns 0)
+	};
+	
+	State	    	    state;  	///< The peripheral device package operational state
+	vector<PosElement>  position;   ///< Position within 1-wire topo
+	HardwareInfo	    hwInfo;     ///< Device package hardware specific information
+	FirmwareInfo	    fwInfo;     ///< Device package firmware specific information
+    };
+
+    interface Package_1_0_1 {
+
+	PackageInfo_2_0_1 getPackageInfo();
+
+    };
+
+    interface DoorHandleControllerPackage_1_0_1 extends Package_1_0_1 {
+
+	constant int SUCCESS = 0;
+	constant int ERR_NOT_SUPPORTED = 1;
+	constant int ERR_OPERATION_FAILED = 2;
+
+	vector<string> getSupportedHandleTypes();
+
+	string getHandleType(in int channel);
+
+	int setHandleType(in int channel, in string handleType);
+
+    };
+}
+
+#endif /* !__PERIPHERAL_DEVICE_PACKAGE_IDL__ */

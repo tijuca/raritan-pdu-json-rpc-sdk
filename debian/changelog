@@ -1,3 +1,10 @@
+raritan-json-rpc-sdk (3.6.0+ds1-1~exp2) unstable; urgency=medium
+
+  * [5275895] rebuild patch queue from patchqueue branch
+    Correct a wrong created value of __sdk_release__.
+
+ -- Carsten Schoenert <c.schoenert@t-online.de>  Fri, 10 Jul 2020 16:54:37 +0200
+
 raritan-json-rpc-sdk (3.6.0+ds1-1~exp1) unstable; urgency=medium
 
   * [38fcd73] New upstream version 3.6.0+ds1

@@ -9,7 +9,7 @@ Subject: python: add basic versioning information
  create mode 100644 pdu-python-api/raritan/version.py
 
 diff --git a/pdu-python-api/raritan/__init__.py b/pdu-python-api/raritan/__init__.py
-index e69de29..7055b7a 100644
+index e69de29..d15ceb2 100644
 --- a/pdu-python-api/raritan/__init__.py
 +++ b/pdu-python-api/raritan/__init__.py
 @@ -0,0 +1,25 @@
@@ -35,7 +35,7 @@ index e69de29..7055b7a 100644
 +from .version import __sdk_subversion__
 +
 +__sdk_version_string__ = u'{}.{} ({})'.format(__sdk_version__, __sdk_subversion__, __build__)
-+__sdk_release__        = u'{}.{})'.format(__sdk_version__, __sdk_subversion__)
++__sdk_release__        = u'{}.{}'.format(__sdk_version__, __sdk_subversion__)
 +__sdk_fullversion__    = u'{}.{}-{}'.format(__sdk_version__, __sdk_subversion__, __build__)
 +__copyright__          = u'Copyright (c) 2009-2020 {} <{}>'.format(__author__, __email__)
 diff --git a/pdu-python-api/raritan/version.py b/pdu-python-api/raritan/version.py

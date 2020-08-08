@@ -1,3 +1,9 @@
+raritan-json-rpc-sdk (3.6.0+ds1-1) unstable; urgency=medium
+
+  * source only upload
+
+ -- Carsten Schoenert <c.schoenert@t-online.de>  Sat, 08 Aug 2020 08:57:47 +0200
+
 raritan-json-rpc-sdk (3.6.0+ds1-1~exp2) unstable; urgency=medium
 
   * [5275895] rebuild patch queue from patchqueue branch

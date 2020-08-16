@@ -1,3 +1,19 @@
+raritan-json-rpc-sdk (3.6.0+ds1-2~exp1) experimental; urgency=medium
+
+  [ gregor herrmann ]
+  * [8681418] debian/control: add binary package libraritan-rpc-perl.
+  * [dcadc79] Install perl modules and cli script into libraritan-rpc-perl package.
+  * [6414f28] Install perl demo scripts as examples into libraritan-rpc-perl.
+  * [9b65220] Create and install manpage for the perl cli script.
+  * [af332d8] Explicitly build-depend on perl, as we are using pod2man.
+  * [e37fb5f] Rename perl cli script to follow Debian policy.
+  * [db94d83] Change perl script name in documentation as well.
+  * [eadbc4e] Add lintian overrides for perl package.
+  * [5b4327b] Add a patch to fix POD in px2_configure.pl.
+  * [db70224] Add autopkgtests for the perl package.
+
+ -- Carsten Schoenert <c.schoenert@t-online.de>  Sun, 16 Aug 2020 09:50:02 +0200
+
 raritan-json-rpc-sdk (3.6.0+ds1-1) unstable; urgency=medium
 
   * source only upload
